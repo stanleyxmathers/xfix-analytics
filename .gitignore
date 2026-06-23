@@ -1,0 +1,10 @@
+# Excel отчёты (содержат рабочие данные)
+*.xlsx
+*.xls
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

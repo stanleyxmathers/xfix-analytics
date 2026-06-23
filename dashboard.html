@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XFIX Analytics — Аналитика сервисного центра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ─── XFIX Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  --xf-green:     #39BB3B;
+  --xf-green-600: #2E9A30;
+  --xf-green-300: #6FD071;
+  --xf-red:       #ED4623;
+  --xf-red-600:   #D63A19;
+  --xf-yellow:    #F5A623;
+
+  --xf-ink-950: #0A0B0C;
+  --xf-ink-900: #111315;
+  --xf-ink-800: #1A1D20;
+  --xf-ink-700: #2A2E33;
+  --xf-ink-600: #3D4248;
+  --xf-ink-500: #61676E;
+  --xf-ink-400: #8A9097;
+  --xf-ink-300: #B4B9BE;
+  --xf-ink-200: #D5D8DB;
+
+  --bg-page:    var(--xf-ink-950);
+  --bg-surface: var(--xf-ink-900);
+  --bg-card:    var(--xf-ink-800);
+  --bg-hover:   var(--xf-ink-700);
+
+  --border-default: var(--xf-ink-700);
+  --border-subtle:  var(--xf-ink-600);
+
+  --text-primary:   #FFFFFF;
+  --text-secondary: var(--xf-ink-400);
+  --text-muted:     var(--xf-ink-500);
+
+  --accent:  var(--xf-green);
+  --danger:  var(--xf-red);
+  --warning: var(--xf-yellow);
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.6);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.6);
+  --glow-green: 0 0 0 1px rgba(57,187,59,.4), 0 8px 32px rgba(57,187,59,.2);
+  --glow-red:   0 0 0 1px rgba(237,70,35,.4), 0 4px 16px rgba(237,70,35,.2);
+
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+
+  --sidebar-w: 240px;
+  --topbar-h:  60px;
+}
+
+/* ─── Reset & Base ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Wix Madefor Text', system-ui, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select { font-family: inherit; }
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--xf-green);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; color: #000; letter-spacing: -.5px;
+  flex-shrink: 0;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
+.logo-sub  { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.nav-section { padding: 12px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; margin: 1px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary);
+  transition: background var(--dur-fast), color var(--dur-fast);
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: rgba(57,187,59,.12); color: var(--xf-green); }
+.nav-item .nav-icon { width: 16px; height: 16px; opacity: .7; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--xf-red);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 10px;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-default);
+  font-size: 11px; color: var(--text-muted);
+}
+
+/* Main content */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Topbar */
+.topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  display: flex; align-items: center; gap: 12px; padding: 0 24px;
+}
+.topbar-title { font-size: 16px; font-weight: 600; flex: 1; }
+.topbar-title span { color: var(--text-muted); font-weight: 400; }
+
+.report-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px; font-size: 13px;
+  min-width: 180px;
+  outline: none; cursor: pointer;
+}
+.report-select:focus { border-color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; border: none;
+  transition: background var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+}
+.btn:active { transform: scale(.97); }
+.btn-primary {
+  background: var(--xf-green); color: #000;
+  box-shadow: 0 2px 8px rgba(57,187,59,.3);
+}
+.btn-primary:hover { background: var(--xf-green-600); box-shadow: var(--glow-green); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-default); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-danger { background: var(--xf-red); color: #fff; }
+.btn-danger:hover { background: var(--xf-red-600); }
+
+/* Page content */
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: .6px; margin-bottom: 16px;
+}
+.card-lg { padding: 24px; }
+
+/* KPI grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-base);
+}
+.kpi-card:hover::before { opacity: 1; }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.kpi-value.danger { color: var(--danger); }
+.kpi-value.accent { color: var(--accent); }
+.kpi-delta {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600; margin-top: 6px;
+  padding: 2px 6px; border-radius: var(--radius-xs);
+}
+.kpi-delta.up   { background: rgba(57,187,59,.12); color: var(--xf-green); }
+.kpi-delta.down { background: rgba(237,70,35,.12);  color: var(--xf-red); }
+.kpi-delta.neutral { background: var(--bg-hover); color: var(--text-muted); }
+
+/* Charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.chart-wrap { position: relative; height: 260px; }
+
+/* Tables */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--border-default);
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  color: var(--text-secondary);
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,.02); color: var(--text-primary); }
+.data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Zone badges */
+.zone-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: var(--radius-xs);
+  font-size: 11px; font-weight: 600;
+}
+.zone-normal   { background: rgba(57,187,59,.1);  color: var(--xf-green); }
+.zone-yellow   { background: rgba(245,166,35,.1); color: var(--xf-yellow); }
+.zone-red      { background: rgba(237,70,35,.1);  color: var(--xf-red); }
+
+/* Insight cards */
+.insight-list { display: flex; flex-direction: column; gap: 8px; }
+.insight-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+.insight-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.insight-msg  { font-size: 13px; color: var(--text-primary); }
+.insight-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Section headers */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.section-sub   { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; background: var(--bg-card); border-radius: var(--radius-md); padding: 4px; margin-bottom: 20px; }
+.tab {
+  flex: 1; padding: 7px 12px; border: none; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  background: transparent; cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.tab.active { background: var(--bg-hover); color: var(--text-primary); }
+.tab:hover:not(.active) { color: var(--text-primary); }
+
+/* Progress bars */
+.progress-wrap { margin-bottom: 12px; }
+.progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-secondary); }
+.progress-bar { height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width .4s var(--ease-out); }
+.progress-fill.danger { background: var(--danger); }
+.progress-fill.warning { background: var(--warning); }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 60px 20px;
+  color: var(--text-muted); text-align: center;
+}
+.empty-state-icon { font-size: 40px; }
+.empty-state-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
+
+/* ─── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 28px; width: 480px; max-width: 95vw;
+  box-shadow: var(--shadow-lg);
+  animation: modal-in var(--dur-base) var(--ease-out);
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title  { font-size: 18px; font-weight: 700; }
+.modal-close  { background: none; border: none; color: var(--text-muted); font-size: 20px; padding: 4px; border-radius: var(--radius-xs); }
+.modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.drop-zone {
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 40px; text-align: center; cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(57,187,59,.04);
+}
+.drop-zone-icon { font-size: 36px; margin-bottom: 12px; }
+.drop-zone-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.drop-zone-sub   { font-size: 12px; color: var(--text-muted); }
+
+.upload-progress { display: none; margin-top: 16px; }
+.upload-bar { height: 4px; background: var(--bg-hover); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.upload-fill { height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width .3s; }
+
+/* ─── Toast ───────────────────────────────────────────────────────────────── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px; font-weight: 500;
+  animation: toast-in var(--dur-base) var(--ease-out);
+  max-width: 320px;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: none; }
+}
+.toast.success { border-color: rgba(57,187,59,.4); }
+.toast.error   { border-color: rgba(237,70,35,.4); }
+.toast-icon    { font-size: 16px; flex-shrink: 0; }
+
+/* ─── Loading spinner ─────────────────────────────────────────────────────── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--xf-ink-600); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--xf-ink-500); }
+
+/* ─── Anomaly items ───────────────────────────────────────────────────────── */
+.anomaly-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+.anomaly-item.critical { border-color: rgba(237,70,35,.3); background: rgba(237,70,35,.04); }
+.anomaly-item.warning  { border-color: rgba(245,166,35,.3); background: rgba(245,166,35,.04); }
+.anomaly-severity { font-size: 20px; flex-shrink: 0; }
+.anomaly-title { font-size: 13px; font-weight: 600; }
+.anomaly-msg { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.anomaly-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ─── Employee highlight ──────────────────────────────────────────────────── */
+.emp-star { color: var(--xf-yellow); }
+
+/* ─── Settings ────────────────────────────────────────────────────────────── */
+.settings-group { margin-bottom: 24px; }
+.settings-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+.settings-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; outline: none;
+}
+.settings-input:focus { border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">X</div>
+      <div>
+        <div class="logo-text">XFIX</div>
+        <div class="logo-sub">Service Analytics</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Аналитика</div>
+      <div class="nav-item active" data-page="overview" onclick="showPage('overview',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 0h5v5H9V9z"/></svg>
+        Главная
+      </div>
+      <div class="nav-item" data-page="dynamics" onclick="showPage('dynamics',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 12l4-4 3 3 4-5 3 3V14H1z"/><path opacity=".3" d="M1 12l4-4 3 3 4-5 3 3V2H1z"/></svg>
+        Динамика
+      </div>
+      <div class="nav-item" data-page="overruns" onclick="showPage('overruns',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 14h14L8 1zm0 3l4.5 8h-9L8 4z"/></svg>
+        Перерасходы
+      </div>
+      <div class="nav-item" data-page="reasons" onclick="showPage('reasons',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><path fill="var(--bg-card)" d="M7 6h2v5H7zm0-3h2v2H7z"/></svg>
+        Причины
+      </div>
+
+      <div class="nav-section">Разрезы</div>
+      <div class="nav-item" data-page="employees" onclick="showPage('employees',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6H2z"/></svg>
+        Сотрудники
+      </div>
+      <div class="nav-item" data-page="vendors" onclick="showPage('vendors',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="10" rx="1"/></svg>
+        Вендоры
+      </div>
+
+      <div class="nav-section">Контроль</div>
+      <div class="nav-item" data-page="anomalies" onclick="showPage('anomalies',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 11a1 1 0 110-2 1 1 0 010 2zm0-4V5"/></svg>
+        Аномалии
+        <span class="nav-badge" id="anomaly-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-page="report" onclick="showPage('report',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10v12H3V2zm2 3h6v1H5V5zm0 3h6v1H5V8zm0 3h4v1H5v-1z"/></svg>
+        Отчёт
+      </div>
+      <div class="nav-item" data-page="settings" onclick="showPage('settings',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6A3 3 0 008 5zm6.3 1.2l-1.1-.2A5.5 5.5 0 0012 4.8l.6-.9a.5.5 0 00-.1-.7l-1.1-1a.5.5 0 00-.7.1l-.7.8A5.5 5.5 0 008.2 2.1L8 1a.5.5 0 00-.5-.4h-1.4A.5.5 0 005.7 1l-.2 1.1A5.5 5.5 0 004 3.2L3.1 2.6a.5.5 0 00-.7.1l-1 1.1a.5.5 0 00.1.7l.8.7A5.5 5.5 0 002.1 7l-1.1.2a.5.5 0 00-.4.5v1.4c0 .3.2.5.4.5l1.1.2a5.5 5.5 0 001.1 1.2l-.6.9a.5.5 0 00.1.7l1.1 1c.2.2.5.1.7-.1l.7-.8A5.5 5.5 0 007.8 14l.2 1.1c.1.2.3.4.5.4h1.4c.3 0 .5-.2.5-.4l.2-1.1a5.5 5.5 0 001.2-1.1l.9.6c.2.1.5.1.7-.1l1-1.1a.5.5 0 00-.1-.7l-.8-.7a5.5 5.5 0 00.2-1.4l1.1-.2c.2-.1.4-.3.4-.5V6.6a.5.5 0 00-.4-.4z"/></svg>
+        Настройки
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div id="last-upload-info">Загрузок: —</div>
+    </div>
+  </aside>
+
+  <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-title" id="page-title">Главная <span>— обзор</span></div>
+      <select class="report-select" id="report-select" onchange="onReportChange()">
+        <option value="">Загрузка отчётов…</option>
+      </select>
+      <button class="btn btn-primary" onclick="openUploadModal()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4M3 13h10"/><path stroke="currentColor" stroke-width="1.5" fill="none" d="M4 5l4-4 4 4M8 1v9M3 13h10"/></svg>
+        Загрузить отчёт
+      </button>
+    </header>
+
+    <!-- Content pages -->
+    <div class="content">
+
+      <!-- ─ Overview ──────────────────────────────────────────────────────── -->
+      <div class="page active" id="page-overview">
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value" id="kpi-services">—</div><div id="kpi-services-delta"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value" id="kpi-payments">—</div><div id="kpi-payments-delta"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value" id="kpi-avg">—</div><div id="kpi-avg-delta"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger" id="kpi-nonstandard">—</div><div id="kpi-nonstandard-delta"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger" id="kpi-overrun">—</div><div id="kpi-overrun-delta"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent" id="kpi-savings">—</div></div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">Зоны обращений</div>
+            <div class="chart-wrap"><canvas id="chart-zones"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Вендоры — выплаты</div>
+            <div class="chart-wrap"><canvas id="chart-vendors-pie"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Авто-инсайты</div>
+          <div class="insight-list" id="insights-list">
+            <div class="empty-state"><div class="empty-state-icon">💡</div><div class="empty-state-title">Загрузите отчёт для получения инсайтов</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Dynamics ─────────────────────────────────────────────────────── -->
+      <div class="page" id="page-dynamics">
+        <div class="section-header">
+          <div><div class="section-title">Динамика по неделям</div><div class="section-sub">Неделя к неделе с дельтами</div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">Обращения и выплаты</div>
+          <div class="chart-wrap" style="height:300px"><canvas id="chart-dynamics"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Перерасход по неделям</div>
+          <div class="chart-wrap" style="height:220px"><canvas id="chart-overrun-dynamics"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ─ Overruns ─────────────────────────────────────────────────────── -->
+      <div class="page" id="page-overruns">
+        <div class="section-header">
+          <div><div class="section-title">Перерасходы</div><div class="section-sub">Обращения с превышением базовой стоимости</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Таблица перерасходов</div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="overruns-table">
+              <thead><tr>
+                <th>Зона</th><th>ID сервис</th><th>Вендор</th><th>Группа</th>
+                <th class="num">Факт, ₽</th><th class="num">База, ₽</th>
+                <th class="num">Перерасход, ₽</th><th class="num">%</th>
+                <th>Сотрудники</th><th>Доп. действия</th>
+              </tr></thead>
+              <tbody id="overruns-tbody"><tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Reasons ──────────────────────────────────────────────────────── -->
+      <div class="page" id="page-reasons">
+        <div class="section-header">
+          <div><div class="section-title">Причины перерасходов</div><div class="section-sub">ТОП дополнительных действий</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">ТОП-10 причин</div>
+            <div class="chart-wrap" style="height:320px"><canvas id="chart-reasons"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Доля в перерасходе</div>
+            <div id="reasons-bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Employees ────────────────────────────────────────────────────── -->
+      <div class="page" id="page-employees">
+        <div class="section-header">
+          <div><div class="section-title">Сотрудники</div><div class="section-sub">Показатели выше среднего — отмечены ⭐</div></div>
+        </div>
+        <div class="card">
+          <table class="data-table" id="employees-table">
+            <thead><tr>
+              <th>Сотрудник</th><th>Отдел</th>
+              <th class="num">Обращений</th><th class="num">Выплат, ₽</th>
+              <th class="num">Ср. стоимость</th><th class="num">Перерасход, ₽</th>
+              <th class="num">Нестанд., %</th><th class="num">vs ср.</th>
+            </tr></thead>
+            <tbody id="employees-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─ Vendors ──────────────────────────────────────────────────────── -->
+      <div class="page" id="page-vendors">
+        <div class="section-header">
+          <div><div class="section-title">Вендоры</div><div class="section-sub">Apple vs Яндекс сравнение</div></div>
+        </div>
+        <div class="kpi-grid" id="vendor-kpis"></div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">Обращения по вендорам</div>
+            <div class="chart-wrap"><canvas id="chart-vendor-services"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Выплаты по вендорам</div>
+            <div class="chart-wrap"><canvas id="chart-vendor-payments"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─ Anomalies ────────────────────────────────────────────────────── -->
+      <div class="page" id="page-anomalies">
+        <div class="section-header">
+          <div><div class="section-title">Аномалии</div><div class="section-sub">Отклонения от нормы (порог: 20% стоимость, 30% перерасход)</div></div>
+        </div>
+        <div id="anomalies-list">
+          <div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">Аномалий не обнаружено</div></div>
+        </div>
+      </div>
+
+      <!-- ─ Report ───────────────────────────────────────────────────────── -->
+      <div class="page" id="page-report">
+        <div class="section-header">
+          <div><div class="section-title">Менеджерский отчёт</div><div class="section-sub">Автоматические рекомендации</div></div>
+          <button class="btn btn-ghost" onclick="printReport()">🖨 Печать</button>
+        </div>
+        <div class="card card-lg" id="report-content">
+          <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Выберите отчёт для генерации</div></div>
+        </div>
+      </div>
+
+      <!-- ─ Settings ─────────────────────────────────────────────────────── -->
+      <div class="page" id="page-settings">
+        <div class="section-header">
+          <div><div class="section-title">Настройки</div><div class="section-sub">Параметры подключения и пороги аномалий</div></div>
+        </div>
+        <div class="card card-lg" style="max-width:520px">
+          <div class="settings-group">
+            <div class="settings-label">URL сервера n8n</div>
+            <input class="settings-input" id="cfg-url" type="url" placeholder="http://localhost:5678" oninput="saveSettings()">
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Порог аномалии по стоимости, %</div>
+            <input class="settings-input" id="cfg-cost-threshold" type="number" value="20" oninput="saveSettings()">
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Порог аномалии по перерасходу, %</div>
+            <input class="settings-input" id="cfg-overrun-threshold" type="number" value="30" oninput="saveSettings()">
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">Порог инсайта WoW, %</div>
+            <input class="settings-input" id="cfg-insight-threshold" type="number" value="5" oninput="saveSettings()">
+          </div>
+          <button class="btn btn-primary" onclick="testConnection()">Проверить подключение</button>
+          <span id="conn-status" style="margin-left:12px;font-size:12px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ─── Upload Modal ─────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Загрузить отчёт</div>
+      <button class="modal-close" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="drop-zone" id="drop-zone" onclick="triggerFileInput()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <div class="drop-zone-icon">📊</div>
+      <div class="drop-zone-title">Перетащите Excel файл или нажмите</div>
+      <div class="drop-zone-sub">Поддерживаются форматы .xlsx, .xls</div>
+      <div id="selected-filename" style="margin-top:10px;font-size:13px;color:var(--accent);display:none"></div>
+    </div>
+    <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="onFileSelect(event)">
+    <div class="upload-progress" id="upload-progress">
+      <div style="font-size:12px;color:var(--text-secondary)" id="upload-status">Загрузка…</div>
+      <div class="upload-bar"><div class="upload-fill" id="upload-fill"></div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeUploadModal()">Отмена</button>
+      <button class="btn btn-primary" style="flex:2" onclick="doUpload()" id="upload-btn" disabled>Загрузить и обработать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Toast container ──────────────────────────────────────────────────── -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFIG & STATE
+══════════════════════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  n8nUrl: '',
+  costThreshold: 20,
+  overrunThreshold: 30,
+  insightThreshold: 5,
+};
+
+const STATE = {
+  currentReportId: null,
+  reports: [],
+  charts: {},
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════════════════════════════════════════ */
+function loadSettings() {
+  const s = JSON.parse(localStorage.getItem('xfix-settings') || '{}');
+  CONFIG.n8nUrl             = s.n8nUrl             || 'https://imtime.app.n8n.cloud';
+  CONFIG.costThreshold      = s.costThreshold      || 20;
+  CONFIG.overrunThreshold   = s.overrunThreshold   || 30;
+  CONFIG.insightThreshold   = s.insightThreshold   || 5;
+  document.getElementById('cfg-url').value               = CONFIG.n8nUrl;
+  document.getElementById('cfg-cost-threshold').value    = CONFIG.costThreshold;
+  document.getElementById('cfg-overrun-threshold').value = CONFIG.overrunThreshold;
+  document.getElementById('cfg-insight-threshold').value = CONFIG.insightThreshold;
+}
+function saveSettings() {
+  CONFIG.n8nUrl             = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  CONFIG.costThreshold      = +document.getElementById('cfg-cost-threshold').value;
+  CONFIG.overrunThreshold   = +document.getElementById('cfg-overrun-threshold').value;
+  CONFIG.insightThreshold   = +document.getElementById('cfg-insight-threshold').value;
+  localStorage.setItem('xfix-settings', JSON.stringify(CONFIG));
+}
+async function testConnection() {
+  const el = document.getElementById('conn-status');
+  el.textContent = 'Проверка…'; el.style.color = 'var(--text-muted)';
+  try {
+    const r = await fetch(`${CONFIG.n8nUrl}/webhook/api?endpoint=uploads`);
+    if (r.ok) { el.textContent = '✓ Подключено'; el.style.color = 'var(--xf-green)'; }
+    else { el.textContent = `✗ HTTP ${r.status}`; el.style.color = 'var(--xf-red)'; }
+  } catch(e) {
+    el.textContent = '✗ Нет соединения'; el.style.color = 'var(--xf-red)';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   API
+══════════════════════════════════════════════════════════════════════════════ */
+async function api(endpoint, params = {}) {
+  const url = new URL(`${CONFIG.n8nUrl}/webhook/api`);
+  url.searchParams.set('endpoint', endpoint);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const r = await fetch(url.toString());
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════════════════════════ */
+const PAGE_TITLES = {
+  overview:  'Главная <span>— обзор</span>',
+  dynamics:  'Динамика <span>— неделя к неделе</span>',
+  overruns:  'Перерасходы <span>— таблица</span>',
+  reasons:   'Причины <span>— ТОП действий</span>',
+  employees: 'Сотрудники <span>— детальный анализ</span>',
+  vendors:   'Вендоры <span>— Apple vs Яндекс</span>',
+  anomalies: 'Аномалии <span>— система контроля</span>',
+  report:    'Отчёт <span>— для менеджера</span>',
+  settings:  'Настройки',
+};
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
+  loadPageData(id);
+}
+function loadPageData(id) {
+  const rid = STATE.currentReportId;
+  if (!rid && id !== 'dynamics' && id !== 'settings') return;
+  switch(id) {
+    case 'overview':  loadOverview(); break;
+    case 'dynamics':  loadDynamics(); break;
+    case 'overruns':  loadOverruns(); break;
+    case 'reasons':   loadReasons();  break;
+    case 'employees': loadEmployees(); break;
+    case 'vendors':   loadVendors();  break;
+    case 'anomalies': loadAnomalies(); break;
+    case 'report':    loadReport();   break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REPORT SELECT
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadReports() {
+  try {
+    const data = await api('uploads');
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    STATE.reports = rows;
+    const sel = document.getElementById('report-select');
+    sel.innerHTML = '';
+    if (!rows.length) {
+      sel.innerHTML = '<option value="">Нет загруженных отчётов</option>';
+      document.getElementById('last-upload-info').textContent = 'Загрузок: 0';
+      return;
+    }
+    rows.forEach((r, i) => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = `Неделя ${r.report_week} (${r.row_count} строк)`;
+      sel.appendChild(opt);
+    });
+    document.getElementById('last-upload-info').textContent = `Загрузок: ${rows.length}`;
+    STATE.currentReportId = rows[0].id;
+    loadOverview();
+    loadAnomaliesBadge();
+  } catch(e) {
+    document.getElementById('report-select').innerHTML = '<option value="">Ошибка загрузки</option>';
+    showToast('Не удалось подключиться к n8n', 'error');
+  }
+}
+function onReportChange() {
+  STATE.currentReportId = document.getElementById('report-select').value;
+  const activePage = document.querySelector('.page.active');
+  if (activePage) loadPageData(activePage.id.replace('page-', ''));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHART HELPERS
+══════════════════════════════════════════════════════════════════════════════ */
+const CHART_DEFAULTS = {
+  color: '#fff',
+  borderColor: 'rgba(255,255,255,.1)',
+};
+Chart.defaults.color = '#8A9097';
+Chart.defaults.borderColor = '#2A2E33';
+Chart.defaults.font.family = "'Wix Madefor Text', sans-serif";
+
+function destroyChart(id) {
+  if (STATE.charts[id]) { STATE.charts[id].destroy(); delete STATE.charts[id]; }
+}
+function mkChart(id, config) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  STATE.charts[id] = new Chart(ctx, config);
+  return STATE.charts[id];
+}
+
+const PALETTE = ['#39BB3B','#ED4623','#F5A623','#3B8BEB','#A855F7','#06B6D4','#F97316','#84CC16'];
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FORMAT HELPERS
+══════════════════════════════════════════════════════════════════════════════ */
+const fmt = {
+  money: v => new Intl.NumberFormat('ru-RU', {style:'currency',currency:'RUB',maximumFractionDigits:0}).format(v||0),
+  num:   v => new Intl.NumberFormat('ru-RU').format(v||0),
+  pct:   v => `${(+v||0).toFixed(1)}%`,
+  delta: (v, invert=false) => {
+    const n = +v || 0;
+    const cls = n === 0 ? 'neutral' : (n > 0 ? (invert ? 'down' : 'up') : (invert ? 'up' : 'down'));
+    const arrow = n > 0 ? '▲' : (n < 0 ? '▼' : '—');
+    return `<span class="kpi-delta ${cls}">${arrow} ${Math.abs(n).toFixed(1)}%</span>`;
+  },
+  zone: z => {
+    const map = { normal: ['✓','zone-normal'], yellow: ['🟡','zone-yellow'], red: ['🔴','zone-red'] };
+    const [icon, cls] = map[z] || ['—','zone-normal'];
+    return `<span class="zone-badge ${cls}">${icon} ${z==='normal'?'Норма':z==='yellow'?'Повышен':'Критично'}</span>`;
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: OVERVIEW
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadOverview() {
+  if (!STATE.currentReportId) return;
+  try {
+    const [overview, insights] = await Promise.all([
+      api('overview', { report_id: STATE.currentReportId }),
+      api('insights', { report_id: STATE.currentReportId }),
+    ]);
+    const d = Array.isArray(overview) ? overview[0] : (overview.rows?.[0] || overview);
+    if (!d) return;
+
+    document.getElementById('kpi-services').textContent = fmt.num(d.total_services);
+    document.getElementById('kpi-payments').textContent = fmt.money(d.total_payments);
+    document.getElementById('kpi-avg').textContent      = fmt.money(d.avg_service_cost);
+    document.getElementById('kpi-nonstandard').textContent = fmt.num(d.non_standard_count);
+    document.getElementById('kpi-overrun').textContent  = fmt.money(d.total_overrun);
+    document.getElementById('kpi-savings').textContent  = fmt.money(d.potential_savings || 0);
+
+    if (d.prev_services) {
+      document.getElementById('kpi-services-delta').innerHTML = fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100);
+      document.getElementById('kpi-payments-delta').innerHTML = fmt.delta((d.total_payments - d.prev_payments) / d.prev_payments * 100, true);
+      document.getElementById('kpi-avg-delta').innerHTML      = fmt.delta((d.avg_service_cost - d.prev_avg) / d.prev_avg * 100, true);
+      document.getElementById('kpi-nonstandard-delta').innerHTML = fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true);
+      document.getElementById('kpi-overrun-delta').innerHTML  = fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true);
+    }
+
+    // Zone chart
+    mkChart('chart-zones', {
+      type: 'doughnut',
+      data: {
+        labels: ['Норма ✓', 'Повышен 🟡', 'Критично 🔴'],
+        datasets: [{ data: [d.zone_normal||0, d.zone_yellow||0, d.zone_red||0], backgroundColor: ['#39BB3B','#F5A623','#ED4623'], borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
+    });
+
+    // Vendor pie
+    const vd = Array.isArray(overview) ? overview : (overview.vendors || []);
+    if (vd.length > 1 || d.vendor_data) {
+      const vendors = d.vendor_data || [];
+      mkChart('chart-vendors-pie', {
+        type: 'doughnut',
+        data: {
+          labels: vendors.map(v => v.vendor),
+          datasets: [{ data: vendors.map(v => v.payments), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
+      });
+    }
+
+    // Insights
+    const insightRows = Array.isArray(insights) ? insights : (insights.rows || []);
+    const el = document.getElementById('insights-list');
+    if (!insightRows.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-title">Значимых изменений не обнаружено</div></div>';
+    } else {
+      el.innerHTML = insightRows.map(i => `
+        <div class="insight-item">
+          <div class="insight-icon">${i.direction==='up'?'📈':'📉'}</div>
+          <div>
+            <div class="insight-msg">${i.message}</div>
+            <div class="insight-meta">${i.insight_type} · ${i.change_pct ? fmt.pct(i.change_pct) : ''}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) { console.error('overview', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: DYNAMICS
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadDynamics() {
+  try {
+    const data = await api('weekly');
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    if (!rows.length) return;
+
+    const labels = rows.map(r => r.report_week);
+    const services = rows.map(r => +r.total_services || 0);
+    const payments = rows.map(r => +r.total_payments || 0);
+    const overruns = rows.map(r => +r.total_overrun || 0);
+
+    mkChart('chart-dynamics', {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Обращения', data: services, borderColor: '#39BB3B', backgroundColor: 'rgba(57,187,59,.08)', fill: true, tension: .4, yAxisID: 'y1' },
+          { label: 'Выплаты, ₽', data: payments, borderColor: '#3B8BEB', backgroundColor: 'rgba(59,139,235,.08)', fill: true, tension: .4, yAxisID: 'y2' },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          y1: { type: 'linear', position: 'left', grid: { color: 'rgba(255,255,255,.05)' } },
+          y2: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } }
+        },
+        plugins: { legend: { position: 'top' } }
+      }
+    });
+
+    mkChart('chart-overrun-dynamics', {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Перерасход, ₽', data: overruns, backgroundColor: 'rgba(237,70,35,.6)', borderColor: '#ED4623', borderWidth: 1 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  } catch(e) { console.error('dynamics', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: OVERRUNS
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadOverruns() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('overruns', { report_id: STATE.currentReportId });
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    const tbody = document.getElementById('overruns-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Перерасходов нет</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${fmt.zone(r.zone)}</td>
+        <td style="font-variant-numeric:tabular-nums">${r.service_id}</td>
+        <td>${r.vendor||'—'}</td>
+        <td>${r.group_name||'—'}</td>
+        <td class="num">${fmt.money(r.total_price)}</td>
+        <td class="num">${fmt.money(r.base_cost)}</td>
+        <td class="num" style="color:var(--xf-red)">${fmt.money(r.overrun)}</td>
+        <td class="num">${fmt.pct(r.overrun_pct)}</td>
+        <td style="font-size:12px">${(r.employees||[]).join(', ')||'—'}</td>
+        <td style="font-size:11px;color:var(--text-muted);max-width:200px">${(r.extra_actions||[]).join(', ')||'—'}</td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error('overruns', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: REASONS
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadReasons() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('reasons', { report_id: STATE.currentReportId });
+    const rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 10);
+    if (!rows.length) return;
+
+    mkChart('chart-reasons', {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.reason),
+        datasets: [{ label: 'Перерасход, ₽', data: rows.map(r => +r.total_overrun), backgroundColor: PALETTE[0], borderRadius: 4 }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        scales: { x: { grid: { color: 'rgba(255,255,255,.05)' } }, y: { grid: { display: false } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    const maxO = Math.max(...rows.map(r => +r.total_overrun));
+    document.getElementById('reasons-bars').innerHTML = rows.map(r => `
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span style="font-size:12px">${r.reason}</span>
+          <span>${fmt.money(r.total_overrun)} · ${r.cases_count} сл.</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${+r.total_overrun/maxO*100}%"></div></div>
+      </div>
+    `).join('');
+  } catch(e) { console.error('reasons', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: EMPLOYEES
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadEmployees() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('employees', { report_id: STATE.currentReportId });
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    const avgCost = rows.reduce((s, r) => s + (+r.avg_service_cost||0), 0) / (rows.length||1);
+    const tbody = document.getElementById('employees-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const vsPct = avgCost ? ((+r.avg_service_cost - avgCost) / avgCost * 100) : 0;
+      const star = +r.avg_service_cost > avgCost * 1.1 ? '<span class="emp-star">⭐</span>' : '';
+      return `
+        <tr>
+          <td style="font-weight:600">${r.employee} ${star}</td>
+          <td>${r.department||'—'}</td>
+          <td class="num">${fmt.num(r.services_count)}</td>
+          <td class="num">${fmt.money(r.total_earnings)}</td>
+          <td class="num">${fmt.money(r.avg_service_cost)}</td>
+          <td class="num" style="color:var(--xf-red)">${fmt.money(r.total_overrun)}</td>
+          <td class="num">${fmt.pct(r.non_standard_pct)}</td>
+          <td class="num">${fmt.delta(vsPct, true)}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch(e) { console.error('employees', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: VENDORS
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadVendors() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('vendors', { report_id: STATE.currentReportId });
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    if (!rows.length) return;
+
+    document.getElementById('vendor-kpis').innerHTML = rows.map((r, i) => `
+      <div class="kpi-card">
+        <div class="kpi-label" style="color:${PALETTE[i]}">${r.vendor}</div>
+        <div class="kpi-value">${fmt.num(r.services)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${fmt.money(r.payments)} выплат</div>
+        <div style="font-size:12px;color:var(--xf-red);margin-top:2px">−${fmt.money(r.overrun)} перерасход</div>
+      </div>
+    `).join('');
+
+    mkChart('chart-vendor-services', {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.vendor),
+        datasets: [{ label: 'Обращений', data: rows.map(r => +r.services), backgroundColor: rows.map((_,i) => PALETTE[i]), borderRadius: 8 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } } }
+    });
+    mkChart('chart-vendor-payments', {
+      type: 'bar',
+      data: {
+        labels: rows.map(r => r.vendor),
+        datasets: [{ label: 'Выплаты, ₽', data: rows.map(r => +r.payments), backgroundColor: rows.map((_,i) => PALETTE[i]), borderRadius: 8 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } } }
+    });
+  } catch(e) { console.error('vendors', e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: ANOMALIES
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadAnomalies() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('anomalies', { report_id: STATE.currentReportId });
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    const el = document.getElementById('anomalies-list');
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">Аномалий не обнаружено</div><div style="color:var(--text-muted);font-size:13px">Все показатели в пределах нормы</div></div>';
+      return;
+    }
+    el.innerHTML = rows.map(r => `
+      <div class="anomaly-item ${r.severity}">
+        <div class="anomaly-severity">${r.severity==='critical'?'🔴':'🟡'}</div>
+        <div>
+          <div class="anomaly-title">${r.entity_id}</div>
+          <div class="anomaly-msg">${r.message}</div>
+          <div class="anomaly-meta">${r.anomaly_type} · Значение: ${fmt.money(r.value)} · Среднее: ${fmt.money(r.avg_value)} · Отклонение: ${fmt.pct(r.deviation_pct)}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error('anomalies', e); }
+}
+
+async function loadAnomaliesBadge() {
+  if (!STATE.currentReportId) return;
+  try {
+    const data = await api('anomalies', { report_id: STATE.currentReportId });
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    const badge = document.getElementById('anomaly-badge');
+    if (rows.length) { badge.textContent = rows.length; badge.style.display = 'inline-block'; }
+    else badge.style.display = 'none';
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: REPORT
+══════════════════════════════════════════════════════════════════════════════ */
+async function loadReport() {
+  if (!STATE.currentReportId) return;
+  const el = document.getElementById('report-content');
+  el.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  try {
+    const [overview, insights, anomalies, employees, vendors] = await Promise.all([
+      api('overview',  { report_id: STATE.currentReportId }),
+      api('insights',  { report_id: STATE.currentReportId }),
+      api('anomalies', { report_id: STATE.currentReportId }),
+      api('employees', { report_id: STATE.currentReportId }),
+      api('vendors',   { report_id: STATE.currentReportId }),
+    ]);
+    const d  = Array.isArray(overview)  ? overview[0]  : (overview.rows?.[0]  || overview);
+    const iRows = Array.isArray(insights)  ? insights  : (insights.rows  || []);
+    const aRows = Array.isArray(anomalies) ? anomalies : (anomalies.rows || []);
+    const eRows = Array.isArray(employees) ? employees : (employees.rows || []);
+    const vRows = Array.isArray(vendors)   ? vendors   : (vendors.rows   || []);
+
+    const critAnomaly = aRows.filter(a => a.severity === 'critical');
+    const warnAnomaly = aRows.filter(a => a.severity === 'warning');
+    const week = STATE.reports.find(r => r.id == STATE.currentReportId);
+
+    el.innerHTML = `
+      <div style="max-width:680px">
+        <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Менеджерский отчёт</h2>
+        <p style="color:var(--text-muted);margin-bottom:28px">Отчётная неделя: ${week?.report_week || '—'} · ${fmt.num(d?.row_count||0)} строк</p>
+
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">📊 КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+          <div style="background:var(--bg-card);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-default)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Обращений</div>
+            <div style="font-size:20px;font-weight:700">${fmt.num(d?.total_services)}</div>
+          </div>
+          <div style="background:var(--bg-card);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-default)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Выплат</div>
+            <div style="font-size:20px;font-weight:700">${fmt.money(d?.total_payments)}</div>
+          </div>
+          <div style="background:var(--bg-card);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-default);border-color:rgba(237,70,35,.3)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Перерасход</div>
+            <div style="font-size:20px;font-weight:700;color:var(--xf-red)">${fmt.money(d?.total_overrun)}</div>
+          </div>
+        </div>
+
+        ${critAnomaly.length ? `
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-red);margin-bottom:12px">🔴 КРИТИЧЕСКИЕ АНОМАЛИИ (${critAnomaly.length})</h3>
+        ${critAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(237,70,35,.07);border:1px solid rgba(237,70,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px"><strong>${a.entity_id}</strong>: ${a.message}</div>`).join('')}
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:24px">Рекомендация: провести разбор случаев с руководителем и выяснить обоснованность дополнительных действий.</p>
+        ` : ''}
+
+        ${warnAnomaly.length ? `
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-yellow);margin-bottom:12px">🟡 ПРЕДУПРЕЖДЕНИЯ (${warnAnomaly.length})</h3>
+        ${warnAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px">${a.message}</div>`).join('')}
+        <div style="margin-bottom:24px"></div>
+        ` : ''}
+
+        ${iRows.length ? `
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">💡 ИНСАЙТЫ</h3>
+        <ul style="padding-left:20px;margin-bottom:24px">
+          ${iRows.map(i => `<li style="margin-bottom:6px;font-size:13px;color:var(--text-secondary)">${i.message}</li>`).join('')}
+        </ul>
+        ` : ''}
+
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">👥 СОТРУДНИКИ</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
+          <thead><tr style="color:var(--text-muted);font-size:11px">
+            <th style="text-align:left;padding:6px 0;border-bottom:1px solid var(--border-default)">Имя</th>
+            <th style="text-align:right;padding:6px 0;border-bottom:1px solid var(--border-default)">Обращений</th>
+            <th style="text-align:right;padding:6px 0;border-bottom:1px solid var(--border-default)">Выплат</th>
+            <th style="text-align:right;padding:6px 0;border-bottom:1px solid var(--border-default)">Перерасход</th>
+          </tr></thead>
+          <tbody>${eRows.map(e => `
+            <tr>
+              <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">${e.employee}</td>
+              <td style="text-align:right;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">${fmt.num(e.services_count)}</td>
+              <td style="text-align:right;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">${fmt.money(e.total_earnings)}</td>
+              <td style="text-align:right;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);color:var(--xf-red)">${fmt.money(e.total_overrun)}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">📋 РЕКОМЕНДАЦИИ</h3>
+        <ul style="padding-left:20px">
+          <li style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Проанализировать обращения в красной зоне (>2x базовой стоимости) и провести аудит с мастерами</li>
+          <li style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Обновить базовые стоимости для групп с высокой частотой нестандартных действий</li>
+          <li style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Провести обучение по группам с наибольшим перерасходом</li>
+          ${critAnomaly.length ? '<li style="margin-bottom:8px;font-size:13px;color:var(--xf-red)">Срочно разобрать критические аномалии с руководителем</li>' : ''}
+        </ul>
+      </div>
+    `;
+  } catch(e) { el.innerHTML = `<div class="empty-state"><div class="empty-state-title">Ошибка загрузки отчёта</div></div>`; }
+}
+
+function printReport() {
+  window.print();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UPLOAD
+══════════════════════════════════════════════════════════════════════════════ */
+let uploadFile_ = null;
+
+function openUploadModal() {
+  document.getElementById('upload-modal').classList.add('open');
+}
+function closeUploadModal() {
+  document.getElementById('upload-modal').classList.remove('open');
+  uploadFile_ = null;
+  document.getElementById('selected-filename').style.display = 'none';
+  document.getElementById('upload-btn').disabled = true;
+  document.getElementById('upload-progress').style.display = 'none';
+}
+function triggerFileInput() {
+  document.getElementById('file-input').click();
+}
+function onFileSelect(evt) {
+  const f = evt.target.files[0];
+  if (!f) return;
+  uploadFile_ = f;
+  document.getElementById('selected-filename').textContent = f.name;
+  document.getElementById('selected-filename').style.display = 'block';
+  document.getElementById('upload-btn').disabled = false;
+}
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('drag-over');
+}
+function onDragLeave() {
+  document.getElementById('drop-zone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) {
+    uploadFile_ = f;
+    document.getElementById('selected-filename').textContent = f.name;
+    document.getElementById('selected-filename').style.display = 'block';
+    document.getElementById('upload-btn').disabled = false;
+  } else {
+    showToast('Поддерживаются только файлы .xlsx и .xls', 'error');
+  }
+}
+async function doUpload() {
+  if (!uploadFile_) return;
+  const progress = document.getElementById('upload-progress');
+  const fill     = document.getElementById('upload-fill');
+  const status   = document.getElementById('upload-status');
+  const btn      = document.getElementById('upload-btn');
+
+  progress.style.display = 'block';
+  btn.disabled = true;
+  fill.style.width = '10%';
+  status.textContent = 'Загрузка файла…';
+
+  try {
+    const formData = new FormData();
+    formData.append('data', uploadFile_, uploadFile_.name);
+
+    fill.style.width = '30%';
+    const r = await fetch(`${CONFIG.n8nUrl}/webhook/import-report`, { method: 'POST', body: formData });
+    fill.style.width = '70%';
+    status.textContent = 'Обработка данных…';
+
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const result = await r.json();
+    fill.style.width = '100%';
+    status.textContent = 'Готово!';
+
+    setTimeout(() => {
+      closeUploadModal();
+      showToast(`Отчёт загружен: ${result.row_count || '?'} строк`, 'success');
+      loadReports();
+    }, 600);
+  } catch(e) {
+    status.textContent = 'Ошибка: ' + e.message;
+    fill.style.width = '0';
+    btn.disabled = false;
+    showToast('Ошибка загрузки: ' + e.message, 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOASTS
+══════════════════════════════════════════════════════════════════════════════ */
+function showToast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${type==='success'?'✓':'✕'}</span>${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  loadReports();
+});
+</script>
+</body>
+</html>
