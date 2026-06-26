@@ -266,6 +266,9 @@ input, select { font-family: inherit; }
   font-size: 11px; font-weight: 600;
 }
 .zone-normal   { background: rgba(57,187,59,.1);  color: var(--xf-green); }
+.zone-small    { background: rgba(123,200,246,.15); color: #7BC8F6; }
+.zone-elevated { background: rgba(245,166,35,.1); color: var(--xf-yellow); }
+.zone-critical { background: rgba(237,70,35,.1);  color: var(--xf-red); }
 .zone-yellow   { background: rgba(245,166,35,.1); color: var(--xf-yellow); }
 .zone-red      { background: rgba(237,70,35,.1);  color: var(--xf-red); }
 
@@ -352,7 +355,7 @@ input, select { font-family: inherit; }
   border-color: var(--accent);
   background: rgba(57,187,59,.04);
 }
-.drop-zone-icon { font-size: 36px; margin-bottom: 12px; }
+.drop-zone-icon { margin-bottom: 12px; }
 .drop-zone-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .drop-zone-sub   { font-size: 12px; color: var(--text-muted); }
 
@@ -416,6 +419,50 @@ input, select { font-family: inherit; }
 /* ─── Employee highlight ──────────────────────────────────────────────────── */
 .emp-star { color: var(--xf-yellow); }
 
+/* ─── AI Analysis ─────────────────────────────────────────────────────────── */
+.ai-card {
+  background: linear-gradient(135deg, rgba(57,187,59,.05), rgba(59,139,235,.05));
+  border: 1px solid rgba(57,187,59,.2);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.ai-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ai-card-title  { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.risk-badge {
+  padding: 3px 10px; border-radius: var(--radius-xs);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+}
+.risk-low    { background: rgba(57,187,59,.12);  color: var(--xf-green); }
+.risk-medium { background: rgba(245,166,35,.12); color: var(--xf-yellow); }
+.risk-high   { background: rgba(237,70,35,.12);  color: var(--xf-red); }
+.risk-unknown { background: var(--bg-hover); color: var(--text-muted); }
+.ai-summary  { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+.patterns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.pattern-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+.pattern-title { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.pattern-desc  { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.5; }
+.pattern-meta  { font-size: 11px; color: var(--text-muted); }
+.pattern-rec   { font-size: 11px; color: var(--xf-green); margin-top: 4px; }
+.top-risks { display: flex; flex-direction: column; gap: 4px; }
+.top-risk-item {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 12px; padding: 6px 8px;
+  background: var(--bg-surface); border-radius: var(--radius-xs);
+}
+.top-risk-priority {
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: var(--radius-xs); flex-shrink: 0;
+}
+.priority-high   { background: rgba(237,70,35,.12);  color: var(--xf-red); }
+.priority-medium { background: rgba(245,166,35,.12); color: var(--xf-yellow); }
+.priority-low    { background: rgba(57,187,59,.12);  color: var(--xf-green); }
+
 /* ─── Settings ────────────────────────────────────────────────────────────── */
 .settings-group { margin-bottom: 24px; }
 .settings-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
@@ -428,7 +475,94 @@ input, select { font-family: inherit; }
   font-size: 13px; outline: none;
 }
 .settings-input:focus { border-color: var(--accent); }
+.stabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0; }
+.stab-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; font-weight: 500; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s; }
+.stab-btn:hover { color: var(--text-primary); }
+.stab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.stab-panel { display: none; }
+.stab-panel.active { display: block; }
+.as-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.as-form .settings-input { width: auto; }
+.as-cb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; cursor: pointer; }
+.as-cb input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+.emp-dept-row td { vertical-align: middle; }
+.dept-select { background: var(--bg-card); border: 1px solid var(--border-default); color: var(--text-primary); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; outline: none; cursor: pointer; }
+.dept-select:focus { border-color: var(--accent); }
+.dept-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: rgba(109,182,255,.15); color: var(--accent); font-weight: 500; }
+.dept-badge.manual { background: rgba(57,187,59,.15); color: var(--xf-green); }
+
+/* ─── Skeleton loader ─────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skel {
+  background: linear-gradient(90deg,
+    var(--xf-ink-700) 25%, var(--xf-ink-600) 37%, var(--xf-ink-700) 63%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-xs);
+}
+
+/* ─── Page fade-in ────────────────────────────────────────────────────────── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page.active { animation: page-in 180ms var(--ease-out) both; }
+
+/* ─── Keyboard focus ──────────────────────────────────────────────────────── */
+.nav-item:focus-visible    { outline: 2px solid var(--accent); outline-offset: -2px; }
+.btn:focus-visible         { outline: 2px solid var(--accent); outline-offset: 2px; }
+.modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.report-select:focus-visible { outline: 2px solid var(--accent); }
+
+/* ─── Light theme ─────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-page:    #F0F2F4;
+  --bg-surface: #FFFFFF;
+  --bg-card:    #F8F9FA;
+  --bg-hover:   #EAECEE;
+
+  --border-default: #D5D8DB;
+  --border-subtle:  #E4E7EA;
+
+  --text-primary:   #0A0B0C;
+  --text-secondary: #3D4248;
+  --text-muted:     #61676E;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --glow-green: 0 0 0 1px rgba(57,187,59,.4), 0 8px 32px rgba(57,187,59,.15);
+  --glow-red:   0 0 0 1px rgba(237,70,35,.4), 0 4px 16px rgba(237,70,35,.15);
+}
+[data-theme="light"] .data-table td {
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+[data-theme="light"] .data-table tr:hover td {
+  background: rgba(0,0,0,.03);
+  color: var(--text-primary);
+}
+[data-theme="light"] .skel {
+  background: linear-gradient(90deg,
+    #E4E7EA 25%, #CDD0D4 37%, #E4E7EA 63%);
+  background-size: 1200px 100%;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--xf-ink-300); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: var(--xf-ink-400); }
+[data-theme="light"] .modal-overlay { background: rgba(0,0,0,.45); }
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -478,6 +612,14 @@ input, select { font-family: inherit; }
         Аномалии
         <span class="nav-badge" id="anomaly-badge" style="display:none">0</span>
       </div>
+      <div class="nav-item" data-page="workload" onclick="showPage('workload',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2" height="4"/><rect x="4.5" y="7" width="2" height="7"/><rect x="8" y="4" width="2" height="10"/><rect x="11.5" y="6" width="2" height="8"/></svg>
+        Нагрузка
+      </div>
+      <div class="nav-item" data-page="upload" onclick="showPage('upload',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 13h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        Загрузка
+      </div>
       <div class="nav-item" data-page="report" onclick="showPage('report',this)">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10v12H3V2zm2 3h6v1H5V5zm0 3h6v1H5V8zm0 3h4v1H5v-1z"/></svg>
         Отчёт
@@ -501,6 +643,8 @@ input, select { font-family: inherit; }
       <select class="report-select" id="report-select" onchange="onReportChange()">
         <option value="">Загрузка отчётов…</option>
       </select>
+      <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Переключить тему" style="padding:0 10px"></button>
+      <button class="btn btn-ghost" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" style="padding:0 12px;font-size:18px;line-height:1">↺</button>
       <button class="btn btn-primary" onclick="openUploadModal()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4M3 13h10"/><path stroke="currentColor" stroke-width="1.5" fill="none" d="M4 5l4-4 4 4M8 1v9M3 13h10"/></svg>
         Загрузить отчёт
@@ -513,12 +657,12 @@ input, select { font-family: inherit; }
       <!-- ─ Overview ──────────────────────────────────────────────────────── -->
       <div class="page active" id="page-overview">
         <div class="kpi-grid" id="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value" id="kpi-services">—</div><div id="kpi-services-delta"></div></div>
-          <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value" id="kpi-payments">—</div><div id="kpi-payments-delta"></div></div>
-          <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value" id="kpi-avg">—</div><div id="kpi-avg-delta"></div></div>
-          <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger" id="kpi-nonstandard">—</div><div id="kpi-nonstandard-delta"></div></div>
-          <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger" id="kpi-overrun">—</div><div id="kpi-overrun-delta"></div></div>
-          <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent" id="kpi-savings">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent">—</div></div>
         </div>
 
         <div class="charts-grid">
@@ -596,17 +740,23 @@ input, select { font-family: inherit; }
       <!-- ─ Employees ────────────────────────────────────────────────────── -->
       <div class="page" id="page-employees">
         <div class="section-header">
-          <div><div class="section-title">Сотрудники</div><div class="section-sub">Показатели выше среднего — отмечены ⭐</div></div>
+          <div><div class="section-title">Профиль сотрудников</div><div class="section-sub">Анализ действий, дублей и отклонений от нормы отдела</div></div>
         </div>
-        <div class="card">
+        <div class="kpi-grid" id="emp-kpi-grid"></div>
+        <div class="card" style="margin-top:16px">
           <table class="data-table" id="employees-table">
             <thead><tr>
+              <th style="width:24px"></th>
               <th>Сотрудник</th><th>Отдел</th>
-              <th class="num">Обращений</th><th class="num">Выплат, ₽</th>
-              <th class="num">Ср. стоимость</th><th class="num">Перерасход, ₽</th>
-              <th class="num">Нестанд., %</th><th class="num">vs ср.</th>
+              <th class="num">Обращений</th>
+              <th class="num">Действий / обр.</th>
+              <th class="num">vs медиана</th>
+              <th class="num">Дублей 🔁</th>
+              <th class="num">Лишних</th>
+              <th class="num">Нестанд., %</th>
+              <th class="num" title="Сумма перерасходов / кол-во обращений">Индекс ₽/обр.</th>
             </tr></thead>
-            <tbody id="employees-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
+            <tbody id="employees-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -643,37 +793,244 @@ input, select { font-family: inherit; }
       <div class="page" id="page-report">
         <div class="section-header">
           <div><div class="section-title">Менеджерский отчёт</div><div class="section-sub">Автоматические рекомендации</div></div>
-          <button class="btn btn-ghost" onclick="printReport()">🖨 Печать</button>
+          <button class="btn btn-ghost" onclick="printReport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Печать</button>
         </div>
         <div class="card card-lg" id="report-content">
           <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Выберите отчёт для генерации</div></div>
         </div>
       </div>
 
+      <!-- ─ Workload ────────────────────────────────────────────────────── -->
+      <div class="page" id="page-workload">
+        <div class="section-header">
+          <div><div class="section-title">Нагрузка отдела</div>
+          <div class="section-sub">Поток устройств и производительность сотрудников</div></div>
+        </div>
+        <div class="kpi-grid" id="wl-kpi-grid"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start">
+          <!-- Daily flow chart -->
+          <div class="card card-lg">
+            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Устройств по дням</div>
+            <div style="position:relative;height:200px">
+              <canvas id="wl-daily-chart"></canvas>
+            </div>
+          </div>
+          <!-- Day of week chart -->
+          <div class="card card-lg">
+            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Распределение по дням недели</div>
+            <div style="position:relative;height:200px">
+              <canvas id="wl-dow-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Employee throughput table -->
+        <div class="card" style="margin-top:16px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Производительность сотрудников</div>
+          <table class="data-table" id="wl-emp-table">
+            <thead><tr>
+              <th>Сотрудник</th>
+              <th class="num">Дней работы</th>
+              <th class="num">Устройств всего</th>
+              <th class="num">Среднее / день</th>
+              <th class="num">Макс. / день</th>
+              <th style="width:120px"></th>
+            </tr></thead>
+            <tbody id="wl-emp-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─ Upload ──────────────────────────────────────────────────────── -->
+      <div class="page" id="page-upload">
+        <div class="section-header">
+          <div><div class="section-title">Загрузка отчётов</div>
+          <div class="section-sub">Импорт данных из Excel-выгрузки</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+          <!-- Drop zone card -->
+          <div class="card card-lg">
+            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Новый отчёт</div>
+            <div class="drop-zone" id="pu-drop-zone" onclick="puTriggerFile()" ondragover="puDragOver(event)" ondragleave="puDragLeave()" ondrop="puDrop(event)">
+              <div class="drop-zone-icon" style="color:var(--xf-ink-400)"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
+              <div class="drop-zone-title">Перетащите Excel файл или нажмите</div>
+              <div class="drop-zone-sub">Поддерживаются форматы .xlsx, .xls</div>
+              <div id="pu-filename" style="margin-top:10px;font-size:13px;color:var(--accent);display:none"></div>
+            </div>
+            <input type="file" id="pu-file-input" accept=".xlsx,.xls" style="display:none" onchange="puFileSelect(event)">
+            <div class="upload-progress" id="pu-progress" style="margin-top:12px">
+              <div style="font-size:12px;color:var(--text-secondary)" id="pu-status">Загрузка…</div>
+              <div class="upload-bar"><div class="upload-fill" id="pu-fill"></div></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button class="btn btn-primary" style="width:100%" onclick="doUploadPage()" id="pu-btn" disabled>Загрузить и обработать</button>
+            </div>
+          </div>
+          <!-- Hints card -->
+          <div class="card card-lg" style="background:var(--bg-surface)">
+            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Как подготовить файл</div>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--text-secondary)">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--accent);font-size:16px;line-height:1">①</span>
+                <span>Выгрузите из системы отчёт за нужную неделю в формате Excel (.xlsx)</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--accent);font-size:16px;line-height:1">②</span>
+                <span>Убедитесь, что в файле есть колонки: сотрудник, обращение, действие, цена, дата</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--accent);font-size:16px;line-height:1">③</span>
+                <span>Перетащите файл в зону слева или нажмите для выбора</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <span style="color:var(--accent);font-size:16px;line-height:1">④</span>
+                <span>После обработки все страницы дашборда обновятся автоматически</span>
+              </div>
+            </div>
+            <div style="margin-top:18px;padding:12px;background:var(--bg-card);border-radius:var(--radius-sm);font-size:12px;color:var(--text-muted)">
+              Обработка занимает 10–60 секунд в зависимости от объёма данных. AI-анализ аномалий выполняется в фоне.
+            </div>
+          </div>
+        </div>
+        <!-- History -->
+        <div class="card" style="margin-top:16px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">История загрузок</div>
+          <table class="data-table" id="pu-history">
+            <thead><tr>
+              <th>Неделя</th>
+              <th>Файл</th>
+              <th class="num">Строк</th>
+              <th>Загружено</th>
+              <th style="width:100px"></th>
+            </tr></thead>
+            <tbody id="pu-history-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- ─ Settings ─────────────────────────────────────────────────────── -->
       <div class="page" id="page-settings">
         <div class="section-header">
-          <div><div class="section-title">Настройки</div><div class="section-sub">Параметры подключения и пороги аномалий</div></div>
+          <div><div class="section-title">Настройки</div><div class="section-sub">Подключение, базовые действия и назначение отделов</div></div>
         </div>
-        <div class="card card-lg" style="max-width:520px">
-          <div class="settings-group">
-            <div class="settings-label">URL сервера n8n</div>
-            <input class="settings-input" id="cfg-url" type="url" placeholder="http://localhost:5678" oninput="saveSettings()">
+
+        <div class="stabs">
+          <button class="stab-btn active" onclick="switchSettingsTab('connection',this)">Подключение</button>
+          <button class="stab-btn" onclick="switchSettingsTab('actions',this)">Базовые действия</button>
+          <button class="stab-btn" onclick="switchSettingsTab('employees',this)">Сотрудники → Отдел</button>
+        </div>
+
+        <!-- ── Tab: Подключение ── -->
+        <div class="stab-panel active" id="stab-connection">
+          <div class="card card-lg" style="max-width:520px">
+            <div class="settings-group">
+              <div class="settings-label">URL сервера n8n</div>
+              <input class="settings-input" id="cfg-url" type="url" placeholder="http://localhost:5678" oninput="saveSettings()">
+            </div>
+            <div class="settings-group">
+              <div class="settings-label">Порог аномалии по стоимости, %</div>
+              <input class="settings-input" id="cfg-cost-threshold" type="number" value="20" oninput="saveSettings()">
+            </div>
+            <div class="settings-group">
+              <div class="settings-label">Порог аномалии по перерасходу, %</div>
+              <input class="settings-input" id="cfg-overrun-threshold" type="number" value="30" oninput="saveSettings()">
+            </div>
+            <div class="settings-group">
+              <div class="settings-label">Порог инсайта WoW, %</div>
+              <input class="settings-input" id="cfg-insight-threshold" type="number" value="5" oninput="saveSettings()">
+            </div>
+            <button class="btn btn-primary" onclick="testConnection()">Проверить подключение</button>
+            <span id="conn-status" style="margin-left:12px;font-size:12px;color:var(--text-muted)"></span>
           </div>
-          <div class="settings-group">
-            <div class="settings-label">Порог аномалии по стоимости, %</div>
-            <input class="settings-input" id="cfg-cost-threshold" type="number" value="20" oninput="saveSettings()">
+        </div>
+
+        <!-- ── Tab: Базовые действия ── -->
+        <div class="stab-panel" id="stab-actions">
+          <div class="card">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+              Отметьте действия как базовые — они не будут считаться перерасходом. Укажите стоимость — она используется как эталон при расчёте overrun = факт − база.
+            </div>
+
+            <!-- Filters -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+              <select id="as-filter-dept" class="settings-input" style="width:160px" onchange="loadActionSettings()">
+                <option value="">Все отделы</option>
+                <option>Диагносты</option><option>Логисты</option><option>Инженеры</option><option>КЦ</option>
+              </select>
+              <select id="as-filter-dev" class="settings-input" style="width:150px" onchange="loadActionSettings()">
+                <option value="">Все устройства</option>
+                <option>iPhone</option><option>iPad</option><option>AirPods</option><option>Watch</option><option>Mac</option>
+              </select>
+              <span id="as-count" style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
+              <div style="margin-left:auto;display:flex;gap:8px">
+                <label class="btn btn-ghost" style="cursor:pointer;position:relative">
+                  Импорт XLS
+                  <input type="file" id="as-xls-input" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="importActionSettingsXLS(this)">
+                </label>
+                <button class="btn btn-ghost" onclick="downloadActionSettingsTemplate()">Шаблон XLS</button>
+              </div>
+            </div>
+
+            <!-- Add row form -->
+            <div class="as-form" style="background:var(--bg-card);padding:12px;border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid var(--border-subtle)">
+              <select id="as-dept" class="settings-input" style="width:140px">
+                <option value="*">Все отделы</option>
+                <option>Диагносты</option><option>Логисты</option><option>Инженеры</option><option>КЦ</option>
+              </select>
+              <select id="as-device" class="settings-input" style="width:130px">
+                <option value="*">Все устройства</option>
+                <option>iPhone</option><option>iPad</option><option>AirPods</option><option>Watch</option><option>Mac</option>
+              </select>
+              <input id="as-action-name" class="settings-input" style="flex:1;min-width:160px" type="text" placeholder="Целевое действие" list="as-action-names-dl">
+              <datalist id="as-action-names-dl"></datalist>
+              <label class="as-cb"><input type="checkbox" id="as-is-base"> Базовое</label>
+              <input id="as-cost" class="settings-input" style="width:110px" type="number" min="0" step="0.01" placeholder="Стоимость">
+              <button class="btn btn-primary" onclick="addActionSetting()">Добавить</button>
+            </div>
+
+            <div id="as-import-progress" style="display:none;margin-bottom:12px;font-size:12px;color:var(--text-muted)"></div>
+
+            <table class="data-table" id="as-table">
+              <thead>
+                <tr>
+                  <th>Отдел</th>
+                  <th>Устройство</th>
+                  <th>Действие</th>
+                  <th style="text-align:center;width:80px">Базовое</th>
+                  <th style="text-align:right;width:100px">Стоимость</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="as-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Загрузка...</td></tr></tbody>
+            </table>
           </div>
-          <div class="settings-group">
-            <div class="settings-label">Порог аномалии по перерасходу, %</div>
-            <input class="settings-input" id="cfg-overrun-threshold" type="number" value="30" oninput="saveSettings()">
+        </div>
+
+        <!-- ── Tab: Сотрудники ── -->
+        <div class="stab-panel" id="stab-employees">
+          <div class="card">
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+              Назначьте каждому сотруднику отдел вручную. Это переопределяет отдел из отчёта и влияет на расчёт базовых действий и перерасхода.
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px">
+              <input id="emp-search" class="settings-input" style="max-width:280px" type="text" placeholder="Поиск сотрудника..." oninput="filterEmpTable()">
+              <span id="emp-count" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;margin-left:4px"></span>
+            </div>
+            <table class="data-table" id="emp-dept-table">
+              <thead>
+                <tr>
+                  <th>Сотрудник</th>
+                  <th>Отдел (из отчёта)</th>
+                  <th>Назначен вручную</th>
+                  <th style="width:60px"></th>
+                </tr>
+              </thead>
+              <tbody id="emp-dept-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">Загрузка...</td></tr></tbody>
+            </table>
           </div>
-          <div class="settings-group">
-            <div class="settings-label">Порог инсайта WoW, %</div>
-            <input class="settings-input" id="cfg-insight-threshold" type="number" value="5" oninput="saveSettings()">
-          </div>
-          <button class="btn btn-primary" onclick="testConnection()">Проверить подключение</button>
-          <span id="conn-status" style="margin-left:12px;font-size:12px;color:var(--text-muted)"></span>
         </div>
       </div>
 
@@ -689,7 +1046,7 @@ input, select { font-family: inherit; }
       <button class="modal-close" onclick="closeUploadModal()">✕</button>
     </div>
     <div class="drop-zone" id="drop-zone" onclick="triggerFileInput()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-      <div class="drop-zone-icon">📊</div>
+      <div class="drop-zone-icon" style="color:var(--xf-ink-400)"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
       <div class="drop-zone-title">Перетащите Excel файл или нажмите</div>
       <div class="drop-zone-sub">Поддерживаются форматы .xlsx, .xls</div>
       <div id="selected-filename" style="margin-top:10px;font-size:13px;color:var(--accent);display:none"></div>
@@ -722,8 +1079,10 @@ const CONFIG = {
 
 const STATE = {
   currentReportId: null,
+  currentPage: 'overview',
   reports: [],
   charts: {},
+  loaded: new Set(),
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -731,7 +1090,8 @@ const STATE = {
 ══════════════════════════════════════════════════════════════════════════════ */
 function loadSettings() {
   const s = JSON.parse(localStorage.getItem('xfix-settings') || '{}');
-  CONFIG.n8nUrl             = s.n8nUrl             || 'https://imtime.app.n8n.cloud';
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  CONFIG.n8nUrl             = isLocal ? '' : (s.n8nUrl || 'https://imtime.app.n8n.cloud');
   CONFIG.costThreshold      = s.costThreshold      || 20;
   CONFIG.overrunThreshold   = s.overrunThreshold   || 30;
   CONFIG.insightThreshold   = s.insightThreshold   || 5;
@@ -747,11 +1107,236 @@ function saveSettings() {
   CONFIG.insightThreshold   = +document.getElementById('cfg-insight-threshold').value;
   localStorage.setItem('xfix-settings', JSON.stringify(CONFIG));
 }
+/* ─── Settings tabs ──────────────────────────────────────────────────────── */
+function switchSettingsTab(name, btn) {
+  document.querySelectorAll('.stab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.stab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('stab-' + name).classList.add('active');
+  if (name === 'actions') { initDbAndLoadActionSettings(); }
+  if (name === 'employees') { loadEmployeeDepts(); }
+}
+
+/* ─── Action Settings ────────────────────────────────────────────────────── */
+let _asDbInited = false;
+async function initDbAndLoadActionSettings() {
+  if (!_asDbInited) {
+    try { await api('db_init'); _asDbInited = true; } catch(e) {}
+  }
+  await loadActionSettings();
+  await loadActionNamesDatalist();
+}
+
+async function loadActionSettings() {
+  const tbody = document.getElementById('as-tbody');
+  if (!tbody) return;
+  const dept = document.getElementById('as-filter-dept')?.value || '';
+  const dev  = document.getElementById('as-filter-dev')?.value  || '';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка...</td></tr>';
+  try {
+    const params = {};
+    if (dept) params.department = dept;
+    if (dev)  params.device_type = dev;
+    const rows = await api('action_settings', params);
+    const data = Array.isArray(rows) ? rows : (rows.rows || []);
+    const cnt = document.getElementById('as-count');
+    if (cnt) cnt.textContent = data.length ? `${data.length} записей` : '';
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">Нет настроек. Добавьте действия выше или импортируйте XLS.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(r => {
+      const deptLabel = r.department === '*' ? '<span style="color:var(--text-muted)">Все</span>' : esc(r.department);
+      const devLabel  = r.device_type === '*' ? '<span style="color:var(--text-muted)">Все</span>' : esc(r.device_type);
+      const baseMark  = r.is_base
+        ? '<span style="color:var(--xf-green);font-weight:600">✓ Базовое</span>'
+        : '<span style="color:var(--text-muted)">—</span>';
+      const costFmt   = r.base_cost != null ? fmt.money(r.base_cost) : '<span style="color:var(--text-muted)">—</span>';
+      return `<tr>
+        <td>${deptLabel}</td>
+        <td>${devLabel}</td>
+        <td style="font-weight:500">${esc(r.action_name)}</td>
+        <td style="text-align:center">${baseMark}</td>
+        <td style="text-align:right">${costFmt}</td>
+        <td><button onclick="deleteActionSetting(${r.id},this)" style="background:none;border:none;cursor:pointer;color:var(--xf-red);font-size:14px;padding:0 4px" title="Удалить">✕</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--xf-red);padding:12px">Ошибка загрузки</td></tr>';
+  }
+}
+
+async function loadActionNamesDatalist() {
+  try {
+    const rows = await api('action_names');
+    const data = Array.isArray(rows) ? rows : (rows.rows || []);
+    const dl = document.getElementById('as-action-names-dl');
+    if (dl) dl.innerHTML = data.map(r => `<option value="${esc(r.action_name)}">`).join('');
+  } catch(e) {}
+}
+
+async function addActionSetting() {
+  const dept   = document.getElementById('as-dept').value;
+  const dev    = document.getElementById('as-device').value;
+  const name   = document.getElementById('as-action-name').value.trim();
+  const isBase = document.getElementById('as-is-base').checked;
+  const cost   = document.getElementById('as-cost').value;
+  if (!name) { showToast('Укажите название действия', 'warning'); return; }
+  try {
+    const params = { department: dept, device_type: dev, action_name: name, is_base: isBase ? '1' : '0' };
+    if (cost) params.base_cost = cost;
+    await api('action_settings_upsert', params);
+    document.getElementById('as-action-name').value = '';
+    document.getElementById('as-cost').value = '';
+    document.getElementById('as-is-base').checked = false;
+    await loadActionSettings();
+    showToast(`Сохранено: ${name}`, 'success');
+  } catch(e) { showToast('Ошибка сохранения', 'error'); }
+}
+
+async function deleteActionSetting(id, btn) {
+  btn.disabled = true;
+  try {
+    await api('action_settings_delete', { id });
+    await loadActionSettings();
+    showToast('Удалено', 'success');
+  } catch(e) { btn.disabled = false; showToast('Ошибка удаления', 'error'); }
+}
+
+function downloadActionSettingsTemplate() {
+  const header = 'Отдел\tТип устройства\tДействие\tБазовое (да/нет)\tСтоимость\n';
+  const example = 'Инженеры\tiPhone\tБазовая диагностика\tда\t1500\n';
+  const blob = new Blob([header + example], { type: 'text/tab-separated-values;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'action_settings_template.tsv'; a.click();
+}
+
+async function importActionSettingsXLS(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!window.XLSX) { showToast('Библиотека XLSX не загружена', 'error'); return; }
+  const prog = document.getElementById('as-import-progress');
+  prog.style.display = '';
+  prog.textContent = 'Чтение файла...';
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    if (rows.length < 2) { showToast('Файл пуст или содержит только заголовок', 'warning'); return; }
+    const dataRows = rows.slice(1).filter(r => r[2]);
+    let done = 0, errors = 0;
+    const batchSize = 10;
+    for (let i = 0; i < dataRows.length; i += batchSize) {
+      const batch = dataRows.slice(i, i + batchSize);
+      await Promise.all(batch.map(async r => {
+        const dept    = String(r[0] || '*').trim() || '*';
+        const dev     = String(r[1] || '*').trim() || '*';
+        const name    = String(r[2] || '').trim();
+        const isBaseV = String(r[3] || '').toLowerCase();
+        const isBase  = isBaseV === 'да' || isBaseV === 'yes' || isBaseV === '1' || isBaseV === 'true';
+        const cost    = parseFloat(String(r[4]).replace(',', '.'));
+        if (!name) return;
+        try {
+          const p = { department: dept, device_type: dev, action_name: name, is_base: isBase ? '1' : '0' };
+          if (!isNaN(cost)) p.base_cost = cost;
+          await api('action_settings_upsert', p);
+          done++;
+        } catch(e) { errors++; }
+      }));
+      prog.textContent = `Обработано: ${Math.min(i + batchSize, dataRows.length)} / ${dataRows.length}`;
+    }
+    await loadActionSettings();
+    showToast(`Импортировано: ${done} записей${errors ? `, ошибок: ${errors}` : ''}`, errors ? 'warning' : 'success');
+  } catch(e) {
+    showToast('Ошибка чтения XLS: ' + e.message, 'error');
+  } finally {
+    prog.style.display = 'none';
+    input.value = '';
+  }
+}
+
+/* ─── Employee → Department ──────────────────────────────────────────────── */
+let _empDeptData = [];
+async function loadEmployeeDepts() {
+  const tbody = document.getElementById('emp-dept-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">Загрузка...</td></tr>';
+  try {
+    const rows = await api('employee_list');
+    _empDeptData = Array.isArray(rows) ? rows : (rows.rows || []);
+    const cnt = document.getElementById('emp-count');
+    if (cnt) cnt.textContent = `${_empDeptData.length} сотрудников`;
+    renderEmpTable(_empDeptData);
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--xf-red);padding:12px">Ошибка загрузки</td></tr>';
+  }
+}
+
+function filterEmpTable() {
+  const q = (document.getElementById('emp-search')?.value || '').toLowerCase();
+  renderEmpTable(q ? _empDeptData.filter(r => r.employee.toLowerCase().includes(q)) : _empDeptData);
+}
+
+const DEPTS = ['Диагносты', 'Логисты', 'Инженеры', 'КЦ'];
+function renderEmpTable(data) {
+  const tbody = document.getElementById('emp-dept-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">Нет данных — загрузите хотя бы один отчёт</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => {
+    const empEsc = esc(r.employee).replace(/'/g, "&#39;");
+    const opts = ['<option value="">— не назначен —', ...DEPTS.map(d => `<option value="${d}"${r.is_manual && r.department === d ? ' selected' : ''}>${d}`)].join('</option>');
+    const manualBadge = r.is_manual ? `<span class="dept-badge manual">ручной</span>` : `<span class="dept-badge" style="background:rgba(255,255,255,.07);color:var(--text-muted)">${esc(r.department) || '—'}</span>`;
+    return `<tr class="emp-dept-row">
+      <td style="font-weight:500">${esc(r.employee)}</td>
+      <td>${esc(r.department) || '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${manualBadge}</td>
+      <td>
+        <select class="dept-select" onchange="saveEmpDept('${empEsc}',this)">
+          ${opts}</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveEmpDept(employee, sel) {
+  const dept = sel.value;
+  const row = sel.closest('tr');
+  sel.disabled = true;
+  try {
+    if (dept) {
+      await api('employee_departments_upsert', { employee, department: dept });
+    } else {
+      await api('employee_departments_delete', { employee });
+    }
+    const idx = _empDeptData.findIndex(r => r.employee === employee);
+    if (idx >= 0) { _empDeptData[idx].department = dept; _empDeptData[idx].is_manual = !!dept; }
+    const badgeCell = row.querySelectorAll('td')[2];
+    if (badgeCell) {
+      badgeCell.innerHTML = dept
+        ? `<span class="dept-badge manual">ручной</span>`
+        : `<span class="dept-badge" style="background:rgba(255,255,255,.07);color:var(--text-muted)">—</span>`;
+    }
+    showToast(dept ? `${employee} → ${dept}` : `Назначение ${employee} снято`, 'success');
+  } catch(e) {
+    showToast('Ошибка сохранения', 'error');
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 async function testConnection() {
   const el = document.getElementById('conn-status');
   el.textContent = 'Проверка…'; el.style.color = 'var(--text-muted)';
   try {
-    const r = await fetch(`${CONFIG.n8nUrl}/webhook/api?endpoint=uploads`);
+    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/api?endpoint=uploads`);
     if (r.ok) { el.textContent = '✓ Подключено'; el.style.color = 'var(--xf-green)'; }
     else { el.textContent = `✗ HTTP ${r.status}`; el.style.color = 'var(--xf-red)'; }
   } catch(e) {
@@ -763,12 +1348,13 @@ async function testConnection() {
    API
 ══════════════════════════════════════════════════════════════════════════════ */
 async function api(endpoint, params = {}) {
-  const url = new URL(`${CONFIG.n8nUrl}/webhook/api`);
+  const url = new URL(`${CONFIG.n8nUrl || location.origin}/webhook/api`);
   url.searchParams.set('endpoint', endpoint);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   const r = await fetch(url.toString());
   if (!r.ok) throw new Error(`API ${r.status}`);
-  return r.json();
+  const text = await r.text();
+  return text.trim() ? JSON.parse(text) : [];
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -782,6 +1368,8 @@ const PAGE_TITLES = {
   employees: 'Сотрудники <span>— детальный анализ</span>',
   vendors:   'Вендоры <span>— Apple vs Яндекс</span>',
   anomalies: 'Аномалии <span>— система контроля</span>',
+  workload:  'Нагрузка <span>— поток устройств</span>',
+  upload:    'Загрузка <span>— импорт отчётов</span>',
   report:    'Отчёт <span>— для менеджера</span>',
   settings:  'Настройки',
 };
@@ -791,11 +1379,22 @@ function showPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
   document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
+  STATE.currentPage = id;
   loadPageData(id);
 }
 function loadPageData(id) {
   const rid = STATE.currentReportId;
-  if (!rid && id !== 'dynamics' && id !== 'settings') return;
+  if (!rid && id !== 'dynamics' && id !== 'settings' && id !== 'upload' && id !== 'workload') return;
+
+  // settings and upload are always fresh; everything else is cached per report
+  if (id !== 'settings' && id !== 'upload') {
+    const key = id === 'dynamics' ? 'dynamics' : `${id}:${rid}`;
+    if (rid || id === 'dynamics') {
+      if (STATE.loaded.has(key)) return;
+      STATE.loaded.add(key);
+    }
+  }
+
   switch(id) {
     case 'overview':  loadOverview(); break;
     case 'dynamics':  loadDynamics(); break;
@@ -804,8 +1403,19 @@ function loadPageData(id) {
     case 'employees': loadEmployees(); break;
     case 'vendors':   loadVendors();  break;
     case 'anomalies': loadAnomalies(); break;
+    case 'workload':  loadWorkload(); break;
+    case 'upload':    loadUploadPage(); break;
+    case 'settings':  /* tab init handled by switchSettingsTab or default connection tab */ break;
     case 'report':    loadReport();   break;
   }
+}
+
+function refreshPage() {
+  const id = STATE.currentPage || 'overview';
+  const rid = STATE.currentReportId;
+  const key = id === 'dynamics' ? 'dynamics' : `${id}:${rid}`;
+  STATE.loaded.delete(key);
+  loadPageData(id);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -835,11 +1445,14 @@ async function loadReports() {
     loadAnomaliesBadge();
   } catch(e) {
     document.getElementById('report-select').innerHTML = '<option value="">Ошибка загрузки</option>';
-    showToast('Не удалось подключиться к n8n', 'error');
+    const msg = e.message && e.message.includes('API') ? `Ошибка API: ${e.message}` : 'Не удалось подключиться к n8n';
+    showToast(msg, 'error');
+    console.error('loadReports:', e);
   }
 }
 function onReportChange() {
   STATE.currentReportId = document.getElementById('report-select').value;
+  STATE.loaded.clear();
   const activePage = document.querySelector('.page.active');
   if (activePage) loadPageData(activePage.id.replace('page-', ''));
 }
@@ -882,9 +1495,16 @@ const fmt = {
     return `<span class="kpi-delta ${cls}">${arrow} ${Math.abs(n).toFixed(1)}%</span>`;
   },
   zone: z => {
-    const map = { normal: ['✓','zone-normal'], yellow: ['🟡','zone-yellow'], red: ['🔴','zone-red'] };
-    const [icon, cls] = map[z] || ['—','zone-normal'];
-    return `<span class="zone-badge ${cls}">${icon} ${z==='normal'?'Норма':z==='yellow'?'Повышен':'Критично'}</span>`;
+    const map = {
+      normal:   ['✓', 'zone-normal',   'Норма'],
+      small:    ['↑', 'zone-small',    'Небольшое'],
+      elevated: ['⚠', 'zone-elevated', 'Повышен'],
+      critical: ['🔴','zone-critical', 'Критично'],
+      yellow:   ['⚠', 'zone-elevated', 'Повышен'],
+      red:      ['🔴','zone-critical', 'Критично'],
+    };
+    const [icon, cls, label] = map[z] || ['—','zone-normal','—'];
+    return `<span class="zone-badge ${cls}">${icon} ${label}</span>`;
   },
 };
 
@@ -893,48 +1513,43 @@ const fmt = {
 ══════════════════════════════════════════════════════════════════════════════ */
 async function loadOverview() {
   if (!STATE.currentReportId) return;
+  skelKpi('kpi-grid', 6);
   try {
-    const [overview, insights] = await Promise.all([
+    const [overview, insights, vendorsResp] = await Promise.all([
       api('overview', { report_id: STATE.currentReportId }),
       api('insights', { report_id: STATE.currentReportId }),
+      api('vendors',  { report_id: STATE.currentReportId }),
     ]);
     const d = Array.isArray(overview) ? overview[0] : (overview.rows?.[0] || overview);
     if (!d) return;
+    const vRows = Array.isArray(vendorsResp) ? vendorsResp : (vendorsResp.rows || []);
 
-    document.getElementById('kpi-services').textContent = fmt.num(d.total_services);
-    document.getElementById('kpi-payments').textContent = fmt.money(d.total_payments);
-    document.getElementById('kpi-avg').textContent      = fmt.money(d.avg_service_cost);
-    document.getElementById('kpi-nonstandard').textContent = fmt.num(d.non_standard_count);
-    document.getElementById('kpi-overrun').textContent  = fmt.money(d.total_overrun);
-    document.getElementById('kpi-savings').textContent  = fmt.money(d.potential_savings || 0);
-
-    if (d.prev_services) {
-      document.getElementById('kpi-services-delta').innerHTML = fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100);
-      document.getElementById('kpi-payments-delta').innerHTML = fmt.delta((d.total_payments - d.prev_payments) / d.prev_payments * 100, true);
-      document.getElementById('kpi-avg-delta').innerHTML      = fmt.delta((d.avg_service_cost - d.prev_avg) / d.prev_avg * 100, true);
-      document.getElementById('kpi-nonstandard-delta').innerHTML = fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true);
-      document.getElementById('kpi-overrun-delta').innerHTML  = fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true);
-    }
+    document.getElementById('kpi-grid').innerHTML = `
+      <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value">${fmt.num(d.total_services)}</div>${d.prev_services ? `<div>${fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value">${fmt.money(d.total_payments)}</div>${d.prev_payments ? `<div>${fmt.delta((d.total_payments - d.prev_payments) / d.prev_payments * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">${fmt.money(d.avg_service_cost)}</div>${d.prev_avg ? `<div>${fmt.delta((d.avg_service_cost - d.prev_avg) / d.prev_avg * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">${fmt.num(d.non_standard_count)}</div>${d.prev_nonstandard != null && d.prev_services ? `<div>${fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">${fmt.money(d.total_overrun)}</div>${d.prev_overrun != null && d.prev_services ? `<div>${fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent">${fmt.money(d.potential_savings || 0)}</div></div>
+    `;
 
     // Zone chart
     mkChart('chart-zones', {
       type: 'doughnut',
       data: {
-        labels: ['Норма ✓', 'Повышен 🟡', 'Критично 🔴'],
-        datasets: [{ data: [d.zone_normal||0, d.zone_yellow||0, d.zone_red||0], backgroundColor: ['#39BB3B','#F5A623','#ED4623'], borderWidth: 0, hoverOffset: 6 }]
+        labels: ['Норма ✓', 'Небольшое ↑', 'Повышен ⚠', 'Критично 🔴'],
+        datasets: [{ data: [d.zone_normal||0, d.zone_small||0, d.zone_elevated||0, d.zone_critical||0], backgroundColor: ['#39BB3B','#7BC8F6','#F5A623','#ED4623'], borderWidth: 0, hoverOffset: 6 }]
       },
       options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
     });
 
     // Vendor pie
-    const vd = Array.isArray(overview) ? overview : (overview.vendors || []);
-    if (vd.length > 1 || d.vendor_data) {
-      const vendors = d.vendor_data || [];
+    if (vRows.length) {
       mkChart('chart-vendors-pie', {
         type: 'doughnut',
         data: {
-          labels: vendors.map(v => v.vendor),
-          datasets: [{ data: vendors.map(v => v.payments), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
+          labels: vRows.map(v => v.vendor),
+          datasets: [{ data: vRows.map(v => v.payments), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
         },
         options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
       });
@@ -943,10 +1558,60 @@ async function loadOverview() {
     // Insights
     const insightRows = Array.isArray(insights) ? insights : (insights.rows || []);
     const el = document.getElementById('insights-list');
-    if (!insightRows.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-title">Значимых изменений не обнаружено</div></div>';
-    } else {
-      el.innerHTML = insightRows.map(i => `
+
+    const aiRow = insightRows.find(i => i.insight_type === 'ai_analysis');
+    const regularRows = insightRows.filter(i => i.insight_type !== 'ai_analysis');
+
+    let html = '';
+
+    if (aiRow) {
+      let ai = {};
+      try {
+        const raw = typeof aiRow.message === 'string' ? JSON.parse(aiRow.message) : aiRow.message;
+        ai = Array.isArray(raw) ? (raw[0]?.content?.[0]?.text || raw[0]) : raw;
+      } catch(e) {}
+      const riskLabel = { low: 'Низкий', medium: 'Средний', high: 'Высокий' }[ai.risk_level] || '—';
+      const riskCls   = { low: 'risk-low', medium: 'risk-medium', high: 'risk-high' }[ai.risk_level] || 'risk-unknown';
+      const patterns  = Array.isArray(ai.patterns)  ? ai.patterns  : [];
+      const risks     = Array.isArray(ai.top_risks) ? ai.top_risks : [];
+      html += `
+        <div class="ai-card">
+          <div class="ai-card-header">
+            <div class="ai-card-title">🤖 AI-анализ <span style="font-weight:400;color:var(--text-muted);font-size:12px">GPT-4o-mini</span></div>
+            <span class="risk-badge ${riskCls}">Риск: ${riskLabel}</span>
+          </div>
+          ${ai.summary ? `<div class="ai-summary">${ai.summary}</div>` : ''}
+          ${patterns.length ? `
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Паттерны (${patterns.length})</div>
+            <div class="patterns-grid">
+              ${patterns.map(p => `
+                <div class="pattern-card">
+                  <div class="pattern-title">${p.title || ''}</div>
+                  <div class="pattern-desc">${p.description || ''}</div>
+                  ${p.affected ? `<div class="pattern-meta">Затронуто: ${p.affected}</div>` : ''}
+                  ${p.recommendation ? `<div class="pattern-rec">→ ${p.recommendation}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+          ${risks.length ? `
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Топ-риски</div>
+            <div class="top-risks">
+              ${risks.map(r => `
+                <div class="top-risk-item">
+                  <span class="top-risk-priority priority-${r.priority || 'medium'}">${r.priority === 'high' ? 'HIGH' : r.priority === 'low' ? 'LOW' : 'MED'}</span>
+                  <span style="font-weight:600;color:var(--text-primary)">${r.name || ''}</span>
+                  <span style="color:var(--text-muted)">${r.reason || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    if (regularRows.length) {
+      html += regularRows.map(i => `
         <div class="insight-item">
           <div class="insight-icon">${i.direction==='up'?'📈':'📉'}</div>
           <div>
@@ -956,6 +1621,12 @@ async function loadOverview() {
         </div>
       `).join('');
     }
+
+    if (!html) {
+      html = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-title">Значимых изменений не обнаружено</div></div>';
+    }
+
+    el.innerHTML = html;
   } catch(e) { console.error('overview', e); }
 }
 
@@ -1079,32 +1750,142 @@ async function loadReasons() {
 ══════════════════════════════════════════════════════════════════════════════ */
 async function loadEmployees() {
   if (!STATE.currentReportId) return;
+  skelKpi('emp-kpi-grid', 4);
+  skelRows('employees-tbody', 9);
   try {
     const data = await api('employees', { report_id: STATE.currentReportId });
     const rows = Array.isArray(data) ? data : (data.rows || []);
-    const avgCost = rows.reduce((s, r) => s + (+r.avg_service_cost||0), 0) / (rows.length||1);
     const tbody = document.getElementById('employees-tbody');
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных</td></tr>';
       return;
     }
-    tbody.innerHTML = rows.map(r => {
-      const vsPct = avgCost ? ((+r.avg_service_cost - avgCost) / avgCost * 100) : 0;
-      const star = +r.avg_service_cost > avgCost * 1.1 ? '<span class="emp-star">⭐</span>' : '';
+
+    const totalDups  = rows.reduce((s, r) => s + (+r.duplicate_action_count||0), 0);
+    const avgActions = rows.reduce((s, r) => s + (+r.avg_actions_per_service||0), 0) / rows.length;
+    const flagged    = rows.filter(r => +r.duplicate_action_count > 0 || +r.vs_median_pct > 40).length;
+
+    document.getElementById('emp-kpi-grid').innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-label">Сотрудников</div>
+        <div class="kpi-value">${rows.length}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Среднее действий / обращение</div>
+        <div class="kpi-value">${avgActions.toFixed(1)}</div>
+      </div>
+      <div class="kpi-card" style="${totalDups > 0 ? 'border-color:var(--xf-red)' : ''}">
+        <div class="kpi-label">Всего дублирований</div>
+        <div class="kpi-value" style="${totalDups > 0 ? 'color:var(--xf-red)' : ''}">${totalDups}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">уникальных инцидентов</div>
+      </div>
+      <div class="kpi-card" style="${flagged > 0 ? 'border-color:var(--xf-yellow)' : ''}">
+        <div class="kpi-label">Требуют внимания</div>
+        <div class="kpi-value" style="${flagged > 0 ? 'color:var(--xf-yellow)' : ''}">${flagged}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">дубли или &gt;40% vs медиана</div>
+      </div>
+    `;
+
+    tbody.innerHTML = rows.map((r, i) => {
+      const hasDups     = +r.duplicate_action_count > 0;
+      const highActions = +r.vs_median_pct > 40;
+      const borderColor = hasDups ? 'var(--xf-red)' : (highActions ? 'var(--xf-yellow)' : null);
+      const empId       = CSS.escape ? CSS.escape(r.employee) : r.employee.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_');
+      const safeEmp     = r.employee.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
       return `
-        <tr>
-          <td style="font-weight:600">${r.employee} ${star}</td>
-          <td>${r.department||'—'}</td>
+        <tr id="emp-row-${i}" style="${borderColor ? `border-left:3px solid ${borderColor}` : ''}">
+          <td style="cursor:pointer;text-align:center" onclick="toggleEmpDetail(${i},'${safeEmp}')">
+            <span id="emp-toggle-${i}" style="opacity:.4;font-size:10px">▶</span>
+          </td>
+          <td style="font-weight:600">${r.employee}</td>
+          <td style="color:var(--text-muted)">${r.department||'—'}</td>
           <td class="num">${fmt.num(r.services_count)}</td>
-          <td class="num">${fmt.money(r.total_earnings)}</td>
-          <td class="num">${fmt.money(r.avg_service_cost)}</td>
-          <td class="num" style="color:var(--xf-red)">${fmt.money(r.total_overrun)}</td>
+          <td class="num" style="${highActions ? 'color:var(--xf-yellow);font-weight:600' : ''}">
+            ${(+r.avg_actions_per_service||0).toFixed(1)}
+            <span style="font-size:11px;color:var(--text-muted)"> / ${(+r.dept_median_actions||0).toFixed(1)}</span>
+          </td>
+          <td class="num">${fmt.delta(r.vs_median_pct, true)}</td>
+          <td class="num" style="${hasDups ? 'color:var(--xf-red);font-weight:700' : 'color:var(--text-muted)'}">
+            ${hasDups ? '🔁 ' : ''}${r.duplicate_action_count}
+          </td>
+          <td class="num" style="${+r.extra_action_count > 0 ? 'color:var(--xf-yellow)' : 'color:var(--text-muted)'}">
+            ${r.extra_action_count||0}
+          </td>
           <td class="num">${fmt.pct(r.non_standard_pct)}</td>
-          <td class="num">${fmt.delta(vsPct, true)}</td>
+          <td class="num" style="${+r.overrun_index > 0 ? 'color:var(--xf-yellow)' : 'color:var(--text-muted)'}">
+            ${r.overrun_index ? fmt.money(r.overrun_index) : '—'}
+          </td>
+        </tr>
+        <tr id="emp-detail-${i}" style="display:none">
+          <td colspan="10" style="padding:0">
+            <div id="emp-detail-content-${i}" style="padding:12px 20px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border-default)">
+              <div style="color:var(--text-muted);font-size:12px">Загрузка...</div>
+            </div>
+          </td>
         </tr>
       `;
     }).join('');
   } catch(e) { console.error('employees', e); }
+}
+
+async function toggleEmpDetail(idx, employee) {
+  const detailRow = document.getElementById(`emp-detail-${idx}`);
+  const toggle    = document.getElementById(`emp-toggle-${idx}`);
+  if (detailRow.style.display !== 'none') {
+    detailRow.style.display = 'none';
+    toggle.textContent = '▶';
+    return;
+  }
+  detailRow.style.display = '';
+  toggle.textContent = '▼';
+
+  try {
+    const data = await api('employee_duplicates', { report_id: STATE.currentReportId, employee });
+    const dups  = Array.isArray(data) ? data : (data.rows || []);
+    const el    = document.getElementById(`emp-detail-content-${idx}`);
+
+    if (!dups.length) {
+      el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 0">Дублирующих действий не обнаружено</div>';
+      return;
+    }
+
+    el.innerHTML = `
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+        🔁 Дублирующие действия — ${dups.length} случай(ев)
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="color:var(--text-muted)">
+            <th style="text-align:left;padding:4px 12px 4px 0;font-weight:500">Обращение</th>
+            <th style="text-align:left;padding:4px 12px;font-weight:500">Действие</th>
+            <th style="text-align:right;padding:4px 12px;font-weight:500">Повторов</th>
+            <th style="text-align:right;padding:4px 12px;font-weight:500">Цена ед.</th>
+            <th style="text-align:right;padding:4px 12px;font-weight:500">Сумма дубля</th>
+            <th style="text-align:left;padding:4px 0;font-weight:500">Дата</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dups.map(d => {
+            const dupCost = (+d.total_price) - (+d.unit_price);
+            return `
+              <tr style="border-top:1px solid var(--border-default)">
+                <td style="padding:6px 12px 6px 0;color:var(--text-muted)">#${d.service_id}</td>
+                <td style="padding:6px 12px;font-weight:500">${d.action_type}</td>
+                <td style="text-align:right;padding:6px 12px;color:var(--xf-red);font-weight:700">${d.repeat_count}×</td>
+                <td style="text-align:right;padding:6px 12px;color:var(--text-muted)">${fmt.money(d.unit_price)}</td>
+                <td style="text-align:right;padding:6px 12px;color:var(--xf-red)">${fmt.money(dupCost)}</td>
+                <td style="padding:6px 0;color:var(--text-muted)">${d.first_date||'—'}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) {
+    document.getElementById(`emp-detail-content-${idx}`).innerHTML =
+      '<div style="color:var(--xf-red);font-size:12px">Ошибка загрузки</div>';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1150,6 +1931,7 @@ async function loadVendors() {
 ══════════════════════════════════════════════════════════════════════════════ */
 async function loadAnomalies() {
   if (!STATE.currentReportId) return;
+  document.getElementById('anomalies-list').innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Загрузка…</div>';
   try {
     const data = await api('anomalies', { report_id: STATE.currentReportId });
     const rows = Array.isArray(data) ? data : (data.rows || []);
@@ -1158,16 +1940,24 @@ async function loadAnomalies() {
       el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">Аномалий не обнаружено</div><div style="color:var(--text-muted);font-size:13px">Все показатели в пределах нормы</div></div>';
       return;
     }
-    el.innerHTML = rows.map(r => `
-      <div class="anomaly-item ${r.severity}">
-        <div class="anomaly-severity">${r.severity==='critical'?'🔴':'🟡'}</div>
-        <div>
-          <div class="anomaly-title">${r.entity_id}</div>
-          <div class="anomaly-msg">${r.message}</div>
-          <div class="anomaly-meta">${r.anomaly_type} · Значение: ${fmt.money(r.value)} · Среднее: ${fmt.money(r.avg_value)} · Отклонение: ${fmt.pct(r.deviation_pct)}</div>
+    el.innerHTML = rows.map(r => {
+      const isDup = r.anomaly_type === 'duplicate_actions';
+      const icon  = isDup ? '🔁' : (r.severity === 'critical' ? '🔴' : '🟡');
+      const title = isDup ? `Повтор действия — обращение #${r.entity_id}` : r.entity_id;
+      const meta  = isDup
+        ? `${r.anomaly_type} · Обращение #${r.entity_id} · Повторений: ${+r.value}`
+        : `${r.anomaly_type} · Значение: ${fmt.money(r.value)} · Среднее: ${fmt.money(r.avg_value)} · Отклонение: ${fmt.pct(r.deviation_pct)}`;
+      return `
+        <div class="anomaly-item ${r.severity}">
+          <div class="anomaly-severity">${icon}</div>
+          <div>
+            <div class="anomaly-title">${title}</div>
+            <div class="anomaly-msg">${r.message}</div>
+            <div class="anomaly-meta">${meta}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch(e) { console.error('anomalies', e); }
 }
 
@@ -1207,6 +1997,33 @@ async function loadReport() {
     const warnAnomaly = aRows.filter(a => a.severity === 'warning');
     const week = STATE.reports.find(r => r.id == STATE.currentReportId);
 
+    const aiReportRow = iRows.find(i => i.insight_type === 'ai_analysis');
+    const regularInsights = iRows.filter(i => i.insight_type !== 'ai_analysis');
+    let aiReportSection = '';
+    if (aiReportRow) {
+      let ai = {};
+      try {
+        const raw = typeof aiReportRow.message === 'string' ? JSON.parse(aiReportRow.message) : aiReportRow.message;
+        ai = Array.isArray(raw) ? (raw[0]?.content?.[0]?.text || raw[0]) : raw;
+      } catch(e) {}
+      const riskLabel = { low: 'Низкий', medium: 'Средний', high: 'Высокий' }[ai.risk_level] || '—';
+      const riskColor = { low: 'var(--xf-green)', medium: 'var(--xf-yellow)', high: 'var(--xf-red)' }[ai.risk_level] || 'var(--text-muted)';
+      const patterns = Array.isArray(ai.patterns) ? ai.patterns : [];
+      const risks = Array.isArray(ai.top_risks) ? ai.top_risks : [];
+      aiReportSection = `
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">🤖 AI-АНАЛИЗ</h3>
+        <div style="padding:16px;background:rgba(57,187,59,.04);border:1px solid rgba(57,187,59,.2);border-radius:var(--radius-md);margin-bottom:24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:13px;font-weight:600">GPT-4o-mini</span>
+            <span style="font-size:11px;font-weight:700;color:${riskColor};text-transform:uppercase;letter-spacing:.4px">Риск: ${riskLabel}</span>
+          </div>
+          ${ai.summary ? `<p style="font-size:13px;color:var(--text-secondary);margin-bottom:${patterns.length || risks.length ? '12px' : '0'};line-height:1.6">${ai.summary}</p>` : ''}
+          ${patterns.map(p => `<div style="margin-bottom:6px;padding:8px 12px;background:var(--bg-card);border-radius:var(--radius-sm);font-size:12px"><strong>${p.title || ''}</strong>: ${p.description || ''}${p.recommendation ? ' → <span style="color:var(--xf-green)">' + p.recommendation + '</span>' : ''}</div>`).join('')}
+          ${risks.length ? `<div style="margin-top:${patterns.length?'10px':'0'}">${risks.map(r => `<div style="display:flex;gap:8px;align-items:baseline;font-size:12px;margin-bottom:4px"><span style="font-weight:700;color:${r.priority==='high'?'var(--xf-red)':r.priority==='medium'?'var(--xf-yellow)':r.priority==='low'?'var(--xf-green)':'var(--text-muted)'}">${r.priority?.toUpperCase()}</span><span style="color:var(--text-secondary)">${r.name || ''} — ${r.reason || ''}</span></div>`).join('')}</div>` : ''}
+        </div>
+      `;
+    }
+
     el.innerHTML = `
       <div style="max-width:680px">
         <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Менеджерский отчёт</h2>
@@ -1240,10 +2057,12 @@ async function loadReport() {
         <div style="margin-bottom:24px"></div>
         ` : ''}
 
-        ${iRows.length ? `
+        ${aiReportSection}
+
+        ${regularInsights.length ? `
         <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">💡 ИНСАЙТЫ</h3>
         <ul style="padding-left:20px;margin-bottom:24px">
-          ${iRows.map(i => `<li style="margin-bottom:6px;font-size:13px;color:var(--text-secondary)">${i.message}</li>`).join('')}
+          ${regularInsights.map(i => `<li style="margin-bottom:6px;font-size:13px;color:var(--text-secondary)">${i.message}</li>`).join('')}
         </ul>
         ` : ''}
 
@@ -1344,18 +2163,20 @@ async function doUpload() {
     formData.append('data', uploadFile_, uploadFile_.name);
 
     fill.style.width = '30%';
-    const r = await fetch(`${CONFIG.n8nUrl}/webhook/import-report`, { method: 'POST', body: formData });
+    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/import-report`, { method: 'POST', body: formData });
     fill.style.width = '70%';
     status.textContent = 'Обработка данных…';
 
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const result = await r.json();
+    const text = await r.text();
+    const result = text.trim() ? JSON.parse(text) : {};
     fill.style.width = '100%';
     status.textContent = 'Готово!';
 
     setTimeout(() => {
       closeUploadModal();
       showToast(`Отчёт загружен: ${result.row_count || '?'} строк`, 'success');
+      STATE.loaded.clear();
       loadReports();
     }, 600);
   } catch(e) {
@@ -1364,6 +2185,245 @@ async function doUpload() {
     btn.disabled = false;
     showToast('Ошибка загрузки: ' + e.message, 'error');
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKLOAD PAGE
+══════════════════════════════════════════════════════════════════════════════ */
+const DOW_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+async function loadWorkload() {
+  if (!STATE.currentReportId) return;
+  skelKpi('wl-kpi-grid', 4);
+  skelRows('wl-emp-tbody', 6);
+  try {
+  const [daily, throughput] = await Promise.all([
+    api('workload_daily', { report_id: STATE.currentReportId }),
+    api('emp_throughput', { report_id: STATE.currentReportId }),
+  ]);
+  const dailyRows = Array.isArray(daily) ? daily : (daily.rows || []);
+  const empRows   = Array.isArray(throughput) ? throughput : (throughput.rows || []);
+
+  // KPI
+  const totalSvcs = dailyRows.reduce((s, r) => s + (+r.services||0), 0);
+  const avgPerDay = dailyRows.length ? Math.round(totalSvcs / dailyRows.length * 10) / 10 : 0;
+  const peakRow   = dailyRows.reduce((best, r) => (+r.services > +best.services ? r : best), dailyRows[0] || {});
+  const activeDays = dailyRows.length;
+
+  document.getElementById('wl-kpi-grid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Активных дней</div><div class="kpi-value">${activeDays}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Всего устройств</div><div class="kpi-value">${totalSvcs.toLocaleString('ru')}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Среднее / день</div><div class="kpi-value">${avgPerDay}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Пиковый день</div>
+      <div class="kpi-value" style="font-size:18px">${peakRow.label || '—'}</div>
+      <div class="kpi-delta ${peakRow.services > avgPerDay * 1.5 ? 'neg' : ''}">${peakRow.services || 0} устройств</div>
+    </div>`;
+
+  // Daily flow chart
+  destroyChart('wl-daily');
+  const dailyCtx = document.getElementById('wl-daily-chart').getContext('2d');
+  STATE.charts['wl-daily'] = new Chart(dailyCtx, {
+    type: 'bar',
+    data: {
+      labels: dailyRows.map(r => r.label),
+      datasets: [{
+        label: 'Устройств',
+        data: dailyRows.map(r => +r.services),
+        backgroundColor: dailyRows.map(r => {
+          const dow = +r.dow;
+          return (dow === 0 || dow === 6) ? 'rgba(245,166,35,.7)' : 'rgba(57,187,59,.7)';
+        }),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Day of week aggregation
+  const dowMap = {};
+  dailyRows.forEach(r => {
+    const d = +r.dow;
+    dowMap[d] = (dowMap[d] || 0) + (+r.services || 0);
+  });
+  const dowCounts = {};
+  dailyRows.forEach(r => { const d = +r.dow; dowCounts[d] = (dowCounts[d] || 0) + 1; });
+  const dowOrder = [1,2,3,4,5,6,0];
+  const dowAvg = dowOrder.map(d => dowCounts[d] ? Math.round((dowMap[d]||0) / dowCounts[d] * 10) / 10 : 0);
+
+  destroyChart('wl-dow');
+  const dowCtx = document.getElementById('wl-dow-chart').getContext('2d');
+  STATE.charts['wl-dow'] = new Chart(dowCtx, {
+    type: 'bar',
+    data: {
+      labels: dowOrder.map(d => DOW_RU[d]),
+      datasets: [{
+        label: 'Среднее устройств',
+        data: dowAvg,
+        backgroundColor: dowOrder.map(d => d === 0 || d === 6 ? 'rgba(245,166,35,.7)' : 'rgba(57,187,59,.5)'),
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Employee throughput table
+  const maxAvg = empRows.length ? Math.max(...empRows.map(r => +r.avg_per_day)) : 1;
+  const tbody = document.getElementById('wl-emp-tbody');
+  if (!empRows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Нет данных</td></tr>';
+    return;
+  }
+  tbody.innerHTML = empRows.map(r => {
+    const avg = +r.avg_per_day;
+    const barW = Math.round(avg / maxAvg * 100);
+    const barColor = avg >= maxAvg * 0.75 ? 'var(--xf-green)' : avg >= maxAvg * 0.4 ? 'var(--xf-yellow)' : 'var(--xf-ink-500)';
+    return `<tr>
+      <td style="font-weight:500">${r.employee}</td>
+      <td class="num">${r.days_worked}</td>
+      <td class="num">${(+r.total_services).toLocaleString('ru')}</td>
+      <td class="num" style="font-weight:600">${avg}</td>
+      <td class="num">${r.max_per_day}</td>
+      <td style="padding:8px 12px">
+        <div style="height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barW}%;background:${barColor};border-radius:3px"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  } catch(e) {
+    console.error('workload', e);
+    const tb = document.getElementById('wl-emp-tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--xf-red);padding:24px">Ошибка загрузки данных</td></tr>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UPLOAD PAGE
+══════════════════════════════════════════════════════════════════════════════ */
+let puFile_ = null;
+
+function puTriggerFile() { document.getElementById('pu-file-input').click(); }
+
+function puFileSelect(evt) {
+  const f = evt.target.files[0];
+  if (!f) return;
+  puFile_ = f;
+  document.getElementById('pu-filename').textContent = f.name;
+  document.getElementById('pu-filename').style.display = 'block';
+  document.getElementById('pu-btn').disabled = false;
+}
+function puDragOver(e) {
+  e.preventDefault();
+  document.getElementById('pu-drop-zone').classList.add('drag-over');
+}
+function puDragLeave() {
+  document.getElementById('pu-drop-zone').classList.remove('drag-over');
+}
+function puDrop(e) {
+  e.preventDefault();
+  document.getElementById('pu-drop-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) {
+    puFile_ = f;
+    document.getElementById('pu-filename').textContent = f.name;
+    document.getElementById('pu-filename').style.display = 'block';
+    document.getElementById('pu-btn').disabled = false;
+  } else {
+    showToast('Поддерживаются только файлы .xlsx и .xls', 'error');
+  }
+}
+async function doUploadPage() {
+  if (!puFile_) return;
+  const progress = document.getElementById('pu-progress');
+  const fill     = document.getElementById('pu-fill');
+  const status   = document.getElementById('pu-status');
+  const btn      = document.getElementById('pu-btn');
+
+  progress.style.display = 'block';
+  btn.disabled = true;
+  fill.style.width = '10%';
+  status.textContent = 'Загрузка файла…';
+
+  try {
+    const formData = new FormData();
+    formData.append('data', puFile_, puFile_.name);
+    fill.style.width = '30%';
+    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/import-report`, { method: 'POST', body: formData });
+    fill.style.width = '70%';
+    status.textContent = 'Обработка данных…';
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const text = await r.text();
+    const result = text.trim() ? JSON.parse(text) : {};
+    fill.style.width = '100%';
+    status.textContent = 'Готово!';
+    showToast(`Отчёт загружен: ${result.row_count || '?'} строк`, 'success');
+    puFile_ = null;
+    document.getElementById('pu-filename').style.display = 'none';
+    setTimeout(() => {
+      progress.style.display = 'none';
+      fill.style.width = '0';
+      btn.disabled = true;
+      loadReports();
+      loadUploadPage();
+    }, 800);
+  } catch(e) {
+    status.textContent = 'Ошибка: ' + e.message;
+    fill.style.width = '0';
+    btn.disabled = false;
+    showToast('Ошибка загрузки: ' + e.message, 'error');
+  }
+}
+async function loadUploadPage() {
+  const tbody = document.getElementById('pu-history-body');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка…</td></tr>';
+  try {
+    const data = await api('uploads');
+    const rows = Array.isArray(data) ? data : (data.rows || []);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">Загрузок нет — добавьте первый отчёт</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const date = r.upload_date ? r.upload_date.slice(0, 16).replace('T', ' ') : '—';
+      const isActive = String(r.id) === String(STATE.currentReportId);
+      return `<tr style="${isActive ? 'background:rgba(57,187,59,.07)' : ''}">
+        <td style="font-weight:600">Неделя ${r.report_week || r.id}</td>
+        <td style="color:var(--text-secondary);font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filename||''}">${r.filename || '—'}</td>
+        <td class="num">${(+r.row_count).toLocaleString('ru')}</td>
+        <td style="color:var(--text-muted);font-size:12px">${date}</td>
+        <td style="text-align:right">
+          ${isActive
+            ? '<span style="font-size:12px;color:var(--accent)">● активен</span>'
+            : `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclick="puSelectReport(${r.id})">Выбрать</button>`
+          }
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--xf-red);padding:24px">Ошибка: ${e.message}</td></tr>`;
+  }
+}
+function puSelectReport(id) {
+  const sel = document.getElementById('report-select');
+  sel.value = id;
+  STATE.currentReportId = id;
+  loadUploadPage();
+  showToast('Активен отчёт #' + id, 'success');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1378,11 +2438,61 @@ function showToast(msg, type = 'success') {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON HELPERS
+══════════════════════════════════════════════════════════════════════════════ */
+function skelKpi(id, n = 4) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = Array.from({length: n}, () =>
+    `<div class="kpi-card">
+      <div class="skel" style="height:11px;width:58%;margin-bottom:10px"></div>
+      <div class="skel" style="height:30px;width:42%"></div>
+    </div>`
+  ).join('');
+}
+function skelRows(id, cols, n = 5) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const ws = [60, 38, 30, 35, 42, 25, 50, 33, 28, 44];
+  el.innerHTML = Array.from({length: n}, () =>
+    `<tr>${Array.from({length: cols}, (_, i) =>
+      `<td><div class="skel" style="height:12px;width:${ws[i % ws.length]}%"></div></td>`
+    ).join('')}</tr>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════════════════════════════════ */
+/* ─── Theme ─────────────────────────────────────────────────────────────── */
+const ICON_SUN  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+const ICON_MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = theme === 'dark' ? ICON_SUN : ICON_MOON;
+}
+function initTheme() {
+  applyTheme(localStorage.getItem('xfix-theme') || 'dark');
+}
+function toggleTheme() {
+  const next = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('xfix-theme', next);
+  applyTheme(next);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   loadSettings();
   loadReports();
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('role', 'button');
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+    });
+  });
 });
 </script>
 </body>

@@ -1,0 +1,769 @@
+{
+  "name": "XFIX Analytics — Import Report",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "import-report",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "id": "68f0ae76-d3d0-4628-bb94-317bb70189db",
+      "name": "Import Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        0
+      ],
+      "webhookId": "2aa9108b-1fa8-43ac-9150-13539c75c707"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "data0",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "id": "481c0d51-03e5-4b59-8ea2-47c32ea6d591",
+      "name": "Extract XLSX",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function excelDate(num) {\n  if (!num || isNaN(+num)) return null;\n  const d = new Date(Date.UTC(1900, 0, 1) + (Math.floor(+num) - 2) * 86400000);\n  return d.toISOString().split('T')[0];\n}\nfunction s(v) {\n  if (v === null || v === undefined) return null;\n  const r = String(v).trim();\n  return r || null;\n}\nfunction n(v) {\n  if (v === null || v === undefined || v === '') return 0;\n  const r = parseFloat(String(v).replace(',', '.'));\n  return isNaN(r) ? 0 : r;\n}\nfunction getMonday(dateStr) {\n  if (!dateStr) return null;\n  const d = new Date(dateStr + 'T00:00:00Z');\n  if (isNaN(d.getTime())) return null;\n  const day = d.getUTCDay();\n  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);\n  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), diff)).toISOString().split('T')[0];\n}\n\nconst items = $input.all();\nconst rows = [];\n\nfor (const item of items) {\n  const r = item.json;\n  const keys = Object.keys(r);\n  const hasLetterCols = keys.includes('A') || keys.includes('B');\n\n  const id = hasLetterCols ? n(r['A']) : n(r['id']);\n  const employee = hasLetterCols ? s(r['B']) : s(r['ФИО']);\n  const dateRaw = hasLetterCols ? r['C'] : (r['дата'] || r['date']);\n  const action_date = typeof dateRaw === 'number' ? excelDate(dateRaw) : s(dateRaw);\n  const office = hasLetterCols ? s(r['E']) : (s(r['Офис']) || s(r['office']));\n  const department = hasLetterCols ? s(r['F']) : (s(r['Отдел']) || s(r['dept']));\n  const action_type = hasLetterCols ? s(r['G']) : (s(r['Тип']) || s(r['type']));\n  const group_name = hasLetterCols ? s(r['H']) : (s(r['Группа']) || s(r['group']));\n  const subgroup = hasLetterCols ? s(r['I']) : (s(r['Подгруппа']) || s(r['subgroup']));\n  const comment = hasLetterCols ? s(r['J']) : (s(r['Комментарий']) || s(r['comment']));\n  const price = hasLetterCols ? n(r['K']) : n(r['price']);\n  const service_id = hasLetterCols ? n(r['X']) : (n(r['id сервис']) || n(r['service_id']));\n  const vendor = hasLetterCols ? s(r['AK']) : (s(r['Вендор']) || s(r['vendor']));\n\n  if (!id || !service_id) continue;\n  const week = getMonday(action_date);\n  rows.push({ id, employee, action_date, office, department, action_type, group_name, subgroup, comment, price, service_id, vendor, week });\n}\n\n// Group rows by ISO week (Monday)\nconst weekMap = {};\nfor (const row of rows) {\n  const week = row.week;\n  if (!week) continue;\n  if (!weekMap[week]) weekMap[week] = [];\n  weekMap[week].push(row);\n}\n\n// Fallback: rows without valid date get assigned to the first available week\nconst undated = rows.filter(r => !r.week);\nif (undated.length > 0) {\n  const firstWeek = Object.keys(weekMap).sort()[0] || getMonday(new Date().toISOString().split('T')[0]);\n  if (!weekMap[firstWeek]) weekMap[firstWeek] = [];\n  weekMap[firstWeek].push(...undated.map(r => ({ ...r, week: firstWeek })));\n}\n\nconst weekKeys = Object.keys(weekMap).sort();\n\n// Build multi-row INSERT for uploads table (one record per week)\nconst uploadVals = weekKeys.map(w => `('${w}', 'report_${w}.xlsx', ${weekMap[w].length})`).join(',\\n');\nconst insertUploadSql = `INSERT INTO uploads(report_week, filename, row_count) VALUES\\n${uploadVals}\\nON CONFLICT(report_week) DO UPDATE SET filename=EXCLUDED.filename, row_count=EXCLUDED.row_count\\nRETURNING id, report_week::text`;\n\nreturn [{ json: { rows, weekMap, weekKeys, insertUploadSql, total_row_count: rows.length } }];"
+      },
+      "id": "fac9ccbf-39f5-4a85-8611-3a083ff91baf",
+      "name": "Process Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('Process Rows').first().json.insertUploadSql }}",
+        "options": {
+          "largeNumbersOutput": "numbers"
+        }
+      },
+      "id": "a0a91972-00eb-4346-94a3-058a86e0564c",
+      "name": "Insert Upload",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all upload rows (one per week) and build uploadMap: week → report_id\nconst uploadRows = $input.all();\nconst weekMap = $('Process Rows').first().json.weekMap;\n\nconst uploadMap = {};\nfor (const r of uploadRows) {\n  uploadMap[r.json.report_week] = r.json.id;\n}\nconst reportIds = uploadRows.map(r => r.json.id).filter(Boolean);\n\nfunction q(v) {\n  if (v === null || v === undefined) return 'NULL';\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(v) { return (v === null || v === undefined) ? 'NULL' : Number(v); }\n\n// Map each row to its correct report_id based on its week\nconst allRows = [];\nfor (const week of Object.keys(weekMap)) {\n  const reportId = uploadMap[week];\n  if (!reportId) continue;\n  for (const r of weekMap[week]) {\n    allRows.push({ ...r, report_id: reportId });\n  }\n}\n\nif (allRows.length === 0) {\n  return [{ json: { sql: 'SELECT 1', reportIds, uploadMap } }];\n}\n\nconst vals = allRows.map(r =>\n  `(${num(r.id)},${num(r.report_id)},${q(r.employee)},${r.action_date ? q(r.action_date) + '::date' : 'NULL'},${q(r.office)},${q(r.department)},${q(r.action_type)},${q(r.group_name)},${q(r.subgroup)},${q(r.comment)},${num(r.price)},${num(r.service_id)},${q(r.vendor)})`\n).join(',');\n\nconst sql = 'INSERT INTO actions(id,report_id,employee,action_date,office,department,action_type,group_name,subgroup,comment,price,service_id,vendor) VALUES ' + vals + ' ON CONFLICT(id,report_id) DO UPDATE SET employee=EXCLUDED.employee,action_type=EXCLUDED.action_type,group_name=EXCLUDED.group_name,price=EXCLUDED.price,service_id=EXCLUDED.service_id,vendor=EXCLUDED.vendor';\n\nreturn [{ json: { sql, reportIds, uploadMap } }];"
+      },
+      "id": "3a4e326a-3d83-4ba8-ba08-a34ca2856002",
+      "name": "Build Actions SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {
+          "largeNumbersOutput": "numbers"
+        }
+      },
+      "id": "66e3f5a1-5c4e-4645-9154-69e870b476ea",
+      "name": "Insert Actions",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        688,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\n\n// Return multiple items — each gets executed separately by Update Base Costs Postgres node\nreturn [\n  {\n    json: {\n      sql: `CREATE TABLE IF NOT EXISTS base_patterns (\n  group_name TEXT PRIMARY KEY,\n  pattern TEXT NOT NULL,\n  pattern_services INT,\n  base_cost_median NUMERIC,\n  base_cost_avg NUMERIC,\n  base_cost_p25 NUMERIC,\n  base_cost_p75 NUMERIC,\n  sample_count INT,\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n)`,\n      reportIds\n    }\n  },\n  {\n    json: {\n      sql: `CREATE TABLE IF NOT EXISTS allowed_actions (\n  id SERIAL PRIMARY KEY,\n  group_name TEXT NOT NULL,\n  action_type TEXT NOT NULL,\n  UNIQUE(group_name, action_type)\n)`\n    }\n  },\n  { json: { sql: `ALTER TABLE services ADD COLUMN IF NOT EXISTS pattern TEXT` } },\n  { json: { sql: `ALTER TABLE employee_stats ADD COLUMN IF NOT EXISTS overrun_index NUMERIC DEFAULT 0` } },\n  {\n    json: {\n      sql: `INSERT INTO base_patterns(group_name, pattern, pattern_services, base_cost_median, base_cost_avg, base_cost_p25, base_cost_p75, sample_count, updated_at)\nWITH recent_reports AS (\n  SELECT id FROM uploads ORDER BY report_week DESC LIMIT 12\n),\nsvc_totals AS (\n  SELECT group_name, service_id, SUM(price) AS total_price\n  FROM actions\n  WHERE report_id IN (SELECT id FROM recent_reports) AND group_name IS NOT NULL\n  GROUP BY group_name, service_id\n),\nsvc_patterns AS (\n  SELECT d.group_name, d.service_id,\n    STRING_AGG(d.action_type, '|' ORDER BY d.action_type) AS pattern\n  FROM (\n    SELECT DISTINCT group_name, service_id, action_type\n    FROM actions\n    WHERE report_id IN (SELECT id FROM recent_reports)\n      AND group_name IS NOT NULL AND action_type IS NOT NULL\n  ) d\n  GROUP BY d.group_name, d.service_id\n),\npattern_freq AS (\n  SELECT group_name, pattern, COUNT(*) AS svc_count\n  FROM svc_patterns\n  GROUP BY group_name, pattern\n),\ntop_patterns AS (\n  SELECT DISTINCT ON (group_name) group_name, pattern, svc_count\n  FROM pattern_freq\n  ORDER BY group_name, svc_count DESC\n),\npattern_costs AS (\n  SELECT sp.group_name, st.total_price\n  FROM svc_patterns sp\n  JOIN top_patterns tp ON tp.group_name = sp.group_name AND tp.pattern = sp.pattern\n  JOIN svc_totals st ON st.group_name = sp.group_name AND st.service_id = sp.service_id\n)\nSELECT tp.group_name, tp.pattern, tp.svc_count,\n  PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY pc.total_price),\n  AVG(pc.total_price),\n  PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY pc.total_price),\n  PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY pc.total_price),\n  COUNT(*),\n  NOW()\nFROM top_patterns tp\nJOIN pattern_costs pc ON pc.group_name = tp.group_name\nGROUP BY tp.group_name, tp.pattern, tp.svc_count\nON CONFLICT(group_name) DO UPDATE SET\n  pattern=EXCLUDED.pattern, pattern_services=EXCLUDED.pattern_services,\n  base_cost_median=EXCLUDED.base_cost_median, base_cost_avg=EXCLUDED.base_cost_avg,\n  base_cost_p25=EXCLUDED.base_cost_p25, base_cost_p75=EXCLUDED.base_cost_p75,\n  sample_count=EXCLUDED.sample_count, updated_at=EXCLUDED.updated_at`\n    }\n  }\n];"
+      },
+      "id": "52a21e9c-52cd-4488-8bfa-adb9c6ee97bf",
+      "name": "Build Base Costs SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "8870c9f1-5595-4bb2-83db-be1368daead0",
+      "name": "Update Base Costs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1136,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\nconst idsArray = reportIds.length > 0 ? `ARRAY[${reportIds.join(',')}]` : 'ARRAY[]::int[]';\n\nconst sql = `INSERT INTO services(service_id, report_id, vendor, group_name, total_price, actions_count, employee_count, employees, action_types, pattern, base_cost, overrun, overrun_pct, zone, overrun_reason, extra_actions)\nWITH svc_agg AS (\n  SELECT service_id, report_id,\n    MAX(vendor) AS vendor,\n    MAX(group_name) AS group_name,\n    SUM(price) AS total_price,\n    COUNT(*) AS actions_count,\n    COUNT(DISTINCT employee) AS employee_count,\n    ARRAY_AGG(DISTINCT employee) FILTER (WHERE employee IS NOT NULL) AS employees,\n    ARRAY_AGG(DISTINCT action_type) FILTER (WHERE action_type IS NOT NULL) AS action_types\n  FROM actions\n  WHERE report_id = ANY(${idsArray})\n  GROUP BY service_id, report_id\n),\nsvc_patterns AS (\n  SELECT d.service_id, d.report_id,\n    STRING_AGG(d.action_type, '|' ORDER BY d.action_type) AS pattern\n  FROM (\n    SELECT DISTINCT service_id, report_id, action_type\n    FROM actions\n    WHERE report_id = ANY(${idsArray}) AND action_type IS NOT NULL\n  ) d\n  GROUP BY d.service_id, d.report_id\n),\ncomputed AS (\n  SELECT sa.service_id, sa.report_id, sa.vendor, sa.group_name,\n    sa.total_price, sa.actions_count, sa.employee_count, sa.employees, sa.action_types,\n    COALESCE(sp.pattern, '') AS pattern,\n    COALESCE(bp.base_cost_median, 0) AS base_cost,\n    GREATEST(sa.total_price - COALESCE(bp.base_cost_median, 0), 0) AS overrun,\n    CASE WHEN COALESCE(bp.base_cost_median, 0) > 0\n      THEN ROUND((sa.total_price - bp.base_cost_median)::numeric / bp.base_cost_median * 100, 2)\n      ELSE 0 END AS overrun_pct,\n    CASE\n      WHEN COALESCE(bp.base_cost_median, 0) = 0 THEN 'normal'\n      WHEN sa.total_price <= bp.base_cost_median THEN 'normal'\n      WHEN (sa.total_price - bp.base_cost_median) / bp.base_cost_median <= 0.30 THEN 'small'\n      WHEN (sa.total_price - bp.base_cost_median) / bp.base_cost_median <= 1.00 THEN 'elevated'\n      ELSE 'critical'\n    END AS zone,\n    ARRAY(\n      SELECT DISTINCT u FROM UNNEST(sa.action_types) AS u\n      WHERE (bp.pattern IS NULL OR NOT (u = ANY(STRING_TO_ARRAY(COALESCE(bp.pattern, ''), '|'))))\n        AND NOT EXISTS (\n          SELECT 1 FROM allowed_actions aa\n          WHERE aa.group_name = sa.group_name AND aa.action_type = u\n        )\n    ) AS extra_actions\n  FROM svc_agg sa\n  LEFT JOIN svc_patterns sp ON sp.service_id = sa.service_id AND sp.report_id = sa.report_id\n  LEFT JOIN base_patterns bp ON bp.group_name = sa.group_name\n)\nSELECT service_id, report_id, vendor, group_name, total_price, actions_count, employee_count, employees, action_types, pattern, base_cost, overrun, overrun_pct, zone,\n  CASE WHEN array_length(extra_actions, 1) > 0 THEN ARRAY_TO_STRING(extra_actions, ' + ') ELSE NULL END AS overrun_reason,\n  extra_actions\nFROM computed\nON CONFLICT(service_id, report_id) DO UPDATE SET\n  total_price=EXCLUDED.total_price, actions_count=EXCLUDED.actions_count,\n  employee_count=EXCLUDED.employee_count, employees=EXCLUDED.employees,\n  action_types=EXCLUDED.action_types, pattern=EXCLUDED.pattern,\n  base_cost=EXCLUDED.base_cost, overrun=EXCLUDED.overrun, overrun_pct=EXCLUDED.overrun_pct,\n  zone=EXCLUDED.zone, overrun_reason=EXCLUDED.overrun_reason, extra_actions=EXCLUDED.extra_actions`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "73fe9d1e-58ce-4269-901a-ff053b49feaf",
+      "name": "Build Services SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "309a59f4-d63b-4415-bb19-8f0398c8b707",
+      "name": "Insert Services",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1584,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\nconst idsArray = reportIds.length > 0 ? `ARRAY[${reportIds.join(',')}]` : 'ARRAY[]::int[]';\n\nconst sql = `INSERT INTO employee_stats(report_id, employee, department, services_count, total_earnings, avg_service_cost, non_standard_count, total_overrun, non_standard_pct, extra_action_count, overrun_index)\nSELECT a.report_id, a.employee, MAX(a.department) AS department,\n  COUNT(DISTINCT a.service_id) AS services_count,\n  SUM(a.price) AS total_earnings,\n  COALESCE(AVG(s.total_price), 0) AS avg_service_cost,\n  COUNT(DISTINCT CASE WHEN s.zone <> 'normal' THEN a.service_id END) AS non_standard_count,\n  COALESCE(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END), 0) AS total_overrun,\n  ROUND(COUNT(DISTINCT CASE WHEN s.zone <> 'normal' THEN a.service_id END) * 100.0 / NULLIF(COUNT(DISTINCT a.service_id), 0), 2) AS non_standard_pct,\n  COUNT(CASE WHEN a.action_type IS NOT NULL AND s.extra_actions IS NOT NULL AND a.action_type = ANY(s.extra_actions) THEN 1 END) AS extra_action_count,\n  ROUND(COALESCE(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END), 0)::numeric / NULLIF(COUNT(DISTINCT a.service_id)::numeric, 0), 2) AS overrun_index\nFROM actions a\nLEFT JOIN services s ON s.service_id = a.service_id AND s.report_id = a.report_id\nWHERE a.employee IS NOT NULL AND a.report_id = ANY(${idsArray})\nGROUP BY a.report_id, a.employee\nON CONFLICT(report_id, employee) DO UPDATE SET\n  department=EXCLUDED.department, services_count=EXCLUDED.services_count,\n  total_earnings=EXCLUDED.total_earnings, avg_service_cost=EXCLUDED.avg_service_cost,\n  non_standard_count=EXCLUDED.non_standard_count, total_overrun=EXCLUDED.total_overrun,\n  non_standard_pct=EXCLUDED.non_standard_pct, extra_action_count=EXCLUDED.extra_action_count,\n  overrun_index=EXCLUDED.overrun_index`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "22bc68a4-216a-4cc8-8931-7d09298f7f5d",
+      "name": "Build Stats SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "669c9efc-9a6c-4930-a358-96c8ef7ea309",
+      "name": "Insert Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2464,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\n\nconst sql = `WITH\n  del AS (DELETE FROM anomalies),\n  dept_avg AS (\n    SELECT report_id, COALESCE(department, 'All') AS dept,\n      AVG(avg_service_cost::numeric) AS avg_cost,\n      AVG(CASE WHEN total_overrun > 0 THEN total_overrun::numeric END) AS avg_overrun\n    FROM employee_stats\n    GROUP BY report_id, COALESCE(department, 'All')\n  ),\n  action_counts AS (\n    SELECT report_id, employee,\n      MAX(department) AS department,\n      COUNT(*)::numeric / NULLIF(COUNT(DISTINCT service_id), 0) AS avg_per_service\n    FROM actions\n    WHERE employee IS NOT NULL\n    GROUP BY report_id, employee\n  ),\n  dept_medians AS (\n    SELECT report_id, COALESCE(department, 'All') AS dept,\n      PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_per_service) AS median_per_service\n    FROM action_counts\n    GROUP BY report_id, COALESCE(department, 'All')\n  ),\n  dup_agg AS (\n    SELECT report_id, employee, service_id, action_type, COUNT(*) AS cnt\n    FROM actions\n    WHERE action_type IS NOT NULL AND employee IS NOT NULL\n    GROUP BY report_id, employee, service_id, action_type\n    HAVING COUNT(*) > 1\n  ),\n  gap_svcs AS (\n    SELECT report_id, service_id, MAX(employee) AS employee,\n      (MAX(action_date) - MIN(action_date)) AS day_span\n    FROM actions\n    WHERE action_date IS NOT NULL AND employee IS NOT NULL\n    GROUP BY report_id, service_id\n    HAVING (MAX(action_date) - MIN(action_date)) > 1\n  ),\n  model_svc_counts AS (\n    SELECT report_id, employee, group_name, COALESCE(subgroup,'') AS subgroup,\n      service_id, COUNT(*) AS action_cnt\n    FROM actions\n    WHERE employee IS NOT NULL AND group_name IS NOT NULL\n    GROUP BY report_id, employee, group_name, COALESCE(subgroup,''), service_id\n  ),\n  model_medians AS (\n    SELECT report_id, group_name, subgroup,\n      PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY action_cnt) AS median_actions\n    FROM model_svc_counts\n    GROUP BY report_id, group_name, subgroup\n    HAVING COUNT(*) >= 5\n  ),\n  model_emp_avg AS (\n    SELECT report_id, employee, group_name, subgroup,\n      ROUND(AVG(action_cnt)::numeric, 2) AS avg_actions,\n      COUNT(*) AS svc_count\n    FROM model_svc_counts\n    GROUP BY report_id, employee, group_name, subgroup\n    HAVING COUNT(*) >= 3\n  )\nINSERT INTO anomalies(report_id, anomaly_type, entity_id, message, severity, metric, value, avg_value, deviation_pct)\n\n-- 1. Employee avg cost / overrun outliers (thresholds: 20% warning, 60% critical)\nSELECT es.report_id, 'employee', es.employee,\n  CASE\n    WHEN da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2\n    THEN 'Средняя стоимость выше средней по отделу на ' || ROUND((es.avg_service_cost::numeric / NULLIF(da.avg_cost::numeric, 0) - 1) * 100, 0) || '%'\n    ELSE 'Перерасход выше среднего по отделу на ' || ROUND(CASE WHEN COALESCE(da.avg_overrun::numeric,0)>0 THEN (es.total_overrun::numeric/NULLIF(da.avg_overrun::numeric,0)-1)*100 ELSE 100 END, 0) || '%'\n  END,\n  CASE\n    WHEN (da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.6)\n      OR (COALESCE(da.avg_overrun,0) > 0 AND es.total_overrun > da.avg_overrun * 1.6) THEN 'critical'\n    ELSE 'warning' END,\n  CASE WHEN da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2 THEN 'avg_service_cost' ELSE 'total_overrun' END,\n  CASE WHEN da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2 THEN es.avg_service_cost::numeric ELSE es.total_overrun::numeric END,\n  CASE WHEN da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2 THEN da.avg_cost::numeric ELSE COALESCE(da.avg_overrun::numeric,0) END,\n  ROUND(CASE\n    WHEN da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2\n    THEN (es.avg_service_cost::numeric / NULLIF(da.avg_cost::numeric, 0) - 1) * 100\n    ELSE CASE WHEN COALESCE(da.avg_overrun::numeric,0) > 0 THEN (es.total_overrun::numeric/NULLIF(da.avg_overrun::numeric,0)-1)*100 ELSE 100 END\n  END, 2)\nFROM employee_stats es\nJOIN dept_avg da ON da.report_id = es.report_id AND da.dept = COALESCE(es.department, 'All')\nWHERE (da.avg_cost > 0 AND es.avg_service_cost > da.avg_cost * 1.2)\n  OR (COALESCE(da.avg_overrun,0) > 0 AND es.total_overrun > da.avg_overrun * 1.2)\n\nUNION ALL\n\n-- 2. Duplicate actions\nSELECT report_id, 'duplicate_action', employee,\n  'Обращение #' || service_id || ': «' || action_type || '» повторяется ' || cnt || '×',\n  CASE WHEN cnt >= 3 THEN 'critical' ELSE 'warning' END,\n  'repeat_count', cnt::numeric, 1::numeric, ((cnt - 1) * 100.0)::numeric\nFROM dup_agg\n\nUNION ALL\n\n-- 3. Excess actions vs dept median\nSELECT ac.report_id, 'excess_actions', ac.employee,\n  'Среднее ' || ROUND(ac.avg_per_service::numeric, 1) || ' действий/обращение (медиана отдела: ' || ROUND(dm.median_per_service::numeric, 1) || ')',\n  CASE WHEN ac.avg_per_service > dm.median_per_service * 2.0 THEN 'critical' ELSE 'warning' END,\n  'avg_actions_per_service',\n  ROUND(ac.avg_per_service::numeric, 2),\n  ROUND(dm.median_per_service::numeric, 2),\n  ROUND((ac.avg_per_service::numeric / NULLIF(dm.median_per_service::numeric, 0) - 1) * 100, 2)\nFROM action_counts ac\nJOIN dept_medians dm ON dm.report_id = ac.report_id AND dm.dept = COALESCE(ac.department, 'All')\nJOIN employee_stats es ON es.report_id = ac.report_id AND es.employee = ac.employee\nWHERE ac.avg_per_service > dm.median_per_service * 1.4\n  AND ac.avg_per_service > 3\n  AND es.services_count >= 3\n\nUNION ALL\n\n-- 4. Multi-day gap between actions on same service\nSELECT gs.report_id, 'gap_anomaly', gs.employee,\n  'Обращение #' || gs.service_id || ': разрыв ' || gs.day_span || ' дн. между действиями — рекомендуется проверить',\n  CASE WHEN gs.day_span >= 7 THEN 'critical' ELSE 'warning' END,\n  'day_span', gs.day_span::numeric, 1::numeric, ((gs.day_span - 1) * 100.0)::numeric\nFROM gap_svcs gs\n\nUNION ALL\n\n-- 5. Excess actions vs model-level peers\nSELECT me.report_id, 'model_excess', me.employee,\n  me.group_name || CASE WHEN me.subgroup != '' THEN ' ' || me.subgroup ELSE '' END ||\n  ': среднее ' || me.avg_actions || ' действий/обращение (медиана по модели: ' || ROUND(mm.median_actions::numeric, 1) || ')',\n  CASE WHEN me.avg_actions > mm.median_actions * 2.0 THEN 'critical' ELSE 'warning' END,\n  'model_avg_actions',\n  me.avg_actions::numeric,\n  ROUND(mm.median_actions::numeric, 2),\n  ROUND((me.avg_actions::numeric / NULLIF(mm.median_actions::numeric, 0) - 1) * 100, 2)\nFROM model_emp_avg me\nJOIN model_medians mm ON mm.report_id = me.report_id\n  AND mm.group_name = me.group_name AND mm.subgroup = me.subgroup\nWHERE me.avg_actions > mm.median_actions * 1.4\n  AND me.avg_actions > 3\n`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "fda1bf89-1583-43bf-beae-341d107aa201",
+      "name": "Build Anomalies SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "5bb8482d-fdd1-4e33-95f5-8da0f9db7943",
+      "name": "Insert Anomalies",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2912,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\nconst idsArray = reportIds.length > 0 ? `ARRAY[${reportIds.join(',')}]` : 'ARRAY[]::int[]';\n\nconst sql = `WITH del AS (DELETE FROM weekly_insights WHERE report_id = ANY(${idsArray}))\nINSERT INTO weekly_insights(report_id, insight_type, message, change_pct, direction)\nSELECT curr.report_id, t.insight_type, t.message, t.change_pct,\n  CASE WHEN t.change_pct > 0 THEN 'up' ELSE 'down' END as direction\nFROM v_weekly_summary curr\nJOIN LATERAL (\n  SELECT * FROM v_weekly_summary prev\n  WHERE prev.report_week < curr.report_week\n  ORDER BY prev.report_week DESC LIMIT 1\n) prev ON TRUE\nCROSS JOIN LATERAL (VALUES\n  ('services_count',\n   'Обращений ' || CASE WHEN curr.total_services > prev.total_services THEN 'больше' ELSE 'меньше' END\n   || ' на ' || ROUND(ABS((curr.total_services - prev.total_services) * 100.0 / NULLIF(prev.total_services, 0)), 1) || '% (' || prev.total_services || ' → ' || curr.total_services || ')',\n   ROUND((curr.total_services - prev.total_services) * 100.0 / NULLIF(prev.total_services, 0), 2)::numeric),\n  ('payments',\n   'Выплаты ' || CASE WHEN curr.total_payments > prev.total_payments THEN 'выросли' ELSE 'снизились' END\n   || ' на ' || ROUND(ABS((curr.total_payments::numeric - prev.total_payments::numeric) * 100.0 / NULLIF(prev.total_payments::numeric, 0)), 1) || '%',\n   ROUND((curr.total_payments::numeric - prev.total_payments::numeric) * 100.0 / NULLIF(prev.total_payments::numeric, 0), 2)::numeric),\n  ('overrun',\n   'Перерасход ' || CASE WHEN curr.total_overrun > prev.total_overrun THEN 'вырос' ELSE 'снизился' END\n   || ' на ' || ROUND(ABS((curr.total_overrun::numeric - prev.total_overrun::numeric) * 100.0 / NULLIF(prev.total_overrun::numeric, 0)), 1) || '%',\n   ROUND((curr.total_overrun::numeric - prev.total_overrun::numeric) * 100.0 / NULLIF(prev.total_overrun::numeric, 0), 2)::numeric),\n  ('avg_cost',\n   'Средняя стоимость ' || CASE WHEN curr.avg_service_cost > prev.avg_service_cost THEN 'выросла' ELSE 'снизилась' END\n   || ' на ' || ROUND(ABS((curr.avg_service_cost::numeric - prev.avg_service_cost::numeric) * 100.0 / NULLIF(prev.avg_service_cost::numeric, 0)), 1) || '%',\n   ROUND((curr.avg_service_cost::numeric - prev.avg_service_cost::numeric) * 100.0 / NULLIF(prev.avg_service_cost::numeric, 0), 2)::numeric)\n) t(insight_type, message, change_pct)\nWHERE curr.report_id = ANY(${idsArray}) AND ABS(t.change_pct) >= 5`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "77e1d7ff-8486-4359-8f39-90b3985583b1",
+      "name": "Build Insights SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "403d5d1f-aabc-4aeb-a3a7-02fb9f487341",
+      "name": "Insert Insights",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3360,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\nconst weekKeys = $('Process Rows').first().json.weekKeys || [];\nconst rowCount = $('Process Rows').first().json.total_row_count || 0;\nreturn [{ json: {\n  success: true,\n  report_ids: reportIds,\n  row_count: rowCount,\n  weeks_count: weekKeys.length,\n  weeks: weekKeys,\n  message: `Imported ${weekKeys.length} week(s), ${rowCount} rows`\n} }];"
+      },
+      "id": "2663761b-28ff-4340-8966-e5d5545d1887",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "4983966a-2890-48f6-b2f7-3b538727b712",
+      "name": "Respond Import",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3808,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\n\nconst sql = `UPDATE services s\nSET\n  base_cost = COALESCE(bp.base_cost_median, 0),\n  overrun = GREATEST(s.total_price - COALESCE(bp.base_cost_median, 0), 0),\n  overrun_pct = CASE WHEN COALESCE(bp.base_cost_median, 0) > 0\n    THEN ROUND((s.total_price - bp.base_cost_median)::numeric / bp.base_cost_median * 100, 2)\n    ELSE 0 END,\n  zone = CASE\n    WHEN COALESCE(bp.base_cost_median, 0) = 0 THEN 'normal'\n    WHEN s.total_price <= bp.base_cost_median THEN 'normal'\n    WHEN (s.total_price - bp.base_cost_median) / bp.base_cost_median <= 0.30 THEN 'small'\n    WHEN (s.total_price - bp.base_cost_median) / bp.base_cost_median <= 1.00 THEN 'elevated'\n    ELSE 'critical'\n  END,\n  extra_actions = ARRAY(\n    SELECT DISTINCT u FROM UNNEST(s.action_types) AS u\n    WHERE (bp.pattern IS NULL OR NOT (u = ANY(STRING_TO_ARRAY(COALESCE(bp.pattern, ''), '|'))))\n      AND NOT EXISTS (\n        SELECT 1 FROM allowed_actions aa\n        WHERE aa.group_name = s.group_name AND aa.action_type = u\n      )\n  ),\n  overrun_reason = (\n    SELECT NULLIF(STRING_AGG(u, ' + ' ORDER BY u), '')\n    FROM UNNEST(ARRAY(\n      SELECT DISTINCT u FROM UNNEST(s.action_types) AS u\n      WHERE (bp.pattern IS NULL OR NOT (u = ANY(STRING_TO_ARRAY(COALESCE(bp.pattern, ''), '|'))))\n        AND NOT EXISTS (\n          SELECT 1 FROM allowed_actions aa\n          WHERE aa.group_name = s.group_name AND aa.action_type = u\n        )\n    )) u\n  )\nFROM base_patterns bp\nWHERE bp.group_name = s.group_name\nRETURNING s.service_id`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "031e4ea5-eccf-4485-8680-9a2c19aecc1f",
+      "name": "Build Sync Services SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {
+          "largeNumbersOutput": "numbers"
+        }
+      },
+      "id": "cc9aa32c-1108-4136-a090-2f7a5da30ffc",
+      "name": "Sync All Services",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2000,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reportIds = $('Build Actions SQL').first().json.reportIds || [];\nif (!reportIds.length) {\n  return [{ json: { sql: 'SELECT NULL as dtype, NULL as category, NULL as detail, 0 as total_price, 0 as base_cost, NULL as zone, 0 as overrun_pct, NULL as extra_actions WHERE FALSE', reportIds } }];\n}\nconst idsArr = 'ARRAY[' + reportIds.join(',') + ']';\n\nconst sql = `\nSELECT dtype, category, detail, total_price, base_cost, zone, overrun_pct, extra_actions FROM (\n  SELECT\n    'baseline' as dtype,\n    s.vendor || ' / ' || s.group_name as category,\n    array_to_string(s.action_types, ', ') as detail,\n    s.total_price::numeric as total_price,\n    s.base_cost::numeric as base_cost,\n    'normal' as zone,\n    0::numeric as overrun_pct,\n    ''::text as extra_actions\n  FROM (\n    SELECT DISTINCT ON (vendor, group_name) *\n    FROM services\n    WHERE report_id = ANY(${idsArr}) AND zone = 'normal'\n    ORDER BY vendor, group_name, total_price\n  ) s\n) baseline\n\nUNION ALL\n\nSELECT dtype, category, detail, total_price, base_cost, zone, overrun_pct, extra_actions FROM (\n  SELECT\n    'service' as dtype,\n    s.vendor || ' / ' || s.group_name as category,\n    array_to_string(s.action_types, ', ') as detail,\n    s.total_price::numeric as total_price,\n    s.base_cost::numeric as base_cost,\n    s.zone,\n    s.overrun_pct::numeric as overrun_pct,\n    COALESCE(array_to_string(s.extra_actions, ', '), '')::text as extra_actions\n  FROM services s\n  WHERE s.report_id = ANY(${idsArr}) AND s.zone != 'normal'\n  ORDER BY s.overrun DESC\n  LIMIT 40\n) sv\n\nUNION ALL\n\nSELECT dtype, category, detail, total_price, base_cost, zone, overrun_pct, extra_actions FROM (\n  SELECT\n    'anomaly' as dtype,\n    an.anomaly_type || ': ' || an.entity_id as category,\n    an.message as detail,\n    COALESCE(an.value, 0)::numeric as total_price,\n    COALESCE(an.avg_value, 0)::numeric as base_cost,\n    an.severity as zone,\n    COALESCE(an.deviation_pct, 0)::numeric as overrun_pct,\n    ''::text as extra_actions\n  FROM anomalies an\n  WHERE an.report_id = ANY(${idsArr})\n  ORDER BY an.severity DESC, an.deviation_pct DESC\n  LIMIT 20\n) anom\n`;\n\nreturn [{ json: { sql, reportIds } }];"
+      },
+      "id": "69256fec-20d6-4bef-b0e0-0630b24cbe95",
+      "name": "Build Context SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "9d793387-9c05-4276-92a1-15b88b936db8",
+      "name": "Fetch AI Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3360,
+        208
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\nconst reportIds = $('Build Actions SQL').first().json.reportIds || [];\nconst weekKeys = $('Process Rows').first().json.weekKeys || [];\n\nconst baselines = rows.filter(r => r.json.dtype === 'baseline');\nconst services  = rows.filter(r => r.json.dtype === 'service');\nconst anomalies = rows.filter(r => r.json.dtype === 'anomaly');\n\nconst periodStr = weekKeys.length > 1\n  ? weekKeys[0] + ' — ' + weekKeys[weekKeys.length - 1] + ' (' + weekKeys.length + ' нед.)'\n  : (weekKeys[0] || 'период');\n\nlet prompt = `Ты аналитик затрат сервисного центра по диагностике и ремонту техники.\n\nПЕРИОД АНАЛИЗА: ${periodStr}\n\nКОНТЕКСТ БИЗНЕСА:\nСервисный центр принимает технику на диагностику и ремонт. Стандартный случай — это диагностика + тестирование устройства (базовый набор действий). Реальный перерасход возникает когда:\n1. К диагностике добавляются лишние платные действия без явной технической необходимости\n2. Одна и та же операция дублируется (например, 2 диагностики подряд)\n3. Стоимость работ у вендора системно выше, чем у других за идентичный набор действий\n4. Дорогостоящие запчасти/услуги применяются к простым случаям\n\nВАЖНО: Если набор действий включает реальный ремонт (замена экрана, замена батареи, пайка, замена разъёма и т.п.) — высокая стоимость ОПРАВДАНА, это не перерасход. Не путай сложный ремонт с завышенными ценами на простые операции.\n\n`;\n\nif (baselines.length > 0) {\n  prompt += `ЭТАЛОННЫЕ СЛУЧАИ (zone=normal, для сравнения):\\n`;\n  for (const b of baselines) {\n    const r = b.json;\n    prompt += `• ${r.category}: цена ${r.total_price} руб. | действия: ${r.detail || '—'}\\n`;\n  }\n  prompt += '\\n';\n}\n\nif (services.length > 0) {\n  prompt += `ОБРАЩЕНИЯ С ОТКЛОНЕНИЯМИ ОТ НОРМЫ (${services.length} шт.):\\n`;\n  for (const s of services.slice(0, 30)) {\n    const r = s.json;\n    const extrasNote = r.extra_actions ? ` | ЛИШНИЕ ДЕЙСТВИЯ СВЕРХ БАЗЫ: ${r.extra_actions}` : '';\n    prompt += `• [${r.zone}] ${r.category} | ${r.total_price} руб. (база ${r.base_cost}, отклонение +${r.overrun_pct}%) | все действия: ${r.detail || '—'}${extrasNote}\\n`;\n  }\n  prompt += '\\n';\n}\n\nif (anomalies.length > 0) {\n  prompt += `СИСТЕМНЫЕ АНОМАЛИИ (${anomalies.length} шт.):\\n`;\n  for (const a of anomalies.slice(0, 15)) {\n    const r = a.json;\n    prompt += `• [${r.zone}] ${r.category}: ${r.detail || ''}\\n`;\n  }\n  prompt += '\\n';\n}\n\nif (services.length === 0 && anomalies.length === 0) {\n  prompt += 'Статистических отклонений не обнаружено.\\n\\n';\n}\n\nprompt += `ЗАДАЧА — НАЙДИ РЕАЛЬНЫЕ ОТКЛОНЕНИЯ:\n1. Сравни каждое отклоняющееся обращение с эталоном для той же категории вендора\n2. Определи: это реальный перерасход (лишние/дублирующие действия, завышенная цена за стандартную работу) или оправданно (полноценный ремонт)?\n3. Найди паттерны: системные завышения у конкретных вендоров, подозрительные комбинации действий, дублирование диагностики\n4. Если формульное отклонение есть, но набор действий оправдывает цену — укажи что это ложное срабатывание\n5. Дай конкретные рекомендации: что именно проверить и у кого\n\nОтветь строго в JSON без пояснений:\n{\"summary\":\"краткое резюме 2-3 предложения о реальной ситуации с перерасходами\",\"risk_level\":\"low|medium|high\",\"patterns\":[{\"title\":\"название паттерна\",\"description\":\"детальное описание с цифрами\",\"affected\":\"кто затронут: вендор / группа\",\"recommendation\":\"что конкретно сделать\"}],\"top_risks\":[{\"name\":\"название риска\",\"reason\":\"почему это риск, со ссылкой на конкретные случаи\",\"priority\":\"high|medium|low\"}]}`;\n\nreturn [{ json: { prompt, reportIds, weekKeys, services_count: services.length, anomalies_count: anomalies.length } }];"
+      },
+      "id": "263f7621-edb6-4883-af3f-cab694e5998c",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "gpt-4o"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "Ты аналитик затрат сервисного центра. Отвечай строго в формате JSON без пояснений и форматирования.",
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          },
+          "temperature": 0.3
+        }
+      },
+      "id": "9e429fba-80c6-444a-8d21-9067a7d25353",
+      "name": "OpenAI Analyze",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        3808,
+        208
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "g5CeH1g78eCM0Ahk",
+          "name": "OpenAi account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst reportIds = $('Build Actions SQL').first().json.reportIds || [];\n\nconst rawContent = item.json.content || item.json.text || item.json.output || '{}';\nlet analysis;\ntry {\n  analysis = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;\n} catch(e) {\n  analysis = { summary: String(rawContent).slice(0, 500), risk_level: 'unknown', patterns: [], top_risks: [] };\n}\n\nif (!reportIds.length) return [{ json: { sql: 'SELECT 1', analysis } }];\n\nconst idsArr = 'ARRAY[' + reportIds.join(',') + ']';\nconst safeJson = JSON.stringify(analysis).replace(/'/g, \"''\");\nconst changePct = analysis.risk_level === 'high' ? 100 : analysis.risk_level === 'medium' ? 50 : 0;\n\nconst sql = `WITH del AS (DELETE FROM weekly_insights WHERE report_id = ANY(${idsArr}) AND insight_type = 'ai_analysis')\nINSERT INTO weekly_insights(report_id, insight_type, message, change_pct, direction)\nSELECT u.id, 'ai_analysis', '${safeJson}', ${changePct}, 'up'\nFROM uploads u\nWHERE u.id = ANY(${idsArr})\nORDER BY u.report_week DESC LIMIT 1`;\n\nreturn [{ json: { sql, analysis } }];"
+      },
+      "id": "26d3c6af-2c85-4270-982f-7855f318cd66",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4176,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.sql }}",
+        "options": {}
+      },
+      "id": "7dd8d321-dfb5-4779-a478-31b08a531c68",
+      "name": "Save AI Insight",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4400,
+        208
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "RS2t2O4L5uYVSEeq",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Import Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract XLSX": {
+      "main": [
+        [
+          {
+            "node": "Process Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Rows": {
+      "main": [
+        [
+          {
+            "node": "Insert Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Upload": {
+      "main": [
+        [
+          {
+            "node": "Build Actions SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Actions SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Actions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Actions": {
+      "main": [
+        [
+          {
+            "node": "Build Base Costs SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Base Costs SQL": {
+      "main": [
+        [
+          {
+            "node": "Update Base Costs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Base Costs": {
+      "main": [
+        [
+          {
+            "node": "Build Services SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Services SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Stats SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Stats": {
+      "main": [
+        [
+          {
+            "node": "Build Anomalies SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Anomalies SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Anomalies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Anomalies": {
+      "main": [
+        [
+          {
+            "node": "Build Insights SQL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Context SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Insights SQL": {
+      "main": [
+        [
+          {
+            "node": "Insert Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Insights": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Import",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Services": {
+      "main": [
+        [
+          {
+            "node": "Build Sync Services SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sync Services SQL": {
+      "main": [
+        [
+          {
+            "node": "Sync All Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync All Services": {
+      "main": [
+        [
+          {
+            "node": "Build Stats SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Context SQL": {
+      "main": [
+        [
+          {
+            "node": "Fetch AI Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch AI Context": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Analyze": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Save AI Insight",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "4809924e-48a6-4e50-9be7-3aad7daa8e12",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2c53d0ff7ebe7e3aece29b64a9795ec3839c30cccfc97b710996d45882ba233c"
+  },
+  "nodeGroups": [],
+  "id": "HMRjNqV2LU30cTCx",
+  "tags": []
+}
