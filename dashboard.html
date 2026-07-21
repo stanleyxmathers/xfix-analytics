@@ -60,6 +60,7 @@
   --ease-out: cubic-bezier(0.16,1,0.3,1);
 
   --sidebar-w: 240px;
+  --sidebar-w-collapsed: 60px;
   --topbar-h:  60px;
 }
 
@@ -90,6 +91,7 @@ input, select { font-family: inherit; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width var(--dur-base) var(--ease-out);
 }
 .sidebar-logo {
   display: flex;
@@ -100,12 +102,10 @@ input, select { font-family: inherit; }
 }
 .logo-mark {
   width: 32px; height: 32px;
-  background: var(--xf-green);
-  border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 14px; color: #000; letter-spacing: -.5px;
   flex-shrink: 0;
 }
+.logo-mark svg { width: 100%; height: 100%; }
 .logo-text { font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
 .logo-sub  { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
@@ -137,6 +137,49 @@ input, select { font-family: inherit; }
   font-size: 11px; color: var(--text-muted);
 }
 
+/* Sidebar collapse */
+.sidebar-toggle {
+  margin-left: auto;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: none; border: none; padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.sidebar-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-toggle svg { width: 16px; height: 16px; }
+
+body.sidebar-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+body.sidebar-collapsed .sidebar-logo {
+  flex-direction: column; gap: 8px; padding: 12px 8px;
+}
+body.sidebar-collapsed .logo-title,
+body.sidebar-collapsed .nav-label,
+body.sidebar-collapsed .sidebar-footer > * { display: none; }
+body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
+body.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 9px 0; margin: 1px 8px;
+}
+body.sidebar-collapsed .nav-section {
+  padding: 12px 0 4px;
+  text-align: center;
+  font-size: 0;
+}
+body.sidebar-collapsed .nav-section::after {
+  content: ''; display: block;
+  height: 1px; margin: 0 12px;
+  background: var(--border-default);
+}
+body.sidebar-collapsed .nav-badge {
+  position: absolute; top: 2px; right: 4px; margin-left: 0;
+  padding: 0 4px; line-height: 14px;
+}
+body.sidebar-collapsed .nav-item { position: relative; }
+body.sidebar-collapsed .sidebar-footer { padding: 8px; }
+
 /* Main content */
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -161,6 +204,10 @@ input, select { font-family: inherit; }
   outline: none; cursor: pointer;
 }
 .report-select:focus { border-color: var(--accent); }
+
+.period-picker { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.period-picker .report-select { min-width: 150px; }
+.period-sep { color: var(--text-muted); font-size: 12px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -221,7 +268,8 @@ input, select { font-family: inherit; }
 }
 .kpi-card:hover::before { opacity: 1; }
 .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
-.kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1.15; overflow-wrap: break-word; word-break: break-word; }
+.kpi-value.kpi-text { font-size: 18px; letter-spacing: -.2px; text-transform: uppercase; }
 .kpi-value.danger { color: var(--danger); }
 .kpi-value.accent { color: var(--accent); }
 .kpi-delta {
@@ -232,6 +280,15 @@ input, select { font-family: inherit; }
 .kpi-delta.up   { background: rgba(57,187,59,.12); color: var(--xf-green); }
 .kpi-delta.down { background: rgba(237,70,35,.12);  color: var(--xf-red); }
 .kpi-delta.neutral { background: var(--bg-hover); color: var(--text-muted); }
+.kpi-deltas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.kpi-delta-item { display: inline-flex; align-items: center; gap: 5px; }
+.kpi-delta-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .3px; }
+.kpi-card.clickable { cursor: pointer; }
+.kpi-card.clickable:hover { border-color: var(--accent); transform: translateY(-2px); }
+.kpi-card.clickable:active { transform: translateY(0); }
+.kpi-card.clickable .kpi-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.kpi-card.clickable .kpi-label::after { content: '→'; opacity: 0; transition: opacity var(--dur-fast), transform var(--dur-fast); transform: translateX(-3px); }
+.kpi-card.clickable:hover .kpi-label::after { opacity: .7; transform: translateX(0); }
 
 /* Charts grid */
 .charts-grid {
@@ -318,7 +375,9 @@ input, select { font-family: inherit; }
   justify-content: center; gap: 12px; padding: 60px 20px;
   color: var(--text-muted); text-align: center;
 }
-.empty-state-icon { font-size: 40px; }
+.empty-state-icon { display: flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: .5; }
+.empty-state-icon svg { width: 40px; height: 40px; }
+.ico { display: inline-block; vertical-align: -.15em; flex-shrink: 0; }
 .empty-state-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
 
 /* ─── Modal ───────────────────────────────────────────────────────────────── */
@@ -336,6 +395,9 @@ input, select { font-family: inherit; }
   box-shadow: var(--shadow-lg);
   animation: modal-in var(--dur-base) var(--ease-out);
 }
+.modal.modal-lg { width: 860px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; }
+.modal-body-scroll { overflow-y: auto; flex: 1; }
+.modal-sub { font-size: 12px; color: var(--text-muted); margin-top: -14px; margin-bottom: 16px; }
 @keyframes modal-in {
   from { opacity: 0; transform: translateY(12px) scale(.97); }
   to   { opacity: 1; transform: none; }
@@ -344,6 +406,11 @@ input, select { font-family: inherit; }
 .modal-title  { font-size: 18px; font-weight: 700; }
 .modal-close  { background: none; border: none; color: var(--text-muted); font-size: 20px; padding: 4px; border-radius: var(--radius-xs); }
 .modal-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+/* Тулбары списка обращений: поиск/копирование id и фильтры */
+.svc-list-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.svc-list-toolbar .settings-input { flex: 1; width: auto; min-width: 120px; }
+.svc-list-toolbar .btn { flex-shrink: 0; }
 
 .drop-zone {
   border: 2px dashed var(--border-default);
@@ -394,6 +461,24 @@ input, select { font-family: inherit; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ─── Processing banner (отчёт ещё считается на сервере) ──────────────────── */
+.processing-banner {
+  position: fixed; top: 16px; left: 50%; transform: translate(-50%, -140%);
+  z-index: 300;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(245,166,35,.5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px; font-weight: 500; color: var(--text-primary);
+  opacity: 0; pointer-events: none;
+  transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.processing-banner.show { transform: translate(-50%, 0); opacity: 1; }
+.processing-banner .spinner { width: 16px; height: 16px; border-top-color: #F5A623; }
+.processing-banner small { color: var(--text-muted); font-weight: 400; }
+
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -415,6 +500,31 @@ input, select { font-family: inherit; }
 .anomaly-title { font-size: 13px; font-weight: 600; }
 .anomaly-msg { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
 .anomaly-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.anomaly-who { color: var(--text-secondary); font-weight: 500; }
+.anomaly-group { margin-bottom: 22px; }
+.anomaly-group-head {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 6px 2px 8px;
+  border: none; border-bottom: 1px solid var(--border-default);
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit; text-align: left;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.anomaly-group-head:hover .anomaly-group-title { color: var(--text-primary); }
+.anomaly-group-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.anomaly-group-chev { display: inline-flex; color: var(--text-muted); transition: transform .15s ease; }
+.anomaly-group.collapsed .anomaly-group-chev { transform: rotate(-90deg); }
+.anomaly-group.collapsed .anomaly-group-body { display: none; }
+.anomaly-group.collapsed .anomaly-group-head { margin-bottom: 0; }
+.anomaly-group-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-secondary);
+}
+.anomaly-group-count { font-size: 11px; color: var(--text-muted); white-space: nowrap; margin-left: auto; }
 
 /* ─── Employee highlight ──────────────────────────────────────────────────── */
 .emp-star { color: var(--xf-yellow); }
@@ -511,6 +621,17 @@ input, select { font-family: inherit; }
 }
 .page.active { animation: page-in 180ms var(--ease-out) both; }
 
+/* ─── Ссылка на обращение в FileMaker ─────────────────────────────────────── */
+.fm-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border-default);
+  cursor: pointer;
+  transition: color .15s var(--ease-out), border-color .15s var(--ease-out);
+}
+.fm-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.fm-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* ─── Keyboard focus ──────────────────────────────────────────────────────── */
 .nav-item:focus-visible    { outline: 2px solid var(--accent); outline-offset: -2px; }
 .btn:focus-visible         { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -562,7 +683,8 @@ input, select { font-family: inherit; }
   }
 }
 </style>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -570,63 +692,47 @@ input, select { font-family: inherit; }
   <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-mark">X</div>
-      <div>
+      <div class="logo-mark"><svg viewBox="0 0 37 37" fill="var(--text-primary)" xmlns="http://www.w3.org/2000/svg"><path d="m30.02,0H6.98C3.13,0,0,3.13,0,6.98v23.04c0,3.86,3.13,6.98,6.98,6.98h23.04c3.86,0,6.98-3.13,6.98-6.98V6.98c0-3.86-3.13-6.98-6.98-6.98Zm3.15,10.82c0,.76-.3,1.48-.84,2.02l-4.65,4.65c-.56.56-.56,1.47,0,2.03l4.65,4.65c.54.54.84,1.26.84,2.02v3.53c0,1.91-1.55,3.46-3.46,3.46h-3.53c-.76,0-1.48-.3-2.02-.84l-4.65-4.65c-.56-.56-1.47-.56-2.03,0l-4.65,4.65c-.54.54-1.26.84-2.02.84h-3.53c-1.91,0-3.46-1.55-3.46-3.46v-3.53c0-.76.3-1.48.84-2.02l4.65-4.65c.56-.56.56-1.47,0-2.03l-4.65-4.65c-.54-.54-.84-1.26-.84-2.02v-3.53c0-1.91,1.55-3.46,3.46-3.46h3.53c.76,0,1.48.3,2.02.84l4.65,4.65c.56.56,1.47.56,2.03,0l4.65-4.65c.54-.54,1.26-.84,2.02-.84h3.53c1.91,0,3.46,1.55,3.46,3.46v3.53Z"/></svg></div>
+      <div class="logo-title">
         <div class="logo-text">XFIX</div>
         <div class="logo-sub">Service Analytics</div>
       </div>
+      <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Свернуть меню" aria-label="Свернуть меню">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M6 2.5v11"/></svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
       <div class="nav-section">Аналитика</div>
-      <div class="nav-item active" data-page="overview" onclick="showPage('overview',this)">
+      <div class="nav-item active" data-page="overview" onclick="showPage('overview',this)" title="Главная">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 0h5v5H9V9z"/></svg>
-        Главная
+        <span class="nav-label">Главная</span>
       </div>
-      <div class="nav-item" data-page="dynamics" onclick="showPage('dynamics',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 12l4-4 3 3 4-5 3 3V14H1z"/><path opacity=".3" d="M1 12l4-4 3 3 4-5 3 3V2H1z"/></svg>
-        Динамика
-      </div>
-      <div class="nav-item" data-page="overruns" onclick="showPage('overruns',this)">
+      <div class="nav-item" data-page="overruns" onclick="showPage('overruns',this)" title="Перерасходы">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 14h14L8 1zm0 3l4.5 8h-9L8 4z"/></svg>
-        Перерасходы
-      </div>
-      <div class="nav-item" data-page="reasons" onclick="showPage('reasons',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><path fill="var(--bg-card)" d="M7 6h2v5H7zm0-3h2v2H7z"/></svg>
-        Причины
+        <span class="nav-label">Перерасходы</span>
       </div>
 
-      <div class="nav-section">Разрезы</div>
-      <div class="nav-item" data-page="employees" onclick="showPage('employees',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6H2z"/></svg>
-        Сотрудники
-      </div>
-      <div class="nav-item" data-page="vendors" onclick="showPage('vendors',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="6" height="10" rx="1"/><rect x="9" y="3" width="6" height="10" rx="1"/></svg>
-        Вендоры
+      <div class="nav-item" data-page="methodology" onclick="showPage('methodology',this)" title="Еженедельный отчет">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/></svg>
+        <span class="nav-label">Еженедельный отчет</span>
       </div>
 
       <div class="nav-section">Контроль</div>
-      <div class="nav-item" data-page="anomalies" onclick="showPage('anomalies',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 11a1 1 0 110-2 1 1 0 010 2zm0-4V5"/></svg>
-        Аномалии
+      <div class="nav-item" data-page="diagnostics" onclick="showPage('diagnostics',this)" title="Отдел диагностики">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2" height="4"/><rect x="4.5" y="7" width="2" height="7"/><rect x="8" y="4" width="2" height="10"/><rect x="11.5" y="6" width="2" height="8"/></svg>
+        <span class="nav-label">Отдел диагностики</span>
         <span class="nav-badge" id="anomaly-badge" style="display:none">0</span>
       </div>
-      <div class="nav-item" data-page="workload" onclick="showPage('workload',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2" height="4"/><rect x="4.5" y="7" width="2" height="7"/><rect x="8" y="4" width="2" height="10"/><rect x="11.5" y="6" width="2" height="8"/></svg>
-        Нагрузка
-      </div>
-      <div class="nav-item" data-page="upload" onclick="showPage('upload',this)">
+
+      <div class="nav-section">Управление</div>
+      <div class="nav-item" data-page="upload" onclick="showPage('upload',this)" title="Загрузка данных">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 13h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-        Загрузка
+        <span class="nav-label">Загрузка данных</span>
       </div>
-      <div class="nav-item" data-page="report" onclick="showPage('report',this)">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10v12H3V2zm2 3h6v1H5V5zm0 3h6v1H5V8zm0 3h4v1H5v-1z"/></svg>
-        Отчёт
-      </div>
-      <div class="nav-item" data-page="settings" onclick="showPage('settings',this)">
+      <div class="nav-item" data-page="settings" onclick="showPage('settings',this)" title="Настройки">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6A3 3 0 008 5zm6.3 1.2l-1.1-.2A5.5 5.5 0 0012 4.8l.6-.9a.5.5 0 00-.1-.7l-1.1-1a.5.5 0 00-.7.1l-.7.8A5.5 5.5 0 008.2 2.1L8 1a.5.5 0 00-.5-.4h-1.4A.5.5 0 005.7 1l-.2 1.1A5.5 5.5 0 004 3.2L3.1 2.6a.5.5 0 00-.7.1l-1 1.1a.5.5 0 00.1.7l.8.7A5.5 5.5 0 002.1 7l-1.1.2a.5.5 0 00-.4.5v1.4c0 .3.2.5.4.5l1.1.2a5.5 5.5 0 001.1 1.2l-.6.9a.5.5 0 00.1.7l1.1 1c.2.2.5.1.7-.1l.7-.8A5.5 5.5 0 007.8 14l.2 1.1c.1.2.3.4.5.4h1.4c.3 0 .5-.2.5-.4l.2-1.1a5.5 5.5 0 001.2-1.1l.9.6c.2.1.5.1.7-.1l1-1.1a.5.5 0 00-.1-.7l-.8-.7a5.5 5.5 0 00.2-1.4l1.1-.2c.2-.1.4-.3.4-.5V6.6a.5.5 0 00-.4-.4z"/></svg>
-        Настройки
+        <span class="nav-label">Настройки</span>
       </div>
     </nav>
 
@@ -640,11 +746,26 @@ input, select { font-family: inherit; }
     <!-- Topbar -->
     <header class="topbar">
       <div class="topbar-title" id="page-title">Главная <span>— обзор</span></div>
-      <select class="report-select" id="report-select" onchange="onReportChange()">
-        <option value="">Загрузка отчётов…</option>
-      </select>
+      <div class="period-picker">
+        <select class="report-select" id="period-mode" onchange="onPeriodModeChange()" title="Тип периода" style="max-width:130px">
+          <option value="week">Неделя</option>
+          <option value="month">Месяц</option>
+          <option value="quarter">Квартал</option>
+          <option value="custom">Произвольно</option>
+        </select>
+        <select class="report-select" id="report-select" onchange="onPeriodChange()">
+          <option value="">Загрузка отчётов…</option>
+        </select>
+        <span id="period-range" style="display:none;align-items:center;gap:6px">
+          <span class="period-sep">с</span>
+          <select class="report-select" id="period-from" onchange="onPeriodChange()"></select>
+          <span class="period-sep">по</span>
+          <select class="report-select" id="period-to" onchange="onPeriodChange()"></select>
+        </span>
+        <select class="report-select" id="compare-select" onchange="onPeriodChange()" title="База для сравнения" style="max-width:220px"></select>
+      </div>
       <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Переключить тему" style="padding:0 10px"></button>
-      <button class="btn btn-ghost" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" style="padding:0 12px;font-size:18px;line-height:1">↺</button>
+      <button class="btn btn-ghost" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" aria-label="Обновить данные" style="padding:0 12px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
       <button class="btn btn-primary" onclick="openUploadModal()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4M3 13h10"/><path stroke="currentColor" stroke-width="1.5" fill="none" d="M4 5l4-4 4 4M8 1v9M3 13h10"/></svg>
         Загрузить отчёт
@@ -662,7 +783,7 @@ input, select { font-family: inherit; }
           <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">—</div></div>
           <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">—</div></div>
           <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Доля перерасхода</div><div class="kpi-value accent">—</div></div>
         </div>
 
         <div class="charts-grid">
@@ -679,14 +800,12 @@ input, select { font-family: inherit; }
         <div class="card">
           <div class="card-title">Авто-инсайты</div>
           <div class="insight-list" id="insights-list">
-            <div class="empty-state"><div class="empty-state-icon">💡</div><div class="empty-state-title">Загрузите отчёт для получения инсайтов</div></div>
+            <div class="empty-state"><div class="empty-state-icon" data-ico="bulb"></div><div class="empty-state-title">Загрузите отчёт для получения инсайтов</div></div>
           </div>
         </div>
-      </div>
 
-      <!-- ─ Dynamics ─────────────────────────────────────────────────────── -->
-      <div class="page" id="page-dynamics">
-        <div class="section-header">
+        <!-- Динамика -->
+        <div class="section-header" style="margin-top:28px">
           <div><div class="section-title">Динамика по неделям</div><div class="section-sub">Неделя к неделе с дельтами</div></div>
         </div>
         <div class="card" style="margin-bottom:16px">
@@ -697,11 +816,42 @@ input, select { font-family: inherit; }
           <div class="card-title">Перерасход по неделям</div>
           <div class="chart-wrap" style="height:220px"><canvas id="chart-overrun-dynamics"></canvas></div>
         </div>
+
+        <!-- Вендоры -->
+        <div class="section-header" style="margin-top:28px">
+          <div><div class="section-title">Вендоры</div><div class="section-sub">Apple vs Яндекс сравнение</div></div>
+        </div>
+        <div class="kpi-grid" id="vendor-kpis"></div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">Обращения по вендорам</div>
+            <div class="chart-wrap"><canvas id="chart-vendor-services"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title" id="vendor-trend-title">Динамика обращений</div>
+            <div class="chart-wrap"><canvas id="chart-vendor-trend"></canvas></div>
+            <div id="vendor-trend-empty" style="display:none;font-size:12px;color:var(--text-muted);margin-top:8px">Выберите базу для сравнения в шапке — сравнение с предыдущим периодом отключено.</div>
+          </div>
+        </div>
       </div>
 
       <!-- ─ Overruns ─────────────────────────────────────────────────────── -->
       <div class="page" id="page-overruns">
         <div class="section-header">
+          <div><div class="section-title">Причины перерасходов</div><div class="section-sub">ТОП дополнительных действий</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-title">ТОП-10 причин</div>
+            <div class="chart-wrap" style="height:320px"><canvas id="chart-reasons"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Доля в перерасходе</div>
+            <div id="reasons-bars"></div>
+          </div>
+        </div>
+
+        <div class="section-header" style="margin-top:28px">
           <div><div class="section-title">Перерасходы</div><div class="section-sub">Обращения с превышением базовой стоимости</div></div>
         </div>
         <div class="card">
@@ -720,25 +870,22 @@ input, select { font-family: inherit; }
         </div>
       </div>
 
-      <!-- ─ Reasons ──────────────────────────────────────────────────────── -->
-      <div class="page" id="page-reasons">
-        <div class="section-header">
-          <div><div class="section-title">Причины перерасходов</div><div class="section-sub">ТОП дополнительных действий</div></div>
-        </div>
-        <div class="charts-grid">
-          <div class="card">
-            <div class="card-title">ТОП-10 причин</div>
-            <div class="chart-wrap" style="height:320px"><canvas id="chart-reasons"></canvas></div>
+      <!-- ─ Отдел диагностики ────────────────────────────────────────────── -->
+      <div class="page" id="page-diagnostics">
+        <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div class="tabs" style="display:inline-flex;width:auto;margin-bottom:0">
+            <button class="tab active diag-tab" data-diag="employees" onclick="switchDiagTab('employees',this)">Сотрудники</button>
+            <button class="tab diag-tab" data-diag="anomalies" onclick="switchDiagTab('anomalies',this)">Аномалии</button>
+            <button class="tab diag-tab" data-diag="workload" onclick="switchDiagTab('workload',this)">Нагрузка</button>
           </div>
-          <div class="card">
-            <div class="card-title">Доля в перерасходе</div>
-            <div id="reasons-bars"></div>
-          </div>
+          <button class="btn btn-ghost" onclick="openManagerReport()" title="Менеджерский отчёт для печати в PDF" style="flex-shrink:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Отчёт в PDF
+          </button>
         </div>
-      </div>
 
-      <!-- ─ Employees ────────────────────────────────────────────────────── -->
-      <div class="page" id="page-employees">
+      <!-- ─ Сотрудники ───────────────────────────────────────────────────── -->
+      <div class="diag-view" id="diag-employees">
         <div class="section-header">
           <div><div class="section-title">Профиль сотрудников</div><div class="section-sub">Анализ действий, дублей и отклонений от нормы отдела</div></div>
         </div>
@@ -751,7 +898,7 @@ input, select { font-family: inherit; }
               <th class="num">Обращений</th>
               <th class="num">Действий / обр.</th>
               <th class="num">vs медиана</th>
-              <th class="num">Дублей 🔁</th>
+              <th class="num">Дублей</th>
               <th class="num">Лишних</th>
               <th class="num">Нестанд., %</th>
               <th class="num" title="Сумма перерасходов / кол-во обращений">Индекс ₽/обр.</th>
@@ -759,49 +906,59 @@ input, select { font-family: inherit; }
             <tbody id="employees-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
           </table>
         </div>
-      </div>
-
-      <!-- ─ Vendors ──────────────────────────────────────────────────────── -->
-      <div class="page" id="page-vendors">
-        <div class="section-header">
-          <div><div class="section-title">Вендоры</div><div class="section-sub">Apple vs Яндекс сравнение</div></div>
+        <div class="section-header" style="margin-top:28px">
+          <div><div class="section-title">KPI по персоналиям</div><div class="section-sub" id="kpi-page-sub">Сравнение с пред. неделей, средним за 4 и 12 недель</div></div>
         </div>
-        <div class="kpi-grid" id="vendor-kpis"></div>
-        <div class="charts-grid">
-          <div class="card">
-            <div class="card-title">Обращения по вендорам</div>
-            <div class="chart-wrap"><canvas id="chart-vendor-services"></canvas></div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="tabs" style="display:inline-flex;width:auto">
+            <button class="tab active" id="kpi-mode-single" onclick="switchKpiMode('single')">Один сотрудник</button>
+            <button class="tab" id="kpi-mode-all" onclick="switchKpiMode('all')">Сравнение всех</button>
           </div>
-          <div class="card">
-            <div class="card-title">Выплаты по вендорам</div>
-            <div class="chart-wrap"><canvas id="chart-vendor-payments"></canvas></div>
+        </div>
+
+        <div id="kpi-single-view">
+          <div class="card" style="margin-bottom:16px">
+            <select class="report-select" id="kpi-employee-select" onchange="loadEmployeeKpi()" style="max-width:320px">
+              <option value="">Выберите сотрудника…</option>
+            </select>
+          </div>
+          <div class="kpi-grid" id="kpi-emp-grid">
+            <div class="empty-state"><div class="empty-state-icon" data-ico="chart"></div><div class="empty-state-title">Выберите сотрудника</div></div>
+          </div>
+        </div>
+
+        <div id="kpi-all-view" style="display:none">
+          <div class="card" style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
+              <div>
+                <div class="card-title" style="margin:0" id="kpi-all-title">Все сотрудники — текущий период</div>
+                <div id="kpi-all-note" style="font-size:12px;color:var(--text-muted);margin-top:4px">Δ% — динамика к базовому периоду</div>
+              </div>
+              <input class="settings-input" id="kpi-all-search" placeholder="Поиск сотрудника…" style="max-width:260px;width:100%" oninput="filterKpiAllTable()">
+            </div>
+            <div style="overflow-x:auto">
+              <table class="data-table" id="kpi-all-table">
+                <thead id="kpi-all-thead"></thead>
+                <tbody id="kpi-all-tbody"><tr><td style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ─ Anomalies ────────────────────────────────────────────────────── -->
-      <div class="page" id="page-anomalies">
+      <div class="diag-view" id="diag-anomalies" style="display:none">
         <div class="section-header">
           <div><div class="section-title">Аномалии</div><div class="section-sub">Отклонения от нормы (порог: 20% стоимость, 30% перерасход)</div></div>
         </div>
         <div id="anomalies-list">
-          <div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">Аномалий не обнаружено</div></div>
+          <div class="empty-state"><div class="empty-state-icon" data-ico="search"></div><div class="empty-state-title">Аномалий не обнаружено</div></div>
         </div>
       </div>
 
-      <!-- ─ Report ───────────────────────────────────────────────────────── -->
-      <div class="page" id="page-report">
-        <div class="section-header">
-          <div><div class="section-title">Менеджерский отчёт</div><div class="section-sub">Автоматические рекомендации</div></div>
-          <button class="btn btn-ghost" onclick="printReport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Печать</button>
-        </div>
-        <div class="card card-lg" id="report-content">
-          <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Выберите отчёт для генерации</div></div>
-        </div>
-      </div>
 
       <!-- ─ Workload ────────────────────────────────────────────────────── -->
-      <div class="page" id="page-workload">
+      <div class="diag-view" id="diag-workload" style="display:none">
         <div class="section-header">
           <div><div class="section-title">Нагрузка отдела</div>
           <div class="section-sub">Поток устройств и производительность сотрудников</div></div>
@@ -817,7 +974,7 @@ input, select { font-family: inherit; }
           </div>
           <!-- Day of week chart -->
           <div class="card card-lg">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Распределение по дням недели</div>
+            <div id="wl-dow-title" style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Средняя нагрузка по дням недели</div>
             <div style="position:relative;height:200px">
               <canvas id="wl-dow-chart"></canvas>
             </div>
@@ -839,6 +996,73 @@ input, select { font-family: inherit; }
               <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка…</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+      </div><!-- /page-diagnostics -->
+
+      <!-- ─ Еженедельный отчет (методика 1-6) ─────────────────────────── -->
+      <div class="page" id="page-methodology">
+        <div class="section-header">
+          <div><div class="section-title">Еженедельный отчет</div><div class="section-sub">Единица анализа — карточка сервиса</div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="tabs" id="meth-tabs" style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost meth-tab active" data-n="1" onclick="switchMethTab(1,this)">1. Обработка</button>
+            <button class="btn btn-ghost meth-tab" data-n="2" onclick="switchMethTab(2,this)">2. Разрез по сотрудникам</button>
+            <button class="btn btn-ghost meth-tab" data-n="3" onclick="switchMethTab(3,this)">3. Разрез по целевым действиям</button>
+            <button class="btn btn-ghost meth-tab" data-n="4" onclick="switchMethTab(4,this)">4. Разрез по выплатам</button>
+            <button class="btn btn-ghost meth-tab" data-n="5" onclick="switchMethTab(5,this)">5. Разрез по вендорам</button>
+            <button class="btn btn-ghost meth-tab" data-n="6" onclick="switchMethTab(6,this)">6. Ненормированные работы</button>
+          </div>
+        </div>
+        <div class="card" id="meth-empty" style="display:none;margin-bottom:16px">
+          <div class="empty-state">
+            <div class="empty-state-icon" data-ico="inbox"></div>
+            <div class="empty-state-title" id="meth-empty-title">Нет данных за этот период</div>
+            <div class="empty-state-sub" id="meth-empty-sub" style="color:var(--text-muted);font-size:13px;margin-top:6px"></div>
+          </div>
+        </div>
+        <div class="kpi-grid" id="meth-kpis"></div>
+        <div class="charts-grid" id="meth-charts-grid" style="margin-top:16px">
+          <div class="card">
+            <div class="card-title" id="meth-chart-title">Обработано по вендору</div>
+            <div class="chart-wrap"><canvas id="meth-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="card" id="meth-table-card" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
+            <div class="card-title" id="meth-table-title" style="margin:0">Обработано по вендору</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <select class="settings-input" id="meth-group" style="max-width:220px" onchange="filterMethTable()">
+                <option value="">Без группировки</option>
+              </select>
+              <input class="settings-input" id="meth-search" placeholder="Поиск по таблице…" style="max-width:260px;width:100%" oninput="filterMethTable()">
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="meth-table">
+              <thead id="meth-thead"></thead>
+              <tbody id="meth-tbody"><tr><td style="text-align:center;color:var(--text-muted);padding:40px">Выберите отчёт</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ─ Report ───────────────────────────────────────────────────────── -->
+      <div class="page" id="page-report">
+        <div class="section-header">
+          <div><div class="section-title">Менеджерский отчёт</div><div class="section-sub">Автоматические рекомендации</div></div>
+          <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost" onclick="showPage('diagnostics',document.querySelector('.nav-item[data-page=&quot;diagnostics&quot;]'))" title="Вернуться в отдел диагностики">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+            Назад
+          </button>
+          <button class="btn btn-ghost" onclick="printReport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Печать</button>
+          </div>
+        </div>
+        <div class="card card-lg" id="report-content">
+          <div class="empty-state"><div class="empty-state-icon" data-ico="clipboard"></div><div class="empty-state-title">Выберите отчёт для генерации</div></div>
         </div>
       </div>
 
@@ -921,14 +1145,19 @@ input, select { font-family: inherit; }
           <button class="stab-btn active" onclick="switchSettingsTab('connection',this)">Подключение</button>
           <button class="stab-btn" onclick="switchSettingsTab('actions',this)">Базовые действия</button>
           <button class="stab-btn" onclick="switchSettingsTab('employees',this)">Сотрудники → Отдел</button>
+          <button class="stab-btn" onclick="switchSettingsTab('health',this)">Состояние БД</button>
         </div>
 
         <!-- ── Tab: Подключение ── -->
         <div class="stab-panel active" id="stab-connection">
           <div class="card card-lg" style="max-width:520px">
             <div class="settings-group">
-              <div class="settings-label">URL сервера n8n</div>
-              <input class="settings-input" id="cfg-url" type="url" placeholder="http://localhost:5678" oninput="saveSettings()">
+              <div class="settings-label">Supabase URL</div>
+              <input class="settings-input" id="cfg-supabase-url" type="url" placeholder="https://xxxxx.supabase.co" oninput="saveSettings()">
+            </div>
+            <div class="settings-group">
+              <div class="settings-label">Supabase anon key</div>
+              <input class="settings-input" id="cfg-supabase-key" type="text" placeholder="eyJhbGciOi..." oninput="saveSettings()">
             </div>
             <div class="settings-group">
               <div class="settings-label">Порог аномалии по стоимости, %</div>
@@ -1032,6 +1261,61 @@ input, select { font-family: inherit; }
             </table>
           </div>
         </div>
+
+        <!-- ── Tab: Состояние БД ── -->
+        <div class="stab-panel" id="stab-health">
+
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="loadHealth()">Обновить</button>
+            <label class="as-cb"><input type="checkbox" id="hl-autorefresh" onchange="toggleHealthAutoRefresh()"> Автообновление (30 с)</label>
+            <span id="hl-updated" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+          </div>
+
+          <!-- Светофор -->
+          <div class="kpi-grid" id="hl-kpis" style="margin-bottom:20px"></div>
+
+          <!-- Метрики инфраструктуры (Edge Function → Metrics API) -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">Инфраструктура <span style="font-weight:400;color:var(--text-muted);font-size:12px">— Supabase Metrics API</span></div>
+            <div id="hl-metrics" style="font-size:13px;color:var(--text-muted)">—</div>
+          </div>
+
+          <!-- Ошибки -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">Ошибки выполнения запросов</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+              <select id="hl-err-hours" class="settings-input" style="width:150px" onchange="loadHealthErrors()">
+                <option value="1">За 1 час</option>
+                <option value="24" selected>За 24 часа</option>
+                <option value="168">За 7 дней</option>
+              </select>
+              <span id="hl-err-count" style="font-size:12px;color:var(--text-muted)"></span>
+            </div>
+            <table class="data-table" id="hl-err-table">
+              <thead>
+                <tr>
+                  <th style="width:150px">Время</th>
+                  <th style="width:180px">Операция</th>
+                  <th style="width:90px">Код</th>
+                  <th>Сообщение</th>
+                </tr>
+              </thead>
+              <tbody id="hl-err-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px">—</td></tr></tbody>
+            </table>
+          </div>
+
+          <!-- Медленные запросы -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">Самые медленные запросы <span style="font-weight:400;color:var(--text-muted);font-size:12px">— pg_stat_statements</span></div>
+            <div id="hl-slow">—</div>
+          </div>
+
+          <!-- Таблицы -->
+          <div class="card">
+            <div class="card-title">Таблицы</div>
+            <div id="hl-tables">—</div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /content -->
@@ -1063,7 +1347,59 @@ input, select { font-family: inherit; }
   </div>
 </div>
 
+<!-- ─── KPI Drill-down Modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="kpi-dd-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="kpi-dd-title">Детализация</div>
+        <div class="modal-sub" id="kpi-dd-sub" style="margin-top:4px"></div>
+      </div>
+      <button class="modal-close" onclick="closeKpiDrilldown()">✕</button>
+    </div>
+    <div class="modal-body-scroll">
+      <table class="data-table" id="kpi-dd-table">
+        <thead id="kpi-dd-thead"></thead>
+        <tbody id="kpi-dd-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Список обращений (drill-down плиток главной) ─────────────────────── -->
+<div class="modal-overlay" id="svc-list-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="svc-list-title">Обращения</div>
+        <div class="modal-sub" id="svc-list-sub" style="margin-top:4px"></div>
+      </div>
+      <button class="modal-close" onclick="closeServiceList()">✕</button>
+    </div>
+    <div class="svc-list-toolbar">
+      <input type="text" class="settings-input" id="svc-list-search" placeholder="Поиск по id, вендору, устройству…" oninput="renderServiceList()">
+      <button class="btn btn-ghost" id="svc-list-copy-all" onclick="copyServiceListIds()">Копировать все id</button>
+    </div>
+    <div class="svc-list-toolbar">
+      <select class="settings-input" id="svc-list-vendor" onchange="renderServiceList()"><option value="">Все вендоры</option></select>
+      <select class="settings-input" id="svc-list-group"  onchange="renderServiceList()"><option value="">Все устройства</option></select>
+      <select class="settings-input" id="svc-list-zone"   onchange="renderServiceList()"><option value="">Все зоны</option></select>
+      <input type="number" class="settings-input" id="svc-list-min" placeholder="Сумма от, ₽" oninput="renderServiceList()" style="max-width:130px">
+    </div>
+    <div class="modal-body-scroll">
+      <table class="data-table">
+        <thead id="svc-list-thead"></thead>
+        <tbody id="svc-list-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Toast container ──────────────────────────────────────────────────── -->
+<div class="processing-banner" id="processing-banner">
+  <div class="spinner"></div>
+  <div>Отчёт обрабатывается на сервере…<br><small>Данные подгрузятся автоматически, обновлять не нужно</small></div>
+</div>
 <div class="toast-container" id="toast-container"></div>
 
 <script>
@@ -1071,41 +1407,119 @@ input, select { font-family: inherit; }
    CONFIG & STATE
 ══════════════════════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  n8nUrl: '',
+  supabaseUrl: '',
+  supabaseAnonKey: '',
   costThreshold: 20,
   overrunThreshold: 30,
   insightThreshold: 5,
 };
 
 const STATE = {
-  currentReportId: null,
+  currentReportId: null,   // «якорная» неделя периода (последняя в диапазоне) — для недельных запросов
   currentPage: 'overview',
+  diagTab: 'employees',
   reports: [],
   charts: {},
   loaded: new Set(),
+  /* Выбранный период: набор report_id + собранный на сервере кэш (period_key).
+     Неделя — частный случай периода из одного отчёта. */
+  period: { mode: 'week', ids: [], key: null, label: '—', prevIds: [], prevKey: null, prevLabel: null },
 };
+
+let sb = null;
+function initSupabase() {
+  if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) { sb = null; return; }
+  sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  instrumentSupabase(sb);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ЖУРНАЛ ОШИБОК — любая неудача запроса уезжает в app_error_log
+══════════════════════════════════════════════════════════════════════════════ */
+let _logging = false;   // защита от рекурсии: падение самого логгера не логируем
+
+async function logDbError(op, error, ctx = {}) {
+  console.error(`[db] ${op}:`, error);
+  if (!sb || _logging) return;
+  _logging = true;
+  try {
+    await sb.rpc('log_client_error', {
+      p_op:      String(op).slice(0, 200),
+      p_code:    error?.code ?? error?.status ?? null,
+      p_message: String(error?.message || error || '').slice(0, 4000),
+      p_ctx: {
+        ...ctx,
+        page:    STATE.currentPage,
+        period:  STATE.period?.label ?? null,
+        details: error?.details ?? null,
+        hint:    error?.hint ?? null,
+        ua:      navigator.userAgent.slice(0, 200),
+      },
+    });
+  } catch (e) {
+    console.warn('[db] журнал ошибок недоступен (прогнали supabase_health.sql?):', e?.message);
+  } finally {
+    _logging = false;
+  }
+}
+
+/* Перехват на уровне клиента: не нужно трогать каждый из вызовов в коде.
+   postgrest-js возвращает thenable-builder — подменяем его then. */
+function watchQuery(builder, op) {
+  if (!builder || typeof builder.then !== 'function') return builder;
+  const origThen = builder.then.bind(builder);
+  builder.then = (onOk, onErr) => origThen(res => {
+    // Таймауты здесь пропускаем: их ретраит rpcWithRetry, он же логирует исчерпание
+    if (res?.error && !isTimeoutError(res.error)) logDbError(op, res.error);
+    return onOk ? onOk(res) : res;
+  }, onErr);
+  return builder;
+}
+
+function instrumentSupabase(client) {
+  const origRpc  = client.rpc.bind(client);
+  const origFrom = client.from.bind(client);
+
+  client.rpc = (fn, params, opts) =>
+    fn === 'log_client_error'
+      ? origRpc(fn, params, opts)
+      : watchQuery(origRpc(fn, params, opts), `rpc:${fn}`);
+
+  client.from = (table) => {
+    const qb = origFrom(table);
+    ['select', 'insert', 'upsert', 'update', 'delete'].forEach(m => {
+      const orig = qb[m].bind(qb);
+      qb[m] = (...args) => watchQuery(orig(...args), `${table}.${m}`);
+    });
+    return qb;
+  };
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SETTINGS
 ══════════════════════════════════════════════════════════════════════════════ */
 function loadSettings() {
   const s = JSON.parse(localStorage.getItem('xfix-settings') || '{}');
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  CONFIG.n8nUrl             = isLocal ? '' : (s.n8nUrl || 'https://imtime.app.n8n.cloud');
+  CONFIG.supabaseUrl        = s.supabaseUrl      || '';
+  CONFIG.supabaseAnonKey    = s.supabaseAnonKey  || '';
   CONFIG.costThreshold      = s.costThreshold      || 20;
   CONFIG.overrunThreshold   = s.overrunThreshold   || 30;
   CONFIG.insightThreshold   = s.insightThreshold   || 5;
-  document.getElementById('cfg-url').value               = CONFIG.n8nUrl;
+  document.getElementById('cfg-supabase-url').value      = CONFIG.supabaseUrl;
+  document.getElementById('cfg-supabase-key').value      = CONFIG.supabaseAnonKey;
   document.getElementById('cfg-cost-threshold').value    = CONFIG.costThreshold;
   document.getElementById('cfg-overrun-threshold').value = CONFIG.overrunThreshold;
   document.getElementById('cfg-insight-threshold').value = CONFIG.insightThreshold;
+  initSupabase();
 }
 function saveSettings() {
-  CONFIG.n8nUrl             = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  CONFIG.supabaseUrl        = document.getElementById('cfg-supabase-url').value.trim().replace(/\/$/, '');
+  CONFIG.supabaseAnonKey    = document.getElementById('cfg-supabase-key').value.trim();
   CONFIG.costThreshold      = +document.getElementById('cfg-cost-threshold').value;
   CONFIG.overrunThreshold   = +document.getElementById('cfg-overrun-threshold').value;
   CONFIG.insightThreshold   = +document.getElementById('cfg-insight-threshold').value;
   localStorage.setItem('xfix-settings', JSON.stringify(CONFIG));
+  initSupabase();
 }
 /* ─── Settings tabs ──────────────────────────────────────────────────────── */
 function switchSettingsTab(name, btn) {
@@ -1115,14 +1529,12 @@ function switchSettingsTab(name, btn) {
   document.getElementById('stab-' + name).classList.add('active');
   if (name === 'actions') { initDbAndLoadActionSettings(); }
   if (name === 'employees') { loadEmployeeDepts(); }
+  if (name === 'health') { loadHealth(); }
+  if (name !== 'health') { stopHealthAutoRefresh(); }
 }
 
 /* ─── Action Settings ────────────────────────────────────────────────────── */
-let _asDbInited = false;
 async function initDbAndLoadActionSettings() {
-  if (!_asDbInited) {
-    try { await api('db_init'); _asDbInited = true; } catch(e) {}
-  }
   await loadActionSettings();
   await loadActionNamesDatalist();
 }
@@ -1134,11 +1546,12 @@ async function loadActionSettings() {
   const dev  = document.getElementById('as-filter-dev')?.value  || '';
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Загрузка...</td></tr>';
   try {
-    const params = {};
-    if (dept) params.department = dept;
-    if (dev)  params.device_type = dev;
-    const rows = await api('action_settings', params);
-    const data = Array.isArray(rows) ? rows : (rows.rows || []);
+    if (!sb) throw new Error('Supabase не настроен');
+    let q = sb.from('action_settings').select('*').order('action_name');
+    if (dept) q = q.eq('department', dept);
+    if (dev)  q = q.eq('device_type', dev);
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
     const cnt = document.getElementById('as-count');
     if (cnt) cnt.textContent = data.length ? `${data.length} записей` : '';
     if (!data.length) {
@@ -1148,15 +1561,15 @@ async function loadActionSettings() {
     tbody.innerHTML = data.map(r => {
       const deptLabel = r.department === '*' ? '<span style="color:var(--text-muted)">Все</span>' : esc(r.department);
       const devLabel  = r.device_type === '*' ? '<span style="color:var(--text-muted)">Все</span>' : esc(r.device_type);
-      const baseMark  = r.is_base
-        ? '<span style="color:var(--xf-green);font-weight:600">✓ Базовое</span>'
-        : '<span style="color:var(--text-muted)">—</span>';
       const costFmt   = r.base_cost != null ? fmt.money(r.base_cost) : '<span style="color:var(--text-muted)">—</span>';
       return `<tr>
         <td>${deptLabel}</td>
         <td>${devLabel}</td>
         <td style="font-weight:500">${esc(r.action_name)}</td>
-        <td style="text-align:center">${baseMark}</td>
+        <td style="text-align:center">
+          <input type="checkbox" ${r.is_base ? 'checked' : ''} style="cursor:pointer;width:16px;height:16px"
+            onchange="toggleActionSettingBase(${r.id}, this)">
+        </td>
         <td style="text-align:right">${costFmt}</td>
         <td><button onclick="deleteActionSetting(${r.id},this)" style="background:none;border:none;cursor:pointer;color:var(--xf-red);font-size:14px;padding:0 4px" title="Удалить">✕</button></td>
       </tr>`;
@@ -1168,8 +1581,7 @@ async function loadActionSettings() {
 
 async function loadActionNamesDatalist() {
   try {
-    const rows = await api('action_names');
-    const data = Array.isArray(rows) ? rows : (rows.rows || []);
+    const data = await api('action_names');
     const dl = document.getElementById('as-action-names-dl');
     if (dl) dl.innerHTML = data.map(r => `<option value="${esc(r.action_name)}">`).join('');
   } catch(e) {}
@@ -1183,9 +1595,10 @@ async function addActionSetting() {
   const cost   = document.getElementById('as-cost').value;
   if (!name) { showToast('Укажите название действия', 'warning'); return; }
   try {
-    const params = { department: dept, device_type: dev, action_name: name, is_base: isBase ? '1' : '0' };
-    if (cost) params.base_cost = cost;
-    await api('action_settings_upsert', params);
+    const row = { department: dept, device_type: dev, action_name: name, is_base: isBase };
+    if (cost) row.base_cost = +cost;
+    const { error } = await sb.from('action_settings').upsert(row, { onConflict: 'department,device_type,action_name' });
+    if (error) throw new Error(error.message);
     document.getElementById('as-action-name').value = '';
     document.getElementById('as-cost').value = '';
     document.getElementById('as-is-base').checked = false;
@@ -1194,10 +1607,25 @@ async function addActionSetting() {
   } catch(e) { showToast('Ошибка сохранения', 'error'); }
 }
 
+async function toggleActionSettingBase(id, cb) {
+  cb.disabled = true;
+  try {
+    const { error } = await sb.from('action_settings').update({ is_base: cb.checked }).eq('id', id);
+    if (error) throw new Error(error.message);
+    showToast(cb.checked ? 'Помечено базовым' : 'Снято с базового', 'success');
+  } catch(e) {
+    cb.checked = !cb.checked;
+    showToast('Ошибка сохранения', 'error');
+  } finally {
+    cb.disabled = false;
+  }
+}
+
 async function deleteActionSetting(id, btn) {
   btn.disabled = true;
   try {
-    await api('action_settings_delete', { id });
+    const { error } = await sb.from('action_settings').delete().eq('id', id);
+    if (error) throw new Error(error.message);
     await loadActionSettings();
     showToast('Удалено', 'success');
   } catch(e) { btn.disabled = false; showToast('Ошибка удаления', 'error'); }
@@ -1224,27 +1652,27 @@ async function importActionSettingsXLS(input) {
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
     if (rows.length < 2) { showToast('Файл пуст или содержит только заголовок', 'warning'); return; }
-    const dataRows = rows.slice(1).filter(r => r[2]);
+    const dataRows = rows.slice(1).filter(r => r[2]).map(r => {
+      const dept    = String(r[0] || '*').trim() || '*';
+      const dev     = String(r[1] || '*').trim() || '*';
+      const name    = String(r[2] || '').trim();
+      const isBaseV = String(r[3] || '').toLowerCase();
+      const isBase  = isBaseV === 'да' || isBaseV === 'yes' || isBaseV === '1' || isBaseV === 'true';
+      const cost    = parseFloat(String(r[4]).replace(',', '.'));
+      const p = { department: dept, device_type: dev, action_name: name, is_base: isBase };
+      if (!isNaN(cost)) p.base_cost = cost;
+      return p;
+    }).filter(p => p.action_name);
     let done = 0, errors = 0;
-    const batchSize = 10;
-    for (let i = 0; i < dataRows.length; i += batchSize) {
-      const batch = dataRows.slice(i, i + batchSize);
-      await Promise.all(batch.map(async r => {
-        const dept    = String(r[0] || '*').trim() || '*';
-        const dev     = String(r[1] || '*').trim() || '*';
-        const name    = String(r[2] || '').trim();
-        const isBaseV = String(r[3] || '').toLowerCase();
-        const isBase  = isBaseV === 'да' || isBaseV === 'yes' || isBaseV === '1' || isBaseV === 'true';
-        const cost    = parseFloat(String(r[4]).replace(',', '.'));
-        if (!name) return;
-        try {
-          const p = { department: dept, device_type: dev, action_name: name, is_base: isBase ? '1' : '0' };
-          if (!isNaN(cost)) p.base_cost = cost;
-          await api('action_settings_upsert', p);
-          done++;
-        } catch(e) { errors++; }
-      }));
-      prog.textContent = `Обработано: ${Math.min(i + batchSize, dataRows.length)} / ${dataRows.length}`;
+    const chunkSize = 500;
+    for (let i = 0; i < dataRows.length; i += chunkSize) {
+      const chunk = dataRows.slice(i, i + chunkSize);
+      try {
+        const { error } = await sb.from('action_settings').upsert(chunk, { onConflict: 'department,device_type,action_name' });
+        if (error) throw new Error(error.message);
+        done += chunk.length;
+      } catch(e) { errors += chunk.length; }
+      prog.textContent = `Обработано: ${Math.min(i + chunkSize, dataRows.length)} / ${dataRows.length}`;
     }
     await loadActionSettings();
     showToast(`Импортировано: ${done} записей${errors ? `, ошибок: ${errors}` : ''}`, errors ? 'warning' : 'success');
@@ -1308,9 +1736,11 @@ async function saveEmpDept(employee, sel) {
   sel.disabled = true;
   try {
     if (dept) {
-      await api('employee_departments_upsert', { employee, department: dept });
+      const { error } = await sb.from('employee_departments').upsert({ employee, department: dept }, { onConflict: 'employee' });
+      if (error) throw new Error(error.message);
     } else {
-      await api('employee_departments_delete', { employee });
+      const { error } = await sb.from('employee_departments').delete().eq('employee', employee);
+      if (error) throw new Error(error.message);
     }
     const idx = _empDeptData.findIndex(r => r.employee === employee);
     if (idx >= 0) { _empDeptData[idx].department = dept; _empDeptData[idx].is_manual = !!dept; }
@@ -1335,86 +1765,490 @@ function esc(s) {
 async function testConnection() {
   const el = document.getElementById('conn-status');
   el.textContent = 'Проверка…'; el.style.color = 'var(--text-muted)';
+  initSupabase();
+  if (!sb) { el.textContent = '✗ Укажите Supabase URL и anon key'; el.style.color = 'var(--xf-red)'; return; }
   try {
-    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/api?endpoint=uploads`);
-    if (r.ok) { el.textContent = '✓ Подключено'; el.style.color = 'var(--xf-green)'; }
-    else { el.textContent = `✗ HTTP ${r.status}`; el.style.color = 'var(--xf-red)'; }
+    const { error } = await sb.from('uploads').select('id', { count: 'exact', head: true });
+    if (!error) { el.textContent = '✓ Подключено'; el.style.color = 'var(--xf-green)'; }
+    else { el.textContent = `✗ ${error.message}`; el.style.color = 'var(--xf-red)'; }
   } catch(e) {
     el.textContent = '✗ Нет соединения'; el.style.color = 'var(--xf-red)';
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   СОСТОЯНИЕ БД
+   Два источника: RPC db_health_snapshot() (изнутри Postgres) и Edge Function
+   db-health (прокси к Supabase Metrics API — service_role остаётся на сервере).
+══════════════════════════════════════════════════════════════════════════════ */
+let _healthTimer = null;
+let _metricsPrev = null;   // предыдущий снимок счётчиков — для расчёта скоростей
+
+function fmtBytes(n) {
+  if (n == null) return '—';
+  const u = ['Б','КБ','МБ','ГБ','ТБ'];
+  let i = 0, v = Number(n);
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return `${v.toFixed(v >= 100 || i === 0 ? 0 : 1)} ${u[i]}`;
+}
+function fmtNum(n) { return n == null ? '—' : Number(n).toLocaleString('ru-RU'); }
+function fmtAgo(ts) {
+  if (!ts) return '—';
+  const s = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (s < 60) return `${s} с назад`;
+  if (s < 3600) return `${Math.floor(s/60)} мин назад`;
+  if (s < 86400) return `${Math.floor(s/3600)} ч назад`;
+  return `${Math.floor(s/86400)} дн назад`;
+}
+function fmtUptime(sec) {
+  if (!sec) return '—';
+  const d = Math.floor(sec/86400), h = Math.floor((sec%86400)/3600);
+  return d ? `${d} дн ${h} ч` : `${h} ч ${Math.floor((sec%3600)/60)} мин`;
+}
+/* ok | warn | bad → цвет KPI */
+function healthClass(level) {
+  return level === 'bad' ? 'danger' : level === 'warn' ? '' : 'accent';
+}
+function kpiCard(label, value, level, sub) {
+  const style = level === 'warn' ? 'color:var(--warning)' : '';
+  return `<div class="kpi-card">
+    <div class="kpi-label">${esc(label)}</div>
+    <div class="kpi-value ${healthClass(level)}" style="${style}">${value}</div>
+    ${sub ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${sub}</div>` : ''}
+  </div>`;
+}
+
+async function loadHealth() {
+  document.getElementById('hl-updated').textContent = 'Обновление…';
+  await Promise.all([loadHealthSnapshot(), loadHealthMetrics(), loadHealthErrors(), loadHealthSlow()]);
+  document.getElementById('hl-updated').textContent =
+    'Обновлено ' + new Date().toLocaleTimeString('ru-RU');
+}
+
+function toggleHealthAutoRefresh() {
+  stopHealthAutoRefresh();
+  if (document.getElementById('hl-autorefresh').checked) {
+    _healthTimer = setInterval(loadHealth, 30000);
+  }
+}
+function stopHealthAutoRefresh() {
+  if (_healthTimer) { clearInterval(_healthTimer); _healthTimer = null; }
+}
+
+/* ─── Слой 2: снимок изнутри Postgres ─────────────────────────────────── */
+async function loadHealthSnapshot() {
+  const kpis = document.getElementById('hl-kpis');
+  const tbl  = document.getElementById('hl-tables');
+  if (!sb) {
+    kpis.innerHTML = `<div class="card">Заполните Settings → Подключение</div>`;
+    return;
+  }
+  try {
+    const { data, error } = await sb.rpc('db_health_snapshot');
+    if (error) throw new Error(error.message);
+    if (!data?.ok) throw new Error(data?.error || 'Снимок недоступен');
+
+    const conn = data.connections, tx = data.transactions, cache = data.cache, pr = data.problems;
+    const connLevel  = conn.used_pct  > 80 ? 'bad'  : conn.used_pct  > 60 ? 'warn' : 'ok';
+    const rbLevel    = tx.rollback_pct > 5 ? 'bad'  : tx.rollback_pct > 1 ? 'warn' : 'ok';
+    const cacheLevel = cache.hit_pct   < 90 ? 'bad' : cache.hit_pct  < 98 ? 'warn' : 'ok';
+    const errLevel   = data.errors.last_1h > 0 ? 'bad' : data.errors.last_24h > 0 ? 'warn' : 'ok';
+    const dlLevel    = pr.deadlocks > 0 ? 'warn' : 'ok';
+
+    kpis.innerHTML = [
+      kpiCard('База', 'ONLINE', 'ok', `PostgreSQL ${esc(data.version)} · uptime ${fmtUptime(data.uptime_seconds)}`),
+      kpiCard('Ошибки запросов', fmtNum(data.errors.last_24h), errLevel,
+              `за 24 ч · за час: ${fmtNum(data.errors.last_1h)}` +
+              (data.errors.last_ts ? ` · последняя ${fmtAgo(data.errors.last_ts)}` : '')),
+      kpiCard('Откаты транзакций', `${tx.rollback_pct ?? 0}%`, rbLevel,
+              `${fmtNum(tx.rollbacks)} откатов / ${fmtNum(tx.commits)} коммитов`),
+      kpiCard('Соединения', `${conn.active} / ${conn.max}`, connLevel, `занято ${conn.used_pct}%`),
+      kpiCard('Попадания в кэш', `${cache.hit_pct ?? 0}%`, cacheLevel, 'норма ≥ 98%'),
+      kpiCard('Взаимоблокировки', fmtNum(pr.deadlocks), dlLevel,
+              `конфликтов: ${fmtNum(pr.conflicts)} · temp: ${fmtBytes(pr.temp_bytes)}`),
+      kpiCard('Размер БД', fmtBytes(data.db_size_bytes), 'ok',
+              `${fmtNum(data.data.actions)} действий · ${fmtNum(data.data.services)} обращений`),
+      kpiCard('Последний отчёт', data.data.last_week || '—', 'ok',
+              data.data.last_upload_at ? `загружен ${fmtAgo(data.data.last_upload_at)}` : 'нет загрузок'),
+    ].join('');
+
+    const rows = (data.tables || []).filter(t => t.total_bytes > 0);
+    tbl.innerHTML = rows.length ? `<table class="data-table">
+      <thead><tr>
+        <th>Таблица</th>
+        <th style="text-align:right">Размер</th>
+        <th style="text-align:right">Строк</th>
+        <th style="text-align:right">Мёртвых</th>
+        <th>Последний vacuum</th>
+      </tr></thead>
+      <tbody>${rows.map(t => {
+        // много мёртвых строк = автовакуум не справляется, запросы деградируют
+        const bloat = t.live_rows > 1000 && t.dead_rows > t.live_rows * 0.2;
+        return `<tr>
+          <td>${esc(t.name)}</td>
+          <td style="text-align:right">${fmtBytes(t.total_bytes)}</td>
+          <td style="text-align:right">${fmtNum(t.live_rows)}</td>
+          <td style="text-align:right;${bloat ? 'color:var(--warning);font-weight:600' : ''}">${fmtNum(t.dead_rows)}</td>
+          <td style="color:var(--text-muted)">${t.last_vacuum ? fmtAgo(t.last_vacuum) : '—'}</td>
+        </tr>`;
+      }).join('')}</tbody></table>` : '<div style="color:var(--text-muted)">Нет данных</div>';
+
+  } catch (e) {
+    kpis.innerHTML = `<div class="card" style="color:var(--xf-red)">
+      Снимок недоступен: ${esc(e.message)}<br>
+      <span style="font-size:12px;color:var(--text-muted)">Прогоните <code>supabase_health.sql</code> в SQL Editor.</span>
+    </div>`;
+    tbl.innerHTML = '—';
+  }
+}
+
+/* ─── Слой 1: Metrics API через Edge Function ──────────────────────────── */
+async function loadHealthMetrics() {
+  const el = document.getElementById('hl-metrics');
+  if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) { el.textContent = '—'; return; }
+  try {
+    const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/db-health`, {
+      headers: {
+        Authorization: `Bearer ${CONFIG.supabaseAnonKey}`,
+        apikey: CONFIG.supabaseAnonKey,
+      },
+    });
+    if (res.status === 404) { el.innerHTML = notDeployedHint(); return; }
+    const body = await res.json();
+    if (!res.ok || !body.ok) throw new Error(body.error || `HTTP ${res.status}`);
+
+    const m = body.metrics;
+    // Счётчики монотонные — интересна скорость, поэтому берём дельту к прошлому опросу
+    let rate = '';
+    if (_metricsPrev) {
+      const dt = (new Date(body.captured_at) - new Date(_metricsPrev.at)) / 1000;
+      if (dt > 1) {
+        const dRb = m.counters.xact_rollback - _metricsPrev.rollback;
+        const dTx = (m.counters.xact_commit - _metricsPrev.commit) + dRb;
+        const dIdle = m.counters.cpu_idle_seconds - _metricsPrev.cpuIdle;
+        const dCpu  = m.counters.cpu_total_seconds - _metricsPrev.cpuTotal;
+        rate = `<div style="margin-top:10px;font-size:12px">
+          Транзакций/с: <b>${(dTx/dt).toFixed(1)}</b>
+          · Откатов/с: <b style="${dRb/dt > 0.5 ? 'color:var(--xf-red)' : ''}">${(dRb/dt).toFixed(2)}</b>
+          ${dCpu > 0 ? `· CPU занято: <b>${(100 - dIdle/dCpu*100).toFixed(0)}%</b>` : ''}
+        </div>`;
+      }
+    }
+    _metricsPrev = {
+      at: body.captured_at,
+      commit: m.counters.xact_commit, rollback: m.counters.xact_rollback,
+      cpuIdle: m.counters.cpu_idle_seconds, cpuTotal: m.counters.cpu_total_seconds,
+    };
+
+    const up = m.pg_up === 1;
+    const chip = (label, val, warn) =>
+      `<span style="display:inline-block;padding:4px 10px;border-radius:6px;background:var(--bg-hover);margin:0 8px 8px 0">
+        <span style="color:var(--text-muted)">${label}:</span>
+        <b style="${warn ? 'color:var(--warning)' : ''}">${val}</b></span>`;
+
+    el.innerHTML = `
+      <div>${chip('Postgres', up ? 'up' : 'DOWN', !up)}
+      ${m.disk ? chip('Диск', `${m.disk.used_pct}% (свободно ${fmtBytes(m.disk.free)})`, m.disk.used_pct > 80) : ''}
+      ${m.memory ? chip('Память', `${m.memory.used_pct}%`, m.memory.used_pct > 90) : ''}
+      ${chip('Коннекты', `${m.connections.active}${m.connections.max ? ' / ' + m.connections.max : ''}`,
+             m.connections.max && m.connections.active / m.connections.max > 0.8)}
+      ${chip('Cache hit', m.cache_hit_pct != null ? m.cache_hit_pct + '%' : '—', m.cache_hit_pct < 95)}
+      ${chip('Deadlocks', fmtNum(m.counters.deadlocks), m.counters.deadlocks > 0)}
+      ${m.pgbouncer.client_waiting ? chip('Ждут пула', fmtNum(m.pgbouncer.client_waiting), true) : ''}
+      </div>${rate}`;
+  } catch (e) {
+    // TypeError = запрос не дошёл: функции нет (404 приходит без CORS-заголовков
+    // и браузер режет ответ), либо сети нет. Отличить со стороны фронта нельзя.
+    el.innerHTML = (e instanceof TypeError)
+      ? notDeployedHint()
+      : `<span style="color:var(--xf-red)">Metrics API: ${esc(e.message)}</span>`;
+  }
+}
+
+function notDeployedHint() {
+  return `Edge Function <code>db-health</code> не задеплоена — блок метрик инфраструктуры выключен.
+    <span style="color:var(--text-muted)">Остальные разделы работают: они берут данные напрямую из Postgres.</span>
+    <div style="margin-top:10px;font-size:12px;color:var(--text-muted)">
+      Деплой:<br>
+      <code>supabase secrets set XFIX_METRICS_KEY=&lt;service_role key&gt;</code><br>
+      <code>supabase functions deploy db-health</code>
+    </div>`;
+}
+
+/* ─── Журнал ошибок ────────────────────────────────────────────────────── */
+async function loadHealthErrors() {
+  const tbody = document.getElementById('hl-err-tbody');
+  const cnt   = document.getElementById('hl-err-count');
+  if (!sb) { tbody.innerHTML = `<tr><td colspan="4">—</td></tr>`; return; }
+  const hours = +document.getElementById('hl-err-hours').value;
+  try {
+    const { data, error } = await sb.rpc('get_error_log', { p_limit: 100, p_hours: hours });
+    if (error) throw new Error(error.message);
+    if (!data?.length) {
+      cnt.textContent = 'Ошибок нет';
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--xf-green);padding:32px">Ошибок нет ✓</td></tr>`;
+      return;
+    }
+    cnt.textContent = `${data.length} записей`;
+    tbody.innerHTML = data.map(r => `<tr>
+      <td style="color:var(--text-muted);white-space:nowrap">${new Date(r.ts).toLocaleString('ru-RU')}</td>
+      <td><code style="font-size:11px">${esc(r.op)}</code></td>
+      <td><code style="font-size:11px;color:var(--xf-red)">${esc(r.code || '—')}</code></td>
+      <td style="font-size:12px" title="${esc(JSON.stringify(r.ctx))}">${esc(r.message)}</td>
+    </tr>`).join('');
+  } catch (e) {
+    cnt.textContent = '';
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--xf-red);padding:16px">
+      ${esc(e.message)} — прогоните supabase_health.sql</td></tr>`;
+  }
+}
+
+/* ─── Медленные запросы ────────────────────────────────────────────────── */
+async function loadHealthSlow() {
+  const el = document.getElementById('hl-slow');
+  if (!sb) { el.textContent = '—'; return; }
+  try {
+    const { data, error } = await sb.rpc('db_slow_queries', { p_limit: 10 });
+    if (error) throw new Error(error.message);
+    if (!data?.available) {
+      el.innerHTML = `<span style="color:var(--text-muted)">${esc(data?.hint || data?.error || 'pg_stat_statements выключен')}</span>`;
+      return;
+    }
+    const q = data.queries || [];
+    el.innerHTML = q.length ? `<table class="data-table">
+      <thead><tr>
+        <th>Запрос</th>
+        <th style="text-align:right;width:90px">Вызовов</th>
+        <th style="text-align:right;width:100px">Средн., мс</th>
+        <th style="text-align:right;width:100px">Макс., мс</th>
+      </tr></thead>
+      <tbody>${q.map(r => `<tr>
+        <td><code style="font-size:11px">${esc(r.query)}</code></td>
+        <td style="text-align:right">${fmtNum(r.calls)}</td>
+        <td style="text-align:right;${r.mean_ms > 2000 ? 'color:var(--xf-red);font-weight:600' : ''}">${fmtNum(r.mean_ms)}</td>
+        <td style="text-align:right;color:var(--text-muted)">${fmtNum(r.max_ms)}</td>
+      </tr>`).join('')}</tbody></table>` : '<div style="color:var(--text-muted)">Нет данных</div>';
+  } catch (e) {
+    el.innerHTML = `<span style="color:var(--xf-red)">${esc(e.message)}</span>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    API
 ══════════════════════════════════════════════════════════════════════════════ */
+/* Карта старых endpoint-имён → RPC-функции Supabase, для совместимости вызовов api(endpoint, params) */
+const RPC_MAP = {
+  uploads: 'get_uploads',
+  overview: 'get_overview',
+  insights: 'get_insights',
+  vendors: 'get_vendors',
+  weekly: 'get_weekly',
+  overruns: 'get_overruns',
+  reasons: 'get_reasons',
+  employees: 'get_employees',
+  employee_duplicates: 'get_employee_duplicates',
+  anomalies: 'get_anomalies',
+  workload_daily: 'get_workload_daily',
+  emp_throughput: 'get_emp_throughput',
+  action_names: 'get_action_names',
+  employee_list: 'get_employee_list',
+  services_list: 'get_services_list',
+};
+const RPC_PARAM_MAP = {
+  report_id: 'p_report_id',
+  employee: 'p_employee',
+};
+
+/* Признак того, что запрос упёрся в statement_timeout Postgres (код 57014).
+   Такой отчёт ещё досчитывается на сервере — не ошибка, а «подождите». */
+function isTimeoutError(error) {
+  if (!error) return false;
+  if (error.code === '57014') return true;
+  const m = (error.message || error.details || '').toLowerCase();
+  return m.includes('statement timeout') || m.includes('canceling statement') || m.includes('57014');
+}
+
+/* Глобальный баннер «идёт обработка». Счётчик — на случай нескольких
+   параллельных запросов в ретрае (Promise.all на странице). */
+let _procCount = 0;
+function showProcessing() {
+  _procCount++;
+  document.getElementById('processing-banner')?.classList.add('show');
+}
+function hideProcessing() {
+  _procCount = Math.max(0, _procCount - 1);
+  if (_procCount === 0) document.getElementById('processing-banner')?.classList.remove('show');
+}
+
+/* Вызов RPC с авто-ретраем при statement_timeout: показываем баннер и ждём,
+   пока сервер досчитает, вместо того чтобы отдавать ошибку/частичные данные. */
+async function rpcWithRetry(fn, params, { retries = 8, delay = 2500 } = {}) {
+  let banner = false;
+  try {
+    for (let attempt = 0; ; attempt++) {
+      const { data, error } = await sb.rpc(fn, params);
+      if (!error) return data;
+      if (!isTimeoutError(error) || attempt >= retries) {
+        // не-таймауты уже записал watchQuery; здесь ловим исчерпанный ретрай
+        if (isTimeoutError(error)) logDbError(`rpc:${fn}`, error, { params, attempts: attempt + 1 });
+        throw new Error(error.message);
+      }
+      if (!banner) { banner = true; showProcessing(); }
+      await new Promise(r => setTimeout(r, delay));
+    }
+  } finally {
+    if (banner) hideProcessing();
+  }
+}
+
+/* Функции, у которых есть вариант «за период» (суффикс _p, параметр p_period).
+   Запрос по текущему выбору автоматически уходит в него — вызовы на страницах
+   не меняются, а неделя остаётся частным случаем периода из одного отчёта. */
+const PERIOD_RPC = new Set([
+  'get_overview', 'get_insights', 'get_vendors', 'get_overruns', 'get_reasons',
+  'get_employees', 'get_employee_duplicates', 'get_anomalies',
+  'get_workload_daily', 'get_emp_throughput',
+  'report_vendor_processed', 'report_employee_devices', 'report_employee_actions',
+  'report_employee_payouts', 'report_vendor_payouts', 'report_unscheduled_work',
+  'get_employee_kpi', 'get_employee_kpi_all', 'get_employee_kpi_detail', 'get_service_structure',
+  'get_services_list',
+]);
+/* Функциям сравнения нужен ещё и ключ базового периода */
+const PERIOD_RPC_WITH_PREV = new Set(['get_overview', 'get_insights']);
+
+/* Подменяет {p_report_id: <текущая неделя>} на {p_period: <ключ периода>}.
+   Явные запросы по другим отчётам (история 4/12 недель, график по дням недели)
+   остаются недельными — их report_id не совпадает с текущим. */
+function toPeriodCall(fn, params) {
+  const key = STATE.period.key;
+  if (!key || !PERIOD_RPC.has(fn)) return null;
+  if (!('p_report_id' in params)) return null;
+  if (String(params.p_report_id) !== String(STATE.currentReportId)) return null;
+  const out = {};
+  Object.entries(params).forEach(([k, v]) => { if (k !== 'p_report_id') out[k] = v; });
+  out.p_period = key;
+  if (PERIOD_RPC_WITH_PREV.has(fn)) out.p_prev_period = STATE.period.prevKey || null;
+  return { fn: fn + '_p', params: out };
+}
+
 async function api(endpoint, params = {}) {
-  const url = new URL(`${CONFIG.n8nUrl || location.origin}/webhook/api`);
-  url.searchParams.set('endpoint', endpoint);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const r = await fetch(url.toString());
-  if (!r.ok) throw new Error(`API ${r.status}`);
-  const text = await r.text();
-  return text.trim() ? JSON.parse(text) : [];
+  if (!sb) throw new Error('Supabase не настроен — заполните Settings → Подключение');
+  const fn = RPC_MAP[endpoint];
+  if (!fn) throw new Error(`Нет RPC-соответствия для endpoint "${endpoint}"`);
+  const rpcParams = {};
+  Object.entries(params).forEach(([k, v]) => { rpcParams[RPC_PARAM_MAP[k] || k] = v; });
+  const data = await db(fn, rpcParams);
+  return data || [];
+}
+
+async function db(fn, params = {}) {
+  if (!sb) throw new Error('Supabase не настроен — заполните Settings → Подключение');
+  const p = toPeriodCall(fn, params);
+  return await rpcWithRetry(p ? p.fn : fn, p ? p.params : params);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    NAVIGATION
 ══════════════════════════════════════════════════════════════════════════════ */
 const PAGE_TITLES = {
-  overview:  'Главная <span>— обзор</span>',
-  dynamics:  'Динамика <span>— неделя к неделе</span>',
-  overruns:  'Перерасходы <span>— таблица</span>',
-  reasons:   'Причины <span>— ТОП действий</span>',
-  employees: 'Сотрудники <span>— детальный анализ</span>',
-  vendors:   'Вендоры <span>— Apple vs Яндекс</span>',
-  anomalies: 'Аномалии <span>— система контроля</span>',
-  workload:  'Нагрузка <span>— поток устройств</span>',
-  upload:    'Загрузка <span>— импорт отчётов</span>',
-  report:    'Отчёт <span>— для менеджера</span>',
+  overview:  'Главная <span>— обзор, динамика, вендоры</span>',
+  overruns:  'Перерасходы <span>— причины и таблица</span>',
+  methodology: 'Еженедельный отчет <span>— в разрезах</span>',
+  diagnostics: 'Отдел диагностики <span>— сотрудники, аномалии, нагрузка</span>',
+  upload:    'Загрузка данных <span>— импорт отчётов</span>',
+  report:    'Менеджерский отчёт <span>— печать в PDF</span>',
   settings:  'Настройки',
 };
+/* ─── Sidebar collapse ─────────────────────────────────────────────────── */
+function applySidebarState(collapsed) {
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
+  const btn = document.getElementById('sidebar-toggle');
+  if (btn) {
+    const t = collapsed ? 'Развернуть меню' : 'Свернуть меню';
+    btn.title = t;
+    btn.setAttribute('aria-label', t);
+  }
+  if (window.Chart) Object.values(Chart.instances || {}).forEach(c => { try { c.resize(); } catch (e) {} });
+}
+function toggleSidebar() {
+  const collapsed = !document.body.classList.contains('sidebar-collapsed');
+  applySidebarState(collapsed);
+  try { localStorage.setItem('xfix_sidebar_collapsed', collapsed ? '1' : '0'); } catch (e) {}
+}
+try { applySidebarState(localStorage.getItem('xfix_sidebar_collapsed') === '1'); } catch (e) {}
+
 function showPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
   STATE.currentPage = id;
   loadPageData(id);
 }
 function loadPageData(id) {
   const rid = STATE.currentReportId;
-  if (!rid && id !== 'dynamics' && id !== 'settings' && id !== 'upload' && id !== 'workload') return;
+  if (id === 'diagnostics') { loadDiagTab(STATE.diagTab || 'employees'); return; }
+  if (!rid && id !== 'overview' && id !== 'settings' && id !== 'upload') return;
 
   // settings and upload are always fresh; everything else is cached per report
-  if (id !== 'settings' && id !== 'upload') {
-    const key = id === 'dynamics' ? 'dynamics' : `${id}:${rid}`;
-    if (rid || id === 'dynamics') {
+  if (id !== 'settings' && id !== 'upload' && id !== 'overview') {
+    const key = `${id}:${rid}`;
+    if (rid) {
       if (STATE.loaded.has(key)) return;
       STATE.loaded.add(key);
     }
   }
 
   switch(id) {
-    case 'overview':  loadOverview(); break;
-    case 'dynamics':  loadDynamics(); break;
-    case 'overruns':  loadOverruns(); break;
-    case 'reasons':   loadReasons();  break;
-    case 'employees': loadEmployees(); break;
-    case 'vendors':   loadVendors();  break;
-    case 'anomalies': loadAnomalies(); break;
-    case 'workload':  loadWorkload(); break;
+    case 'overview':
+      if (!STATE.loaded.has('dynamics')) { STATE.loaded.add('dynamics'); loadDynamics(); }
+      if (rid && !STATE.loaded.has(`overview:${rid}`)) {
+        STATE.loaded.add(`overview:${rid}`);
+        loadOverview(); loadVendors();
+      }
+      break;
+    case 'overruns':  loadOverruns(); loadReasons(); break;
+    case 'methodology': loadMethodology(); break;
     case 'upload':    loadUploadPage(); break;
     case 'settings':  /* tab init handled by switchSettingsTab or default connection tab */ break;
     case 'report':    loadReport();   break;
   }
 }
 
+/* ─ Отдел диагностики: внутренние вкладки ─────────────────────────────── */
+function switchDiagTab(tab, el) {
+  STATE.diagTab = tab;
+  document.querySelectorAll('.diag-tab').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.diag-view').forEach(v => v.style.display = 'none');
+  document.getElementById('diag-' + tab).style.display = '';
+  loadDiagTab(tab);
+}
+function loadDiagTab(tab) {
+  const rid = STATE.currentReportId;
+  if (!rid && tab !== 'workload') return;
+  const key = `diag-${tab}:${rid}`;
+  if (STATE.loaded.has(key)) return;
+  STATE.loaded.add(key);
+  switch(tab) {
+    case 'employees':   loadEmployees(); loadKpiPage(); break;
+    case 'anomalies':   loadAnomalies(); break;
+    case 'workload':    loadWorkload(); break;
+  }
+}
+
 function refreshPage() {
   const id = STATE.currentPage || 'overview';
   const rid = STATE.currentReportId;
-  const key = id === 'dynamics' ? 'dynamics' : `${id}:${rid}`;
-  STATE.loaded.delete(key);
+  if (id === 'diagnostics') {
+    STATE.loaded.delete(`diag-${STATE.diagTab}:${rid}`);
+  } else if (id === 'overview') {
+    STATE.loaded.delete('dynamics');
+    STATE.loaded.delete(`overview:${rid}`);
+  } else {
+    STATE.loaded.delete(`${id}:${rid}`);
+  }
   loadPageData(id);
 }
 
@@ -1425,37 +2259,212 @@ async function loadReports() {
   try {
     const data = await api('uploads');
     const rows = Array.isArray(data) ? data : (data.rows || []);
-    STATE.reports = rows;
-    const sel = document.getElementById('report-select');
-    sel.innerHTML = '';
+    STATE.reports = rows;                       // отсортированы по report_week DESC
     if (!rows.length) {
-      sel.innerHTML = '<option value="">Нет загруженных отчётов</option>';
+      document.getElementById('report-select').innerHTML = '<option value="">Нет загруженных отчётов</option>';
       document.getElementById('last-upload-info').textContent = 'Загрузок: 0';
       return;
     }
-    rows.forEach((r, i) => {
-      const opt = document.createElement('option');
-      opt.value = r.id;
-      opt.textContent = `Неделя ${r.report_week} (${r.row_count} строк)`;
-      sel.appendChild(opt);
-    });
     document.getElementById('last-upload-info').textContent = `Загрузок: ${rows.length}`;
-    STATE.currentReportId = rows[0].id;
-    loadOverview();
-    loadAnomaliesBadge();
+    buildPeriodOptions();
+    await applyPeriod();
   } catch(e) {
     document.getElementById('report-select').innerHTML = '<option value="">Ошибка загрузки</option>';
-    const msg = e.message && e.message.includes('API') ? `Ошибка API: ${e.message}` : 'Не удалось подключиться к n8n';
-    showToast(msg, 'error');
+    showToast(`Ошибка загрузки отчётов: ${e.message}`, 'error');
     console.error('loadReports:', e);
   }
 }
-function onReportChange() {
-  STATE.currentReportId = document.getElementById('report-select').value;
-  STATE.loaded.clear();
-  const activePage = document.querySelector('.page.active');
-  if (activePage) loadPageData(activePage.id.replace('page-', ''));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ПЕРИОД: неделя / месяц / квартал / произвольный диапазон недель.
+   Данные грузятся понедельно, поэтому границы периода — всегда недели.
+   Обращение относим к неделе по её понедельнику (uploads.report_week).
+══════════════════════════════════════════════════════════════════════════════ */
+const MONTHS_RU = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MONTHS_NOM = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function periodMode() { return document.getElementById('period-mode').value; }
+function monthKeyOf(week) { return week.slice(0, 7); }                       // 'YYYY-MM'
+function quarterKeyOf(week) {
+  const m = +week.slice(5, 7);
+  return `${week.slice(0, 4)}-Q${Math.ceil(m / 3)}`;
 }
+/* Уникальные ключи группировки в порядке от свежих к старым */
+function groupKeys(fn) {
+  const seen = [];
+  (STATE.reports || []).forEach(r => { const k = fn(r.report_week); if (!seen.includes(k)) seen.push(k); });
+  return seen;
+}
+function labelForGroup(mode, key) {
+  if (mode === 'month')   return `${MONTHS_NOM[+key.slice(5, 7) - 1]} ${key.slice(0, 4)}`;
+  if (mode === 'quarter') return `${key.slice(-2)} ${key.slice(0, 4)}`;
+  return key;
+}
+/* Подпись периода: «16 июня — 13 июля 2026» */
+function periodLabel(ids) {
+  const reps = (STATE.reports || []).filter(r => ids.includes(r.id)).sort((a, b) => a.report_week < b.report_week ? -1 : 1);
+  if (!reps.length) return '—';
+  const start = new Date(`${reps[0].report_week}T00:00:00`);
+  const end   = new Date(`${reps[reps.length - 1].report_week}T00:00:00`);
+  end.setDate(end.getDate() + 6);
+  const d = dt => `${dt.getDate()} ${MONTHS_RU[dt.getMonth()]}`;
+  return reps.length === 1 ? `${d(start)} — ${d(end)} ${end.getFullYear()}`
+                           : `${d(start)} — ${d(end)} ${end.getFullYear()} (${reps.length} нед.)`;
+}
+
+function buildPeriodOptions() {
+  const mode = periodMode();
+  const reports = STATE.reports || [];
+  const sel   = document.getElementById('report-select');
+  const range = document.getElementById('period-range');
+  const prevValue = sel.value;
+
+  range.style.display = mode === 'custom' ? 'flex' : 'none';
+  sel.style.display   = mode === 'custom' ? 'none' : '';
+
+  if (mode === 'custom') {
+    ['period-from', 'period-to'].forEach(id => {
+      const s = document.getElementById(id);
+      const keep = s.value;
+      s.innerHTML = reports.map(r => `<option value="${r.id}">${fmt.weekRange(r.report_week)}</option>`).join('');
+      if (keep && reports.some(r => String(r.id) === keep)) s.value = keep;
+    });
+    // по умолчанию — последний месяц: 4 свежие недели
+    const from = document.getElementById('period-from'), to = document.getElementById('period-to');
+    if (!from.dataset.init) {
+      to.value   = reports[0].id;
+      from.value = (reports[Math.min(3, reports.length - 1)] || reports[0]).id;
+      from.dataset.init = '1';
+    }
+  } else if (mode === 'week') {
+    sel.innerHTML = reports.map(r => `<option value="${r.id}">${fmt.weekRange(r.report_week)} (${r.row_count} строк)</option>`).join('');
+  } else {
+    const keyFn = mode === 'month' ? monthKeyOf : quarterKeyOf;
+    sel.innerHTML = groupKeys(keyFn).map(k => {
+      const n = reports.filter(r => keyFn(r.report_week) === k).length;
+      return `<option value="${k}">${labelForGroup(mode, k)} (${n} нед.)</option>`;
+    }).join('');
+  }
+  if (prevValue && [...sel.options].some(o => o.value === prevValue)) sel.value = prevValue;
+
+  buildCompareOptions();
+}
+
+function buildCompareOptions() {
+  const cmp = document.getElementById('compare-select');
+  const keep = cmp.value;
+  cmp.innerHTML = '<option value="auto">Сравнить с пред. периодом</option>'
+    + '<option value="none">Без сравнения</option>'
+    + (STATE.reports || []).map(r => `<option value="w:${r.id}">Сравнить с ${fmt.weekRange(r.report_week)}</option>`).join('');
+  if (keep && [...cmp.options].some(o => o.value === keep)) cmp.value = keep;
+}
+
+/* Набор report_id для текущего выбора */
+function resolvePeriodIds() {
+  const mode = periodMode();
+  const reports = STATE.reports || [];
+  if (!reports.length) return [];
+  if (mode === 'week') {
+    const v = document.getElementById('report-select').value;
+    const r = reports.find(x => String(x.id) === String(v)) || reports[0];
+    return [r.id];
+  }
+  if (mode === 'custom') {
+    const a = reports.findIndex(r => String(r.id) === document.getElementById('period-from').value);
+    const b = reports.findIndex(r => String(r.id) === document.getElementById('period-to').value);
+    if (a < 0 || b < 0) return [reports[0].id];
+    const [lo, hi] = a <= b ? [a, b] : [b, a];
+    return reports.slice(lo, hi + 1).map(r => r.id);
+  }
+  const keyFn = mode === 'month' ? monthKeyOf : quarterKeyOf;
+  const key = document.getElementById('report-select').value || keyFn(reports[0].report_week);
+  return reports.filter(r => keyFn(r.report_week) === key).map(r => r.id);
+}
+
+/* База для сравнения: «предыдущий равный период» или конкретная неделя */
+function resolvePrevIds(curIds) {
+  const cmp = document.getElementById('compare-select').value;
+  if (cmp === 'none') return [];
+  if (cmp.startsWith('w:')) return [Number(cmp.slice(2))];
+  const reports = STATE.reports || [];
+  const oldestIdx = Math.max(...curIds.map(id => reports.findIndex(r => r.id === id)));
+  const prev = reports.slice(oldestIdx + 1, oldestIdx + 1 + curIds.length).map(r => r.id);
+  return prev;
+}
+
+/* Сборка кэша периода на сервере. Разбита на чанки: платформа режет
+   statement_timeout на 3s, за один запрос многонедельный период не влезает. */
+async function ensurePeriod(ids) {
+  if (!ids || !ids.length) return null;
+  const info = (await rpcWithRetry('period_begin', { p_report_ids: ids }))?.[0];
+  if (!info) throw new Error('Не удалось открыть период');
+  if (!info.needs_build) return info.period_key;
+  showProcessing();
+  try {
+    await buildInChunks('period_build_services', info.period_key, info.buckets);
+    await buildInChunks('period_build_stats', info.period_key, Math.max(1, Math.ceil(info.buckets / 4)));
+    await rpcWithRetry('period_finish', { p_period: info.period_key });
+  } finally {
+    hideProcessing();
+  }
+  return info.period_key;
+}
+
+/* Чанк не уложился в statement_timeout → дробим вчетверо мельче и начинаем заново.
+   Чанки идемпотентны (ON CONFLICT DO UPDATE), повтор безопасен.
+   retries: 0 — ретраить тот же слишком большой чанк бессмысленно, он снова упрётся. */
+async function buildInChunks(fn, key, buckets) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      for (let b = 0; b < buckets; b++) {
+        await rpcWithRetry(fn, { p_period: key, p_bucket: b, p_buckets: buckets }, { retries: 0 });
+      }
+      return;
+    } catch(e) {
+      if (!isTimeoutError({ message: e.message }) || buckets >= 1024) throw e;
+      buckets *= 4;
+      console.warn(`${fn}: чанк не уложился в лимит, дроблю на ${buckets}`);
+    }
+  }
+  throw new Error('Период слишком большой: сборка не укладывается в лимит запроса');
+}
+
+let _periodSeq = 0;
+async function applyPeriod() {
+  const ids = resolvePeriodIds();
+  if (!ids.length) return;
+  const prevIds = resolvePrevIds(ids);
+  const seq = ++_periodSeq;
+
+  // якорь для недельных запросов (история 4/12 недель, график по дням недели)
+  STATE.currentReportId = ids[0];
+
+  try {
+    const key     = await ensurePeriod(ids);
+    const prevKey = prevIds.length ? await ensurePeriod(prevIds) : null;
+    if (seq !== _periodSeq) return;                       // пользователь успел переключить период
+    STATE.period = {
+      mode: periodMode(), ids, key, label: periodLabel(ids),
+      prevIds, prevKey, prevLabel: prevIds.length ? periodLabel(prevIds) : null,
+    };
+  } catch(e) {
+    showToast(`Не удалось собрать период: ${e.message}`, 'error');
+    console.error('applyPeriod:', e);
+    return;
+  }
+
+  const allTitle = document.getElementById('kpi-all-title');
+  if (allTitle) allTitle.textContent = `Все сотрудники — ${STATE.period.label}`;
+
+  STATE.loaded.clear();
+  kpiAllLoadedFor = null;
+  kpiDetailCacheKey = null;
+  loadPageData(STATE.currentPage || 'overview');
+  loadAnomaliesBadge();
+}
+
+function onPeriodModeChange() { buildPeriodOptions(); applyPeriod(); }
+function onPeriodChange() { applyPeriod(); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CHART HELPERS
@@ -1484,10 +2493,56 @@ const PALETTE = ['#39BB3B','#ED4623','#F5A623','#3B8BEB','#A855F7','#06B6D4','#F
 /* ═══════════════════════════════════════════════════════════════════════════
    FORMAT HELPERS
 ══════════════════════════════════════════════════════════════════════════════ */
+/* Ссылка на обращение в FileMaker Pro (через redirect-скрипт на imtime.ru) */
+const FM_SCRIPT_URL = 'https://imtime.ru/filemaker?script=%D0%A1%D0%B5%D1%80%D0%B2%D0%B8%D1%81&param=';
+
+/* ─── Иконки (inline SVG, единый набор — emoji не используем) ─────────────── */
+const ICO_PATHS = {
+  chart:      '<path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>',
+  inbox:      '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  search:     '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  clipboard:  '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/>',
+  bulb:       '<path d="M9 18h6M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  repeat:     '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  bot:        '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><path d="M8.5 14h.01M15.5 14h.01"/>',
+  trendUp:    '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  trendDown:  '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+  check:      '<path d="M20 6 9 17l-5-5"/>',
+  checkCircle:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+  alert:      '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+  users:      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  clock:      '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  dot:        '<circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/>',
+  chevronR:   '<path d="m9 18 6-6-6-6"/>',
+  chevronD:   '<path d="m6 9 6 6 6-6"/>',
+};
+/** Инлайновая SVG-иконка из единого набора */
+function ico(name, size = 16) {
+  const d = ICO_PATHS[name] || '';
+  return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" `
+       + `stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+}
+
 const fmt = {
+  /** Кликабельный id обращения → открывает карточку в FileMaker Pro */
+  svc: (id, prefix = '#') => {
+    if (id === '' || id == null) return '—';
+    return `<a class="fm-link" href="${FM_SCRIPT_URL}${encodeURIComponent(id)}" target="_blank" rel="noopener" title="Открыть обращение ${id} в FileMaker">${prefix}${id}</a>`;
+  },
   money: v => new Intl.NumberFormat('ru-RU', {style:'currency',currency:'RUB',maximumFractionDigits:0}).format(v||0),
+  /** Длительность в днях — без символа валюты */
+  days:  v => `${new Intl.NumberFormat('ru-RU', {maximumFractionDigits:1}).format(+v||0)} дн.`,
   num:   v => new Intl.NumberFormat('ru-RU').format(v||0),
   pct:   v => `${(+v||0).toFixed(1)}%`,
+  weekRange: dateStr => {
+    if (!dateStr) return '—';
+    const start = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(start)) return dateStr;
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const dd = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}`;
+    return `${dd(start)} – ${dd(end)}`;
+  },
   delta: (v, invert=false) => {
     const n = +v || 0;
     const cls = n === 0 ? 'neutral' : (n > 0 ? (invert ? 'down' : 'up') : (invert ? 'up' : 'down'));
@@ -1496,12 +2551,12 @@ const fmt = {
   },
   zone: z => {
     const map = {
-      normal:   ['✓', 'zone-normal',   'Норма'],
-      small:    ['↑', 'zone-small',    'Небольшое'],
-      elevated: ['⚠', 'zone-elevated', 'Повышен'],
-      critical: ['🔴','zone-critical', 'Критично'],
-      yellow:   ['⚠', 'zone-elevated', 'Повышен'],
-      red:      ['🔴','zone-critical', 'Критично'],
+      normal:   [ico('check', 12),   'zone-normal',   'Норма'],
+      small:    [ico('trendUp', 12), 'zone-small',    'Небольшое'],
+      elevated: [ico('alert', 12),   'zone-elevated', 'Повышен'],
+      critical: [ico('dot', 12),     'zone-critical', 'Критично'],
+      yellow:   [ico('alert', 12),   'zone-elevated', 'Повышен'],
+      red:      [ico('dot', 12),     'zone-critical', 'Критично'],
     };
     const [icon, cls, label] = map[z] || ['—','zone-normal','—'];
     return `<span class="zone-badge ${cls}">${icon} ${label}</span>`;
@@ -1525,19 +2580,19 @@ async function loadOverview() {
     const vRows = Array.isArray(vendorsResp) ? vendorsResp : (vendorsResp.rows || []);
 
     document.getElementById('kpi-grid').innerHTML = `
-      <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value">${fmt.num(d.total_services)}</div>${d.prev_services ? `<div>${fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100)}</div>` : ''}</div>
+      <div class="kpi-card clickable" onclick="openServiceList('all')" title="Список обращений с копированием id"><div class="kpi-label">Обращений</div><div class="kpi-value">${fmt.num(d.total_services)}</div>${d.prev_services ? `<div>${fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100)}</div>` : ''}</div>
       <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value">${fmt.money(d.total_payments)}</div>${d.prev_payments ? `<div>${fmt.delta((d.total_payments - d.prev_payments) / d.prev_payments * 100, true)}</div>` : ''}</div>
       <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">${fmt.money(d.avg_service_cost)}</div>${d.prev_avg ? `<div>${fmt.delta((d.avg_service_cost - d.prev_avg) / d.prev_avg * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">${fmt.num(d.non_standard_count)}</div>${d.prev_nonstandard != null && d.prev_services ? `<div>${fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">${fmt.money(d.total_overrun)}</div>${d.prev_overrun != null && d.prev_services ? `<div>${fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Экономия</div><div class="kpi-value accent">${fmt.money(d.potential_savings || 0)}</div></div>
+      <div class="kpi-card clickable" onclick="openServiceList('nonstandard')" title="Список нестандартных обращений — клик по id открывает карточку в CRM"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">${fmt.num(d.non_standard_count)}</div>${d.prev_nonstandard != null && d.prev_services ? `<div>${fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card clickable" onclick="gotoOverruns()" title="Перейти в раздел «Перерасходы»"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">${fmt.money(d.total_overrun)}</div>${d.prev_overrun != null && d.prev_services ? `<div>${fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true)}</div>` : ''}</div>
+      <div class="kpi-card"><div class="kpi-label">Доля перерасхода</div><div class="kpi-value accent">${fmt.pct(d.total_payments ? d.total_overrun / d.total_payments * 100 : 0)}</div>${d.prev_payments && d.prev_overrun ? `<div>${fmt.delta(((d.total_overrun / d.total_payments) - (d.prev_overrun / d.prev_payments)) / (d.prev_overrun / d.prev_payments) * 100, true)}</div>` : ''}</div>
     `;
 
     // Zone chart
     mkChart('chart-zones', {
       type: 'doughnut',
       data: {
-        labels: ['Норма ✓', 'Небольшое ↑', 'Повышен ⚠', 'Критично 🔴'],
+        labels: ['Норма', 'Небольшое', 'Повышен', 'Критично'],
         datasets: [{ data: [d.zone_normal||0, d.zone_small||0, d.zone_elevated||0, d.zone_critical||0], backgroundColor: ['#39BB3B','#7BC8F6','#F5A623','#ED4623'], borderWidth: 0, hoverOffset: 6 }]
       },
       options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
@@ -1577,7 +2632,7 @@ async function loadOverview() {
       html += `
         <div class="ai-card">
           <div class="ai-card-header">
-            <div class="ai-card-title">🤖 AI-анализ <span style="font-weight:400;color:var(--text-muted);font-size:12px">GPT-4o-mini</span></div>
+            <div class="ai-card-title">${ico('bot', 16)} AI-анализ <span style="font-weight:400;color:var(--text-muted);font-size:12px">GPT-4o-mini</span></div>
             <span class="risk-badge ${riskCls}">Риск: ${riskLabel}</span>
           </div>
           ${ai.summary ? `<div class="ai-summary">${ai.summary}</div>` : ''}
@@ -1613,7 +2668,7 @@ async function loadOverview() {
     if (regularRows.length) {
       html += regularRows.map(i => `
         <div class="insight-item">
-          <div class="insight-icon">${i.direction==='up'?'📈':'📉'}</div>
+          <div class="insight-icon">${ico(i.direction==='up' ? 'trendUp' : 'trendDown', 18)}</div>
           <div>
             <div class="insight-msg">${i.message}</div>
             <div class="insight-meta">${i.insight_type} · ${i.change_pct ? fmt.pct(i.change_pct) : ''}</div>
@@ -1623,7 +2678,7 @@ async function loadOverview() {
     }
 
     if (!html) {
-      html = '<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-title">Значимых изменений не обнаружено</div></div>';
+      html = '<div class="empty-state"><div class="empty-state-icon">' + ico('check', 40) + '</div><div class="empty-state-title">Значимых изменений не обнаружено</div></div>';
     }
 
     el.innerHTML = html;
@@ -1639,22 +2694,27 @@ async function loadDynamics() {
     const rows = Array.isArray(data) ? data : (data.rows || []);
     if (!rows.length) return;
 
+    /* Неделя без единого обращения — это не «ноль выплат», а отсутствие данных
+       (отчёт не заливали либо пересчёт упал). Рисуем разрыв, а не провал в 0. */
     const labels = rows.map(r => r.report_week);
-    const services = rows.map(r => +r.total_services || 0);
-    const payments = rows.map(r => +r.total_payments || 0);
-    const overruns = rows.map(r => +r.total_overrun || 0);
+    const empty = rows.map(r => !(+r.total_services));
+    const gapAware = fn => rows.map((r, i) => empty[i] ? null : fn(r));
+    const services = gapAware(r => +r.total_services || 0);
+    const payments = gapAware(r => +r.total_payments || 0);
+    const overruns = gapAware(r => +r.total_overrun || 0);
 
     mkChart('chart-dynamics', {
       type: 'line',
       data: {
         labels,
         datasets: [
-          { label: 'Обращения', data: services, borderColor: '#39BB3B', backgroundColor: 'rgba(57,187,59,.08)', fill: true, tension: .4, yAxisID: 'y1' },
-          { label: 'Выплаты, ₽', data: payments, borderColor: '#3B8BEB', backgroundColor: 'rgba(59,139,235,.08)', fill: true, tension: .4, yAxisID: 'y2' },
+          { label: 'Обращения', data: services, borderColor: '#39BB3B', backgroundColor: 'rgba(57,187,59,.08)', fill: true, tension: .25, spanGaps: false, yAxisID: 'y1' },
+          { label: 'Выплаты, ₽', data: payments, borderColor: '#3B8BEB', backgroundColor: 'rgba(59,139,235,.08)', fill: true, tension: .25, spanGaps: false, yAxisID: 'y2' },
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+        spanGaps: false,
         scales: {
           y1: { type: 'linear', position: 'left', grid: { color: 'rgba(255,255,255,.05)' } },
           y2: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } }
@@ -1694,7 +2754,7 @@ async function loadOverruns() {
     tbody.innerHTML = rows.map(r => `
       <tr>
         <td>${fmt.zone(r.zone)}</td>
-        <td style="font-variant-numeric:tabular-nums">${r.service_id}</td>
+        <td style="font-variant-numeric:tabular-nums">${fmt.svc(r.service_id, '')}</td>
         <td>${r.vendor||'—'}</td>
         <td>${r.group_name||'—'}</td>
         <td class="num">${fmt.money(r.total_price)}</td>
@@ -1796,7 +2856,7 @@ async function loadEmployees() {
       return `
         <tr id="emp-row-${i}" style="${borderColor ? `border-left:3px solid ${borderColor}` : ''}">
           <td style="cursor:pointer;text-align:center" onclick="toggleEmpDetail(${i},'${safeEmp}')">
-            <span id="emp-toggle-${i}" style="opacity:.4;font-size:10px">▶</span>
+            <span id="emp-toggle-${i}" style="opacity:.5;display:inline-flex">${ico('chevronR', 14)}</span>
           </td>
           <td style="font-weight:600">${r.employee}</td>
           <td style="color:var(--text-muted)">${r.department||'—'}</td>
@@ -1807,7 +2867,7 @@ async function loadEmployees() {
           </td>
           <td class="num">${fmt.delta(r.vs_median_pct, true)}</td>
           <td class="num" style="${hasDups ? 'color:var(--xf-red);font-weight:700' : 'color:var(--text-muted)'}">
-            ${hasDups ? '🔁 ' : ''}${r.duplicate_action_count}
+            ${hasDups ? ico('repeat', 13) + ' ' : ''}${r.duplicate_action_count}
           </td>
           <td class="num" style="${+r.extra_action_count > 0 ? 'color:var(--xf-yellow)' : 'color:var(--text-muted)'}">
             ${r.extra_action_count||0}
@@ -1834,11 +2894,11 @@ async function toggleEmpDetail(idx, employee) {
   const toggle    = document.getElementById(`emp-toggle-${idx}`);
   if (detailRow.style.display !== 'none') {
     detailRow.style.display = 'none';
-    toggle.textContent = '▶';
+    toggle.innerHTML = ico('chevronR', 14);
     return;
   }
   detailRow.style.display = '';
-  toggle.textContent = '▼';
+  toggle.innerHTML = ico('chevronD', 14);
 
   try {
     const data = await api('employee_duplicates', { report_id: STATE.currentReportId, employee });
@@ -1852,7 +2912,7 @@ async function toggleEmpDetail(idx, employee) {
 
     el.innerHTML = `
       <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
-        🔁 Дублирующие действия — ${dups.length} случай(ев)
+        ${ico('repeat', 13)} Дублирующие действия — ${dups.length} случай(ев)
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead>
@@ -1870,7 +2930,7 @@ async function toggleEmpDetail(idx, employee) {
             const dupCost = (+d.total_price) - (+d.unit_price);
             return `
               <tr style="border-top:1px solid var(--border-default)">
-                <td style="padding:6px 12px 6px 0;color:var(--text-muted)">#${d.service_id}</td>
+                <td style="padding:6px 12px 6px 0;color:var(--text-muted)">${fmt.svc(d.service_id)}</td>
                 <td style="padding:6px 12px;font-weight:500">${d.action_type}</td>
                 <td style="text-align:right;padding:6px 12px;color:var(--xf-red);font-weight:700">${d.repeat_count}×</td>
                 <td style="text-align:right;padding:6px 12px;color:var(--text-muted)">${fmt.money(d.unit_price)}</td>
@@ -1915,20 +2975,848 @@ async function loadVendors() {
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } } }
     });
-    mkChart('chart-vendor-payments', {
-      type: 'bar',
-      data: {
-        labels: rows.map(r => r.vendor),
-        datasets: [{ label: 'Выплаты, ₽', data: rows.map(r => +r.payments), backgroundColor: rows.map((_,i) => PALETTE[i]), borderRadius: 8 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } } }
-    });
+    await loadVendorTrend(rows);
   } catch(e) { console.error('vendors', e); }
+}
+
+/* Обращения по вендорам: текущий период против базы сравнения.
+   Прошлый период берём напрямую по prevKey — api() умеет подменять период
+   только для текущего выбора. */
+async function loadVendorTrend(rows) {
+  const titleEl = document.getElementById('vendor-trend-title');
+  const emptyEl = document.getElementById('vendor-trend-empty');
+  const prevKey = STATE.period?.prevKey;
+
+  if (!prevKey) {
+    destroyChart('chart-vendor-trend');
+    if (titleEl) titleEl.textContent = 'Динамика обращений';
+    if (emptyEl) emptyEl.style.display = '';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  let prevRows = [];
+  try {
+    prevRows = await rpcWithRetry('get_vendors_p', { p_period: prevKey }) || [];
+  } catch(e) { console.error('vendor trend', e); return; }
+
+  const prevMap = new Map(prevRows.map(r => [r.vendor, +r.services || 0]));
+  const cur  = rows.map(r => +r.services || 0);
+  const prev = rows.map(r => prevMap.get(r.vendor) || 0);
+
+  if (titleEl) titleEl.textContent = `Динамика обращений — ${STATE.period.label} vs ${STATE.period.prevLabel}`;
+
+  mkChart('chart-vendor-trend', {
+    type: 'bar',
+    data: {
+      labels: rows.map(r => r.vendor),
+      datasets: [
+        { label: STATE.period.prevLabel, data: prev, backgroundColor: 'rgba(138,144,151,.45)', borderRadius: 8 },
+        { label: STATE.period.label,     data: cur,  backgroundColor: rows.map((_, i) => PALETTE[i]), borderRadius: 8 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            afterBody: items => {
+              const i = items[0].dataIndex;
+              const d = cur[i] - prev[i];
+              const pct = prev[i] ? Math.round(d * 100 / prev[i]) : null;
+              const sign = d > 0 ? '+' : d < 0 ? '−' : '';
+              return `Δ ${sign}${fmt.num(Math.abs(d))}${pct === null ? '' : ` (${sign}${Math.abs(pct)}%)`}`;
+            }
+          }
+        }
+      },
+      scales: { y: { grid: { color: 'rgba(255,255,255,.05)' } } }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: METHODOLOGY REPORTS 1-6
+══════════════════════════════════════════════════════════════════════════════ */
+function methAggSum(rows, key, val, n) {
+  const map = new Map();
+  rows.forEach(r => { const k = r[key] ?? '—'; map.set(k, (map.get(k) || 0) + (+r[val] || 0)); });
+  let arr = [...map.entries()].sort((a, b) => b[1] - a[1]);
+  if (n) arr = arr.slice(0, n);
+  return arr;
+}
+function methBarChart(rows, key, val, label) {
+  const agg = methAggSum(rows, key, val, 10);
+  return {
+    type: 'bar',
+    data: { labels: agg.map(a => a[0]), datasets: [{ label, data: agg.map(a => a[1]), backgroundColor: agg.map((_, i) => PALETTE[i % PALETTE.length]), borderRadius: 6 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: 'rgba(255,255,255,.05)' } }, y: { grid: { display: false } } }
+    }
+  };
+}
+function methDoughnutChart(rows, key, val) {
+  const agg = methAggSum(rows, key, val);
+  return {
+    type: 'doughnut',
+    data: { labels: agg.map(a => a[0]), datasets: [{ data: agg.map(a => a[1]), backgroundColor: agg.map((_, i) => PALETTE[i % PALETTE.length]), borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'var(--text-secondary)', padding: 12 } } } }
+  };
+}
+function methKpi(label, value, sub, color) {
+  const isText = typeof value === 'string' && /[а-яa-zА-ЯA-Z]{3,}/.test(value);
+  return `<div class="kpi-card">
+    <div class="kpi-label"${color ? ` style="color:${color}"` : ''}>${label}</div>
+    <div class="kpi-value${isText ? ' kpi-text' : ''}" title="${String(value).replace(/"/g, '&quot;')}">${value}</div>
+    ${sub ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">${sub}</div>` : ''}
+  </div>`;
+}
+const METH_REPORTS = {
+  1: { rpc: 'report_vendor_processed', title: 'Обработано по вендору',
+       cols: [['vendor','Вендор'], ['devices','Устройств']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.devices || 0), 0);
+         return [methKpi('Всего устройств', fmt.num(total))]
+           .concat(rows.map((r, i) => methKpi(r.vendor, fmt.num(r.devices), `${total ? Math.round(r.devices * 100 / total) : 0}% от всех`, PALETTE[i % PALETTE.length])));
+       },
+       chart: rows => methDoughnutChart(rows, 'vendor', 'devices') },
+  2: { rpc: 'report_employee_devices', title: 'Устройства по сотруднику',
+       cols: [['employee','Сотрудник'], ['subgroup','Подгруппа'], ['vendor','Вендор'], ['devices','Устройств']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.devices || 0), 0);
+         const byEmp = methAggSum(rows, 'employee', 'devices');
+         return [
+           methKpi('Всего устройств', fmt.num(total)),
+           methKpi('Сотрудников', fmt.num(byEmp.length)),
+           methKpi('Лидер', byEmp[0] ? byEmp[0][0] : '—', byEmp[0] ? `${fmt.num(byEmp[0][1])} устройств` : ''),
+         ];
+       },
+       chart: rows => methBarChart(rows, 'employee', 'devices', 'Устройств') },
+  3: { rpc: 'report_employee_actions', title: 'Все действия сотрудников',
+       cols: [['employee','Сотрудник'], ['action_type','Тип действия'], ['cnt','Кол-во']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.cnt || 0), 0);
+         const byEmp = methAggSum(rows, 'employee', 'cnt');
+         const byType = methAggSum(rows, 'action_type', 'cnt');
+         return [
+           methKpi('Всего действий', fmt.num(total)),
+           methKpi('Сотрудников', fmt.num(byEmp.length)),
+           methKpi('Типов действий', fmt.num(byType.length)),
+           methKpi('Частый тип', byType[0] ? byType[0][0] : '—', byType[0] ? `${fmt.num(byType[0][1])} раз` : ''),
+         ];
+       },
+       chart: rows => methBarChart(rows, 'action_type', 'cnt', 'Действий') },
+  4: { rpc: 'report_employee_payouts', title: 'Выплаты сотрудникам',
+       cols: [['employee','Сотрудник'], ['action_type','Тип действия'], ['total_price','Выплата, ₽']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.total_price || 0), 0);
+         const byEmp = methAggSum(rows, 'employee', 'total_price');
+         return [
+           methKpi('Всего выплат', fmt.money(total)),
+           methKpi('Сотрудников', fmt.num(byEmp.length)),
+           methKpi('Ср. на сотрудника', fmt.money(byEmp.length ? total / byEmp.length : 0)),
+           methKpi('Лидер', byEmp[0] ? byEmp[0][0] : '—', byEmp[0] ? fmt.money(byEmp[0][1]) : ''),
+         ];
+       },
+       chart: rows => methBarChart(rows, 'employee', 'total_price', 'Выплата, ₽') },
+  5: { rpc: 'report_vendor_payouts', title: 'Выплаты по вендорам',
+       cols: [['vendor','Вендор'], ['employee','Сотрудник'], ['action_type','Тип действия'], ['devices','Устройств'], ['total_price','Выплата, ₽']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.total_price || 0), 0);
+         const byVendor = methAggSum(rows, 'vendor', 'total_price');
+         return [methKpi('Всего выплат', fmt.money(total))]
+           .concat(byVendor.map(([vendor, sum], i) => methKpi(vendor, fmt.money(sum), `${total ? Math.round(sum * 100 / total) : 0}% от всех`, PALETTE[i % PALETTE.length])));
+       },
+       chart: rows => methDoughnutChart(rows, 'vendor', 'total_price') },
+  6: { rpc: 'report_unscheduled_work', title: 'Ненормированная работа',
+       cols: [['employee','Сотрудник'], ['devices','Обращений'], ['total_price','Выплата, ₽'], ['avg_price','Ср. цена, ₽']],
+       kpis: rows => {
+         const total = rows.reduce((s, r) => s + (+r.total_price || 0), 0);
+         const devices = rows.reduce((s, r) => s + (+r.devices || 0), 0);
+         return [
+           methKpi('Всего выплат', fmt.money(total)),
+           methKpi('Обращений', fmt.num(devices)),
+           methKpi('Сотрудников', fmt.num(rows.length)),
+           methKpi('Ср. цена', fmt.money(devices ? total / devices : 0)),
+         ];
+       },
+       chart: rows => methBarChart(rows, 'employee', 'total_price', 'Выплата, ₽') },
+};
+let methCurrentTab = 1;
+let methCurrentRows = [];
+let methSortKey = null;
+let methSortDir = 1;
+function switchMethTab(n, el) {
+  methCurrentTab = n;
+  document.querySelectorAll('.meth-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
+  document.getElementById('meth-chart-title').textContent = METH_REPORTS[n].title;
+  document.getElementById('meth-search').value = '';
+  methSortKey = null;
+  methSortDir = 1;
+  loadMethTable(n);
+}
+async function loadMethodology() {
+  if (!STATE.currentReportId) return;
+  loadMethTable(methCurrentTab);
+}
+function renderMethThead(cols) {
+  const thead = document.getElementById('meth-thead');
+  thead.innerHTML = `<tr>${cols.map(([key,label],i) => {
+    const arrow = methSortKey === key ? `<span style="opacity:.6"> ${methSortDir > 0 ? '▲' : '▼'}</span>` : '';
+    return `<th${i>1?' class="num"':''} style="cursor:pointer;user-select:none" onclick="sortMethTable('${key}')">${label}${arrow}</th>`;
+  }).join('')}</tr>`;
+}
+function sortMethTable(key) {
+  if (methSortKey === key) methSortDir *= -1; else { methSortKey = key; methSortDir = 1; }
+  filterMethTable();
+}
+function groupMethRows(rows, cols, groupKey) {
+  if (!groupKey) return rows;
+  const map = new Map();
+  rows.forEach(r => {
+    const k = r[groupKey] ?? '—';
+    if (!map.has(k)) {
+      const base = {};
+      cols.forEach(([key]) => { base[key] = key === groupKey ? k : (typeof r[key] === 'number' ? 0 : null); });
+      map.set(k, base);
+    }
+    const agg = map.get(k);
+    cols.forEach(([key]) => {
+      if (key === groupKey) return;
+      const v = r[key];
+      if (typeof v === 'number') agg[key] += (+v || 0);
+      else if (agg[key] === null) agg[key] = v;
+      else if (agg[key] !== v) agg[key] = '—';
+    });
+  });
+  return [...map.values()];
+}
+function sortMethRows(rows, key, dir) {
+  if (!key) return rows;
+  return [...rows].sort((a, b) => {
+    const av = a[key], bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+    return String(av).localeCompare(String(bv), 'ru') * dir;
+  });
+}
+function renderMethTable(rows, cols) {
+  const tbody = document.getElementById('meth-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text-muted);padding:40px">Ничего не найдено</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>${cols.map(([key]) => {
+    const v = r[key];
+    const isNum = typeof v === 'number';
+    return `<td${isNum ? ' class="num"' : ''}>${isNum ? (key.includes('price') ? fmt.money(v) : fmt.num(v)) : (v ?? '—')}</td>`;
+  }).join('')}</tr>`).join('');
+}
+function populateMethGroupSelect(meta, rows) {
+  const sel = document.getElementById('meth-group');
+  const cur = sel.value;
+  const groupable = meta.cols.filter(([key]) => rows.some(r => typeof r[key] !== 'number'));
+  sel.innerHTML = '<option value="">Без группировки</option>' + groupable.map(([key,label]) => `<option value="${key}">${label}</option>`).join('');
+  sel.value = groupable.some(([key]) => key === cur) ? cur : '';
+}
+function filterMethTable() {
+  const meta = METH_REPORTS[methCurrentTab];
+  const q = document.getElementById('meth-search').value.trim().toLowerCase();
+  let rows = q ? methCurrentRows.filter(r => meta.cols.some(([key]) => String(r[key] ?? '').toLowerCase().includes(q))) : methCurrentRows;
+  const groupKey = document.getElementById('meth-group').value;
+  rows = groupMethRows(rows, meta.cols, groupKey);
+  rows = sortMethRows(rows, methSortKey, methSortDir);
+  renderMethThead(meta.cols);
+  renderMethTable(rows, meta.cols);
+}
+function currentReportLabel() {
+  return STATE.period.label || '—';
+}
+function setMethEmptyVisible(on) {
+  document.getElementById('meth-empty').style.display = on ? '' : 'none';
+  document.getElementById('meth-kpis').style.display = on ? 'none' : '';
+  document.getElementById('meth-charts-grid').style.display = on ? 'none' : '';
+  document.getElementById('meth-table-card').style.display = on ? 'none' : '';
+}
+function showMethEmpty(meta) {
+  destroyChart('meth-chart');
+  document.getElementById('meth-kpis').innerHTML = '';
+  document.getElementById('meth-empty-title').textContent = `«${meta.title}» — данных за этот период нет`;
+  document.getElementById('meth-empty-sub').textContent = `За период ${currentReportLabel()} записей по этому отчёту не найдено.`;
+  setMethEmptyVisible(true);
+}
+async function loadMethTable(n) {
+  const meta = METH_REPORTS[n];
+  const thead = document.getElementById('meth-thead');
+  const tbody = document.getElementById('meth-tbody');
+  const kpis  = document.getElementById('meth-kpis');
+  setMethEmptyVisible(false);
+  renderMethThead(meta.cols);
+  tbody.innerHTML = `<tr><td colspan="${meta.cols.length}" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>`;
+  kpis.innerHTML = '';
+  try {
+    const rows = await db(meta.rpc, { p_report_id: STATE.currentReportId });
+    methCurrentRows = rows || [];
+    document.getElementById('meth-group').value = '';
+    if (!methCurrentRows.length) {
+      showMethEmpty(meta);
+      return;
+    }
+    setMethEmptyVisible(false);
+    kpis.innerHTML = meta.kpis(methCurrentRows).join('');
+    mkChart('meth-chart', meta.chart(methCurrentRows));
+    populateMethGroupSelect(meta, methCurrentRows);
+    filterMethTable();
+  } catch(e) {
+    setMethEmptyVisible(false);
+    tbody.innerHTML = `<tr><td colspan="${meta.cols.length}" style="text-align:center;color:var(--xf-red);padding:40px">${e.message}</td></tr>`;
+    console.error('methodology', e);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE: KPI СОТРУДНИКА (сравнение с пред. неделей / 4 нед / 12 нед)
+══════════════════════════════════════════════════════════════════════════════ */
+const KPI_FIELDS = [
+  ['devices', 'Устройств'],
+  ['actions_count', 'Действий'],
+  ['extra_actions', 'Доп. действий'],
+  ['total_earnings', 'Заработок, ₽'],
+  ['avg_action_cost', 'Ср. цена действия, ₽'],
+  ['avg_service_cost', 'Ср. стоимость обращения, ₽'],
+  ['non_standard_pct', 'Нестандартных, %', true],
+  ['apple_services', 'Apple обращений'],
+  ['yandex_services', 'Яндекс обращений'],
+];
+const KPI_DRILLDOWN = {
+  devices:           { mode: 'services' },
+  actions_count:     { mode: 'actions' },
+  extra_actions:     { mode: 'actions', filter: r => r.is_extra },
+  total_earnings:    { mode: 'actions' },
+  avg_action_cost:   { mode: 'actions' },
+  avg_service_cost:  { mode: 'services' },
+  non_standard_pct:  { mode: 'services', filter: r => r.zone !== 'normal' },
+  apple_services:    { mode: 'services', filter: r => r.vendor === 'Apple' },
+  yandex_services:   { mode: 'services', filter: r => r.vendor === 'Яндекс' },
+};
+let kpiDetailRows = null;
+let kpiDetailCacheKey = null;
+async function getKpiDetailRows(reportId, employee) {
+  const cacheKey = `${reportId}:${employee}`;
+  if (kpiDetailCacheKey === cacheKey && kpiDetailRows) return kpiDetailRows;
+  kpiDetailRows = await db('get_employee_kpi_detail', { p_report_id: reportId, p_employee: employee });
+  kpiDetailCacheKey = cacheKey;
+  return kpiDetailRows;
+}
+function groupKpiServices(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    if (!map.has(r.service_id)) {
+      map.set(r.service_id, { service_id: r.service_id, vendor: r.vendor, group_name: r.group_name, actions: 0, total_price: 0 });
+    }
+    const g = map.get(r.service_id);
+    g.actions++;
+    g.total_price += (+r.price || 0);
+  });
+  return [...map.values()].sort((a, b) => b.total_price - a.total_price);
+}
+async function openKpiDrilldown(key, label) {
+  const employee = document.getElementById('kpi-employee-select').value;
+  const reportId = STATE.currentReportId;
+  if (!employee || !reportId) return;
+  const overlay = document.getElementById('kpi-dd-modal');
+  const thead = document.getElementById('kpi-dd-thead');
+  const tbody = document.getElementById('kpi-dd-tbody');
+  document.getElementById('kpi-dd-title').textContent = label;
+  document.getElementById('kpi-dd-sub').textContent = employee;
+  thead.innerHTML = '';
+  tbody.innerHTML = `<tr><td style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>`;
+  overlay.classList.add('open');
+  try {
+    const allRows = await getKpiDetailRows(reportId, employee);
+    const cfg = KPI_DRILLDOWN[key] || { mode: 'actions' };
+    const rows = cfg.filter ? allRows.filter(cfg.filter) : allRows;
+    if (cfg.mode === 'services') {
+      const services = groupKpiServices(rows);
+      thead.innerHTML = `<tr><th>Обращение</th><th>Вендор</th><th>Устройство</th><th class="num">Действий</th><th class="num">Сумма, ₽</th></tr>`;
+      tbody.innerHTML = services.length ? services.map(s => `<tr>
+        <td style="font-variant-numeric:tabular-nums">${fmt.svc(s.service_id)}</td>
+        <td>${s.vendor || '—'}</td>
+        <td>${s.group_name || '—'}</td>
+        <td class="num">${fmt.num(s.actions)}</td>
+        <td class="num">${fmt.money(s.total_price)}</td>
+      </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных</td></tr>`;
+    } else {
+      thead.innerHTML = `<tr><th>Обращение</th><th>Дата</th><th>Действие</th><th>Вендор</th><th class="num">Стоимость, ₽</th></tr>`;
+      tbody.innerHTML = rows.length ? rows.map(r => `<tr>
+        <td style="font-variant-numeric:tabular-nums">${fmt.svc(r.service_id)}</td>
+        <td>${r.action_date || '—'}</td>
+        <td>${r.action_type || '—'}${r.is_extra ? ' <span class="kpi-delta down" style="margin-left:4px">доп.</span>' : ''}</td>
+        <td>${r.vendor || '—'}</td>
+        <td class="num">${fmt.money(r.price)}</td>
+      </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных</td></tr>`;
+    }
+  } catch(e) {
+    tbody.innerHTML = `<tr><td style="text-align:center;color:var(--xf-red);padding:40px">${e.message}</td></tr>`;
+    console.error('kpi_drilldown', e);
+  }
+}
+function closeKpiDrilldown() {
+  document.getElementById('kpi-dd-modal').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SERVICE LIST DRILL-DOWN (плитки «Обращений» / «Нестандартных»)
+══════════════════════════════════════════════════════════════════════════════ */
+const SVC_LIST_MODES = {
+  all:         { title: 'Обращения', filter: null },
+  nonstandard: { title: 'Нестандартные обращения', filter: r => r.zone && r.zone !== 'normal' },
+};
+let svcListRows = [];          // строки текущего режима (после фильтра режима)
+let svcListMode = 'all';
+let svcListCache = null;
+let svcListCacheKey = null;
+/* [ключ, заголовок, класс] — заголовки кликабельные, сортируют таблицу */
+const SVC_LIST_COLS = [
+  ['service_id',  'Обращение', ''],
+  ['vendor',      'Вендор', ''],
+  ['group_name',  'Устройство', ''],
+  ['total_price', 'Сумма, ₽', 'num'],
+  ['overrun',     'Перерасход, ₽', 'num'],
+  ['zone',        'Зона', ''],
+];
+const SVC_ZONE_LABELS = { normal: 'Норма', small: 'Небольшое', elevated: 'Повышен', critical: 'Критично' };
+let svcListSortKey = 'service_id';
+let svcListSortDir = 1;
+
+async function getServiceListRows() {
+  const key = `${STATE.currentReportId}:${STATE.period.key || ''}`;
+  if (svcListCacheKey === key && svcListCache) return svcListCache;
+  const data = await api('services_list', { report_id: STATE.currentReportId });
+  svcListCache = Array.isArray(data) ? data : (data.rows || []);
+  svcListCacheKey = key;
+  return svcListCache;
+}
+
+async function openServiceList(mode) {
+  if (!STATE.currentReportId) return;
+  const cfg = SVC_LIST_MODES[mode] || SVC_LIST_MODES.all;
+  svcListMode = mode;
+  svcListRows = [];
+  const overlay = document.getElementById('svc-list-modal');
+  const tbody = document.getElementById('svc-list-tbody');
+  document.getElementById('svc-list-title').textContent = cfg.title;
+  document.getElementById('svc-list-sub').textContent = STATE.period.label || '';
+  document.getElementById('svc-list-search').value = '';
+  document.getElementById('svc-list-min').value = '';
+  svcListSortKey = 'service_id';
+  svcListSortDir = 1;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>`;
+  overlay.classList.add('open');
+  try {
+    const all = await getServiceListRows();
+    svcListRows = cfg.filter ? all.filter(cfg.filter) : all;
+    fillServiceListFilters();
+    renderServiceList();
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--xf-red);padding:40px">${e.message}</td></tr>`;
+    console.error('service_list', e);
+  }
+}
+
+/* Списки вендоров/устройств/зон — только те, что есть в текущем наборе */
+function fillServiceListFilters() {
+  const opts = (sel, values, all) => {
+    const el = document.getElementById(sel);
+    const cur = el.value;
+    el.innerHTML = `<option value="">${all}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    el.value = values.includes(cur) ? cur : '';
+  };
+  const uniq = key => [...new Set(svcListRows.map(r => r[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+  opts('svc-list-vendor', uniq('vendor'), 'Все вендоры');
+  opts('svc-list-group',  uniq('group_name'), 'Все устройства');
+  const zoneOrder = ['normal', 'small', 'elevated', 'critical'];
+  const zones = [...new Set(svcListRows.map(r => r.zone).filter(Boolean))]
+    .sort((a, b) => zoneOrder.indexOf(a) - zoneOrder.indexOf(b));
+  const zoneEl = document.getElementById('svc-list-zone');
+  const curZone = zoneEl.value;
+  zoneEl.innerHTML = `<option value="">Все зоны</option>` +
+    zones.map(z => `<option value="${esc(z)}">${SVC_ZONE_LABELS[z] || z}</option>`).join('');
+  zoneEl.value = zones.includes(curZone) ? curZone : '';
+}
+
+/** Строки после поиска и фильтров — их же копирует «Копировать все id» */
+function visibleServiceRows() {
+  const q = (document.getElementById('svc-list-search')?.value || '').trim().toLowerCase();
+  const vendor = document.getElementById('svc-list-vendor')?.value || '';
+  const group  = document.getElementById('svc-list-group')?.value || '';
+  const zone   = document.getElementById('svc-list-zone')?.value || '';
+  const minRaw = document.getElementById('svc-list-min')?.value;
+  const min    = minRaw === '' || minRaw == null ? null : +minRaw;
+  const rows = svcListRows.filter(r => {
+    if (vendor && r.vendor !== vendor) return false;
+    if (group && r.group_name !== group) return false;
+    if (zone && r.zone !== zone) return false;
+    if (min != null && !isNaN(min) && (+r.total_price || 0) < min) return false;
+    if (!q) return true;
+    return String(r.service_id).includes(q) ||
+      (r.vendor || '').toLowerCase().includes(q) ||
+      (r.group_name || '').toLowerCase().includes(q);
+  });
+  return sortServiceRows(rows);
+}
+
+function sortServiceRows(rows) {
+  const key = svcListSortKey;
+  const num = SVC_LIST_COLS.find(c => c[0] === key)?.[2] === 'num';
+  const zoneOrder = { normal: 0, small: 1, elevated: 2, critical: 3 };
+  return [...rows].sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (key === 'zone') { av = zoneOrder[av] ?? -1; bv = zoneOrder[bv] ?? -1; }
+    else if (num || key === 'service_id') { av = +av || 0; bv = +bv || 0; }
+    else { av = (av || '').toString(); bv = (bv || '').toString(); return av.localeCompare(bv, 'ru') * svcListSortDir; }
+    return (av - bv) * svcListSortDir;
+  });
+}
+
+function sortServiceList(key) {
+  if (svcListSortKey === key) svcListSortDir *= -1;
+  else { svcListSortKey = key; svcListSortDir = (key === 'service_id' || key === 'vendor' || key === 'group_name') ? 1 : -1; }
+  renderServiceList();
+}
+
+function renderServiceList() {
+  const tbody = document.getElementById('svc-list-tbody');
+  const rows = visibleServiceRows();
+  document.getElementById('svc-list-thead').innerHTML = `<tr>${SVC_LIST_COLS.map(([key, label, cls]) => {
+    const arrow = svcListSortKey === key ? `<span style="opacity:.6"> ${svcListSortDir > 0 ? '▲' : '▼'}</span>` : '';
+    return `<th${cls ? ` class="${cls}"` : ''} style="cursor:pointer;user-select:none" onclick="sortServiceList('${key}')">${label}${arrow}</th>`;
+  }).join('')}</tr>`;
+  document.getElementById('svc-list-copy-all').textContent = `Копировать все id (${fmt.num(rows.length)})`;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px">Нет обращений</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td style="font-variant-numeric:tabular-nums">${fmt.svc(r.service_id, '')}</td>
+    <td>${r.vendor || '—'}</td>
+    <td>${r.group_name || '—'}</td>
+    <td class="num">${fmt.money(r.total_price)}</td>
+    <td class="num">${+r.overrun > 0 ? fmt.money(r.overrun) : '—'}</td>
+    <td>${fmt.zone(r.zone)}</td>
+  </tr>`).join('');
+}
+
+function copyServiceListIds() {
+  const rows = visibleServiceRows();
+  if (!rows.length) return;
+  copyToClipboard(rows.map(r => r.service_id).join('\n'), `Скопировано id: ${fmt.num(rows.length)}`);
+}
+
+/** Плитка «Перерасход» → раздел «Перерасходы» (с подсветкой пункта меню) */
+function gotoOverruns() {
+  showPage('overruns', document.querySelector('.nav-item[data-page="overruns"]'));
+}
+
+function closeServiceList() {
+  document.getElementById('svc-list-modal').classList.remove('open');
+}
+
+/** Копирование с фолбэком на execCommand — clipboard API недоступен вне https/localhost */
+async function copyToClipboard(text, okMsg = 'Скопировано') {
+  const str = String(text);
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(str);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = str;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      if (!ok) throw new Error('execCommand copy failed');
+    }
+    showToast(okMsg);
+  } catch (e) {
+    showToast('Не удалось скопировать', 'error');
+    console.error('clipboard', e);
+  }
+}
+
+/* Закрытие модалок: клик по подложке и Esc */
+document.addEventListener('click', e => {
+  if (e.target.classList?.contains('modal-overlay')) e.target.classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+});
+let kpiMode = 'single';
+let kpiAllRows = [];
+let kpiAllLoadedFor = null;
+let kpiAllSortKey = 'total_earnings';
+let kpiAllSortDir = -1;
+let kpiAllPrev = new Map();
+let kpiAllPrevLabel = null;
+/* дельта в % к базовому периоду; null → сравнивать не с чем */
+function kpiAllDelta(row, key) {
+  const prev = kpiAllPrev.get(String(row.employee));
+  if (!prev) return null;
+  const cur = +row[key], base = +prev[key];
+  if (isNaN(cur) || isNaN(base) || base === 0) return null;
+  return ((cur - base) / base) * 100;
+}
+function kpiDeltaHtml(d) {
+  if (d == null) return '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">—</div>';
+  const flat = Math.abs(d) < 0.5;
+  const color = flat ? 'var(--text-muted)' : (d > 0 ? 'var(--xf-green)' : 'var(--xf-red)');
+  const sign = flat ? '' : (d > 0 ? '▲ +' : '▼ ');
+  return `<div style="font-size:11px;font-weight:600;color:${color};margin-top:2px">${sign}${d.toFixed(1)}%</div>`;
+}
+function switchKpiMode(mode) {
+  kpiMode = mode;
+  document.getElementById('kpi-mode-single').classList.toggle('active', mode === 'single');
+  document.getElementById('kpi-mode-all').classList.toggle('active', mode === 'all');
+  document.getElementById('kpi-single-view').style.display = mode === 'single' ? '' : 'none';
+  document.getElementById('kpi-all-view').style.display = mode === 'all' ? '' : 'none';
+  document.getElementById('kpi-page-sub').textContent = mode === 'single'
+    ? (isMultiWeekPeriod() ? 'Сравнение с базовым периодом' : 'Сравнение с пред. неделей, средним за 4 и 12 недель')
+    : `Все сотрудники за период ${STATE.period.label || '—'} — клик по имени открывает индивидуальный разбор`;
+  if (mode === 'all') loadKpiAllTable();
+}
+async function loadKpiAllTable() {
+  const reportId = STATE.currentReportId;
+  const tbody = document.getElementById('kpi-all-tbody');
+  if (!reportId) return;
+  if (kpiAllLoadedFor === (STATE.period.key || reportId) && kpiAllRows.length) { renderKpiAllTable(); return; }
+  tbody.innerHTML = `<tr><td colspan="${KPI_FIELDS.length + 1}" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>`;
+  try {
+    const prevKey = STATE.period.prevKey;
+    const [rows, prevRows] = await Promise.all([
+      db('get_employee_kpi_all', { p_report_id: reportId }),
+      prevKey ? rpcWithRetry('get_employee_kpi_all_p', { p_period: prevKey }).catch(() => []) : Promise.resolve([]),
+    ]);
+    kpiAllRows = rows || [];
+    kpiAllPrev = new Map((prevRows || []).map(r => [String(r.employee), r]));
+    kpiAllPrevLabel = STATE.period.prevLabel;
+    kpiAllLoadedFor = STATE.period.key || reportId;
+    renderKpiAllTable();
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="${KPI_FIELDS.length + 1}" style="text-align:center;color:var(--xf-red);padding:40px">${e.message}</td></tr>`;
+    console.error('kpi_all', e);
+  }
+}
+function renderKpiAllThead() {
+  const thead = document.getElementById('kpi-all-thead');
+  const cols = [['employee', 'Сотрудник'], ...KPI_FIELDS.map(([k, l]) => [k, l])];
+  thead.innerHTML = `<tr>${cols.map(([key, label], i) => {
+    const arrow = kpiAllSortKey === key ? `<span style="opacity:.6"> ${kpiAllSortDir > 0 ? '▲' : '▼'}</span>` : '';
+    if (i === 0) return `<th style="cursor:pointer;user-select:none" onclick="sortKpiAllTable('${key}')">${label}${arrow}</th>`;
+    const dKey = 'Δ' + key;
+    const dArrow = kpiAllSortKey === dKey ? `<span style="opacity:.6"> ${kpiAllSortDir > 0 ? '▲' : '▼'}</span>` : '';
+    return `<th class="num" style="user-select:none">
+      <span style="cursor:pointer" onclick="sortKpiAllTable('${key}')">${label}${arrow}</span>
+      <div style="font-size:11px;font-weight:500;color:var(--text-muted);cursor:pointer" onclick="sortKpiAllTable('${dKey}')" title="Сортировать по динамике к базовому периоду">Δ%${dArrow}</div>
+    </th>`;
+  }).join('')}</tr>`;
+}
+function sortKpiAllTable(key) {
+  if (kpiAllSortKey === key) kpiAllSortDir *= -1; else { kpiAllSortKey = key; kpiAllSortDir = key === 'employee' ? 1 : -1; }
+  renderKpiAllTable();
+}
+function filterKpiAllTable() { renderKpiAllTable(); }
+function renderKpiAllTable() {
+  renderKpiAllThead();
+  const note = document.getElementById('kpi-all-note');
+  if (note) note.textContent = kpiAllPrevLabel
+    ? `Δ% — динамика к базовому периоду (${kpiAllPrevLabel})`
+    : 'Предыдущей недели нет — сравнивать не с чем';
+  const tbody = document.getElementById('kpi-all-tbody');
+  const q = document.getElementById('kpi-all-search').value.trim().toLowerCase();
+  let rows = q ? kpiAllRows.filter(r => String(r.employee || '').toLowerCase().includes(q)) : kpiAllRows.slice();
+  const dSort = kpiAllSortKey.startsWith('Δ') ? kpiAllSortKey.slice(1) : null;
+  rows.sort((a, b) => {
+    const av = dSort ? kpiAllDelta(a, dSort) : a[kpiAllSortKey];
+    const bv = dSort ? kpiAllDelta(b, dSort) : b[kpiAllSortKey];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * kpiAllSortDir;
+    return String(av).localeCompare(String(bv), 'ru') * kpiAllSortDir;
+  });
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${KPI_FIELDS.length + 1}" style="text-align:center;color:var(--text-muted);padding:40px">Ничего не найдено</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td><a href="#" onclick="jumpToEmployeeKpi('${String(r.employee).replace(/'/g, "\\'")}');return false" style="color:var(--text-primary);font-weight:600">${r.employee}</a></td>
+    ${KPI_FIELDS.map(([key]) => {
+      const v = r[key];
+      const isMoney = key.includes('cost') || key.includes('earnings');
+      return `<td class="num">${v == null ? '—' : (isMoney ? fmt.money(v) : fmt.num(v))}${kpiDeltaHtml(kpiAllDelta(r, key))}</td>`;
+    }).join('')}
+  </tr>`).join('');
+}
+function jumpToEmployeeKpi(employee) {
+  switchKpiMode('single');
+  const sel = document.getElementById('kpi-employee-select');
+  sel.value = employee;
+  loadEmployeeKpi();
+  sel.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function loadKpiPage() {
+  const sel = document.getElementById('kpi-employee-select');
+  if (sel.options.length <= 1) {
+    try {
+      const data = await api('employee_list');
+      const list = Array.isArray(data) ? data : (data.rows || []);
+      sel.innerHTML = '<option value="">Выберите сотрудника…</option>' +
+        list.map(e => `<option value="${e.employee || e}">${e.employee || e}</option>`).join('');
+    } catch(e) { console.error('employee_list', e); }
+  }
+  if (sel.value) loadEmployeeKpi();
+  if (kpiMode === 'all') loadKpiAllTable();
+}
+function avgKpi(list) {
+  if (!list.length) return null;
+  const out = {};
+  KPI_FIELDS.forEach(([k]) => {
+    const vals = list.map(r => +r[k]).filter(v => !isNaN(v));
+    out[k] = vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
+  });
+  return out;
+}
+/* период шире одной недели → недельные сравнения 4/12 нед. не показываем */
+function isMultiWeekPeriod() { return (STATE.period.ids || []).length > 1; }
+function pctDelta(cur, base) {
+  if (cur == null || base == null || base === 0) return null;
+  return ((cur - base) / base) * 100;
+}
+async function loadEmployeeKpi() {
+  const employee = document.getElementById('kpi-employee-select').value;
+  const grid = document.getElementById('kpi-emp-grid');
+  if (!employee || !STATE.currentReportId) return;
+  grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">' + ico('clock', 40) + '</div><div class="empty-state-title">Загрузка…</div></div>';
+  try {
+    const reports = STATE.reports || [];
+    const idx = reports.findIndex(r => r.id === STATE.currentReportId);
+    // средние за 4/12 недель имеют смысл только когда период — одна неделя
+    const multi   = isMultiWeekPeriod();
+    const last4   = (!multi && idx >= 0) ? reports.slice(idx+1, idx+5).map(r => r.id) : [];
+    const last12  = (!multi && idx >= 0) ? reports.slice(idx+1, idx+13).map(r => r.id) : [];
+
+    const [cur, prev, kpi4, kpi12] = await Promise.all([
+      db('get_employee_kpi', { p_report_id: STATE.currentReportId, p_employee: employee }),
+      STATE.period.prevKey
+        ? rpcWithRetry('get_employee_kpi_p', { p_period: STATE.period.prevKey, p_employee: employee })
+        : Promise.resolve([]),
+      Promise.all(last4.map(id => db('get_employee_kpi', { p_report_id: id, p_employee: employee }))),
+      Promise.all(last12.map(id => db('get_employee_kpi', { p_report_id: id, p_employee: employee }))),
+    ]);
+
+    const curRow  = (Array.isArray(cur)  ? cur[0]  : cur)  || null;
+    const prevRow = (Array.isArray(prev) ? prev[0] : prev) || null;
+    const avg4  = avgKpi(kpi4.map(r => (Array.isArray(r) ? r[0] : r)).filter(Boolean));
+    const avg12 = avgKpi(kpi12.map(r => (Array.isArray(r) ? r[0] : r)).filter(Boolean));
+
+    if (!curRow) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">' + ico('inbox', 40) + '</div><div class="empty-state-title">Нет данных за выбранный период</div></div>';
+      return;
+    }
+
+    grid.innerHTML = KPI_FIELDS.map(([key, label, invert]) => {
+      const v = curRow[key];
+      const isMoney = key.includes('cost') || key.includes('earnings');
+      const valStr = v == null ? '—' : (isMoney ? fmt.money(v) : fmt.num(v));
+      const deltas = [
+        prevRow ? [isMultiWeekPeriod() ? 'Пред.' : 'Нед.', pctDelta(v, prevRow[key])] : null,
+        avg4    ? ['4 нед', pctDelta(v, avg4[key])]    : null,
+        avg12   ? ['12 нед', pctDelta(v, avg12[key])]  : null,
+      ].filter(Boolean);
+      const deltaHtml = deltas.map(([lbl, d]) => d == null ? '' :
+        `<span class="kpi-delta-item"><span class="kpi-delta-label">${lbl}</span>${fmt.delta(d, invert)}</span>`
+      ).join('');
+      const labelEsc = label.replace(/'/g, "\\'");
+      return `<div class="kpi-card clickable" onclick="openKpiDrilldown('${key}','${labelEsc}')" title="Показать обращения">
+        <div class="kpi-label">${label}</div>
+        <div class="kpi-value">${valStr}</div>
+        ${deltaHtml ? `<div class="kpi-deltas">${deltaHtml}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">${ico('alert', 40)}</div><div class="empty-state-title">${e.message}</div></div>`;
+    console.error('employee_kpi', e);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE: ANOMALIES
 ══════════════════════════════════════════════════════════════════════════════ */
+/** Подставляет ссылку на CRM вместо id обращения внутри текста аномалии */
+function linkifySvcId(text, id) {
+  if (!text) return '';
+  if (id === '' || id == null) return text;
+  const safe = String(id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(text).replace(new RegExp(`#?\\b${safe}\\b`, 'g'), m => fmt.svc(id, m.startsWith('#') ? '#' : ''));
+}
+
+/* Тип аномалии → человекочитаемое имя группы */
+const ANOMALY_LABELS = {
+  day_gap:                 'Растянутые по времени обращения',
+  duplicate_action:        'Повторы действий',
+  avg_service_cost:        'Стоимость обращения выше среднего',
+  total_overrun:           'Перерасход выше среднего',
+  avg_actions_per_service: 'Избыточное число действий',
+  other:                   'Прочие аномалии',
+};
+
+/* Свёрнутые группы аномалий — переживают перерисовку списка */
+const ANOMALY_COLLAPSED = new Set();
+
+/** Свернуть / развернуть группу аномалий */
+function toggleAnomalyGroup(btn) {
+  const group = btn.closest('.anomaly-group');
+  const key = group.dataset.group;
+  const collapsed = group.classList.toggle('collapsed');
+  btn.setAttribute('aria-expanded', String(!collapsed));
+  if (collapsed) ANOMALY_COLLAPSED.add(key); else ANOMALY_COLLAPSED.delete(key);
+}
+
+/** Ключ группы: метрика, с фолбэком на anomaly_type */
+function anomalyGroupKey(r) {
+  if (r.metric && ANOMALY_LABELS[r.metric]) return r.metric;
+  if (r.anomaly_type === 'duplicate_actions') return 'duplicate_action';
+  return r.metric || 'other';
+}
+
+/**
+ * Отклонение аномалии в %. Берём deviation_pct из БД; если его нет
+ * (старая версия detect_anomalies_for_report) — считаем из value/avg_value.
+ * null — посчитать нельзя, показываем «—» вместо ложного 0%.
+ */
+function anomalyDeviation(r) {
+  const d = r.deviation_pct;
+  if (d !== null && d !== undefined && d !== '' && isFinite(+d)) return +d;
+  const v = +r.value, a = +r.avg_value;
+  if (!isFinite(v) || !isFinite(a) || a === 0) return null;
+  return (v / a - 1) * 100;
+}
+
+/** Сотрудник аномалии: для employee — entity_id, для service — префикс сообщения «Имя: …» */
+function anomalyEmployee(r) {
+  if (r.anomaly_type === 'employee') return r.entity_id || '—';
+  const m = /^([^:]{2,60}):\s/.exec(r.message || '');
+  return m ? m[1] : '—';
+}
+
 async function loadAnomalies() {
   if (!STATE.currentReportId) return;
   document.getElementById('anomalies-list').innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted)"><div class="spinner" style="margin:0 auto 12px"></div>Загрузка…</div>';
@@ -1937,24 +3825,71 @@ async function loadAnomalies() {
     const rows = Array.isArray(data) ? data : (data.rows || []);
     const el = document.getElementById('anomalies-list');
     if (!rows.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">Аномалий не обнаружено</div><div style="color:var(--text-muted);font-size:13px">Все показатели в пределах нормы</div></div>';
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">' + ico('checkCircle', 40) + '</div><div class="empty-state-title">Аномалий не обнаружено</div><div style="color:var(--text-muted);font-size:13px">Все показатели в пределах нормы</div></div>';
       return;
     }
-    el.innerHTML = rows.map(r => {
-      const isDup = r.anomaly_type === 'duplicate_actions';
-      const icon  = isDup ? '🔁' : (r.severity === 'critical' ? '🔴' : '🟡');
-      const title = isDup ? `Повтор действия — обращение #${r.entity_id}` : r.entity_id;
+    const card = r => {
+      const isDup  = r.anomaly_type === 'duplicate_actions' || r.metric === 'duplicate_action';
+      const isDays = r.metric === 'day_gap';
+      const isSvc  = r.anomaly_type === 'service' || isDup || isDays;
+      const icon  = isDup ? ico('repeat', 18)
+                          : (r.severity === 'critical'
+                              ? `<span style="color:var(--xf-red)">${ico('dot', 14)}</span>`
+                              : `<span style="color:var(--xf-yellow)">${ico('dot', 14)}</span>`);
+      const title = isDup  ? `Повтор действия — обращение ${fmt.svc(r.entity_id)}`
+                  : isDays ? `Растянуто по времени — обращение ${fmt.svc(r.entity_id)}`
+                  : isSvc  ? `Обращение ${fmt.svc(r.entity_id)}`
+                  :          r.entity_id;
+      const dev   = anomalyDeviation(r);
+      const devTxt = dev === null ? '—' : fmt.pct(dev);
       const meta  = isDup
-        ? `${r.anomaly_type} · Обращение #${r.entity_id} · Повторений: ${+r.value}`
-        : `${r.anomaly_type} · Значение: ${fmt.money(r.value)} · Среднее: ${fmt.money(r.avg_value)} · Отклонение: ${fmt.pct(r.deviation_pct)}`;
+        ? `${r.anomaly_type} · Обращение ${fmt.svc(r.entity_id)} · Повторений: ${+r.value}`
+        : isDays
+        ? `${r.anomaly_type} · Длительность: ${fmt.days(r.value)} · Норматив: ${fmt.days(r.avg_value)} · Отклонение: ${devTxt}`
+        : `${r.anomaly_type} · Значение: ${fmt.money(r.value)} · Среднее: ${fmt.money(r.avg_value)} · Отклонение: ${devTxt}`;
+      const who = anomalyEmployee(r);
       return `
         <div class="anomaly-item ${r.severity}">
           <div class="anomaly-severity">${icon}</div>
           <div>
-            <div class="anomaly-title">${title}</div>
-            <div class="anomaly-msg">${r.message}</div>
+            <div class="anomaly-title">${who !== '—' ? `<span class="anomaly-who">${who}</span> · ` : ''}${title}</div>
+            <div class="anomaly-msg">${isSvc ? linkifySvcId(r.message, r.entity_id) : r.message}</div>
             <div class="anomaly-meta">${meta}</div>
           </div>
+        </div>
+      `;
+    };
+
+    /* Группировка по типу аномалии, внутри группы — сортировка по сотруднику */
+    const groups = new Map();
+    rows.forEach(r => {
+      const key = anomalyGroupKey(r);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    });
+    const order = ['day_gap', 'duplicate_action', 'avg_service_cost', 'total_overrun', 'avg_actions_per_service', 'other'];
+    const sorted = [...groups.entries()].sort((a, b) => {
+      const ia = order.indexOf(a[0]), ib = order.indexOf(b[0]);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+
+    el.innerHTML = sorted.map(([key, list]) => {
+      list.sort((a, b) =>
+        anomalyEmployee(a).localeCompare(anomalyEmployee(b), 'ru') ||
+        (a.severity === b.severity ? 0 : a.severity === 'critical' ? -1 : 1) ||
+        String(a.entity_id).localeCompare(String(b.entity_id), 'ru', { numeric: true })
+      );
+      const crit = list.filter(x => x.severity === 'critical').length;
+      const collapsed = ANOMALY_COLLAPSED.has(key);
+      return `
+        <div class="anomaly-group${collapsed ? ' collapsed' : ''}" data-group="${key}">
+          <button type="button" class="anomaly-group-head" onclick="toggleAnomalyGroup(this)"
+                  aria-expanded="${!collapsed}" title="Свернуть / развернуть группу">
+            <span class="anomaly-group-chev">${ico('chevronD', 14)}</span>
+            <span class="anomaly-group-title">${ANOMALY_LABELS[key] || key}</span>
+            <span class="anomaly-group-count">${list.length}${crit ? ` · <span style="color:var(--xf-red)">критических: ${crit}</span>` : ''}</span>
+          </button>
+          <div class="anomaly-group-body">${list.map(card).join('')}</div>
         </div>
       `;
     }).join('');
@@ -2011,7 +3946,7 @@ async function loadReport() {
       const patterns = Array.isArray(ai.patterns) ? ai.patterns : [];
       const risks = Array.isArray(ai.top_risks) ? ai.top_risks : [];
       aiReportSection = `
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">🤖 AI-АНАЛИЗ</h3>
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">${ico('bot', 14)} AI-АНАЛИЗ</h3>
         <div style="padding:16px;background:rgba(57,187,59,.04);border:1px solid rgba(57,187,59,.2);border-radius:var(--radius-md);margin-bottom:24px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <span style="font-size:13px;font-weight:600">GPT-4o-mini</span>
@@ -2027,9 +3962,9 @@ async function loadReport() {
     el.innerHTML = `
       <div style="max-width:680px">
         <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Менеджерский отчёт</h2>
-        <p style="color:var(--text-muted);margin-bottom:28px">Отчётная неделя: ${week?.report_week || '—'} · ${fmt.num(d?.row_count||0)} строк</p>
+        <p style="color:var(--text-muted);margin-bottom:28px">Период: ${STATE.period.label || '—'} · ${fmt.num(d?.row_count||0)} строк</p>
 
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">📊 КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ</h3>
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">${ico('chart', 14)} КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
           <div style="background:var(--bg-card);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-default)">
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Обращений</div>
@@ -2046,27 +3981,27 @@ async function loadReport() {
         </div>
 
         ${critAnomaly.length ? `
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-red);margin-bottom:12px">🔴 КРИТИЧЕСКИЕ АНОМАЛИИ (${critAnomaly.length})</h3>
-        ${critAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(237,70,35,.07);border:1px solid rgba(237,70,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px"><strong>${a.entity_id}</strong>: ${a.message}</div>`).join('')}
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-red);margin-bottom:12px">${ico('alert', 14)} КРИТИЧЕСКИЕ АНОМАЛИИ (${critAnomaly.length})</h3>
+        ${critAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(237,70,35,.07);border:1px solid rgba(237,70,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px"><strong>${a.anomaly_type === 'service' ? fmt.svc(a.entity_id) : a.entity_id}</strong>: ${linkifySvcId(a.message, a.anomaly_type === 'service' ? a.entity_id : null)}</div>`).join('')}
         <p style="color:var(--text-muted);font-size:13px;margin-bottom:24px">Рекомендация: провести разбор случаев с руководителем и выяснить обоснованность дополнительных действий.</p>
         ` : ''}
 
         ${warnAnomaly.length ? `
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-yellow);margin-bottom:12px">🟡 ПРЕДУПРЕЖДЕНИЯ (${warnAnomaly.length})</h3>
-        ${warnAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px">${a.message}</div>`).join('')}
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--xf-yellow);margin-bottom:12px">${ico('alert', 14)} ПРЕДУПРЕЖДЕНИЯ (${warnAnomaly.length})</h3>
+        ${warnAnomaly.map(a => `<div style="padding:10px 14px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.3);border-radius:var(--radius-sm);margin-bottom:8px;font-size:13px">${linkifySvcId(a.message, a.anomaly_type === 'service' ? a.entity_id : null)}</div>`).join('')}
         <div style="margin-bottom:24px"></div>
         ` : ''}
 
         ${aiReportSection}
 
         ${regularInsights.length ? `
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">💡 ИНСАЙТЫ</h3>
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">${ico('bulb', 14)} ИНСАЙТЫ</h3>
         <ul style="padding-left:20px;margin-bottom:24px">
           ${regularInsights.map(i => `<li style="margin-bottom:6px;font-size:13px;color:var(--text-secondary)">${i.message}</li>`).join('')}
         </ul>
         ` : ''}
 
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">👥 СОТРУДНИКИ</h3>
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">${ico('users', 14)} СОТРУДНИКИ</h3>
         <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
           <thead><tr style="color:var(--text-muted);font-size:11px">
             <th style="text-align:left;padding:6px 0;border-bottom:1px solid var(--border-default)">Имя</th>
@@ -2084,7 +4019,7 @@ async function loadReport() {
           `).join('')}</tbody>
         </table>
 
-        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">📋 РЕКОМЕНДАЦИИ</h3>
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:12px">${ico('clipboard', 14)} РЕКОМЕНДАЦИИ</h3>
         <ul style="padding-left:20px">
           <li style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Проанализировать обращения в красной зоне (>2x базовой стоимости) и провести аудит с мастерами</li>
           <li style="margin-bottom:8px;font-size:13px;color:var(--text-secondary)">Обновить базовые стоимости для групп с высокой частотой нестандартных действий</li>
@@ -2096,8 +4031,164 @@ async function loadReport() {
   } catch(e) { el.innerHTML = `<div class="empty-state"><div class="empty-state-title">Ошибка загрузки отчёта</div></div>`; }
 }
 
+/* Менеджерский отчёт открывается кнопкой из отдела диагностики (в боковом меню его нет) */
+function openManagerReport() {
+  showPage('report', null);
+}
 function printReport() {
   window.print();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   XLSX PARSING (клиент, заменяет серверный Extract XLSX в n8n)
+══════════════════════════════════════════════════════════════════════════════ */
+const COLUMN_SYNONYMS = {
+  employee:    ['фио', 'сотрудник', 'исполнитель'],
+  action_date: ['дата'],
+  office:      ['офис'],
+  department:  ['отдел', 'подразделение'],
+  action_type: ['тип'],
+  group_name:  ['группа'],
+  subgroup:    ['подгруппа'],
+  comment:     ['комментарий', 'примечание'],
+  price:       ['цена', 'стоимость', 'price', 'сумма'],
+  service_id:  ['id сервис', 'id服务', 'идсервис', 'номер сервис', '№ сервис', 'сервис'],
+  vendor:      ['вендор'],
+};
+function normHeader(h) { return String(h || '').toLowerCase().replace(/[\s_]+/g, ' ').trim(); }
+function buildColumnMap(headers) {
+  const norm = headers.map(normHeader);
+  const map = {};
+  for (const [field, syns] of Object.entries(COLUMN_SYNONYMS)) {
+    let idx = -1;
+    for (const syn of syns) {
+      idx = norm.findIndex(h => h === syn);
+      if (idx >= 0) break;
+    }
+    if (idx < 0) {
+      for (const syn of syns) {
+        idx = norm.findIndex(h => h.includes(syn));
+        if (idx >= 0) break;
+      }
+    }
+    map[field] = idx;
+  }
+  return map;
+}
+function xlsxDateToISO(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') {
+    const d = XLSX.SSF.parse_date_code(v);
+    if (!d) return null;
+    return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  const s = String(v).trim();
+  let m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return s.slice(0, 10);
+  return null;
+}
+function mondayOf(isoDate) {
+  const d = new Date(isoDate + 'T00:00:00');
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+function parseReportXLSX(file) {
+  if (!window.XLSX) throw new Error('Библиотека XLSX не загрузилась (CDN недоступен). Обновите страницу — Ctrl+Shift+R.');
+  return file.arrayBuffer().then(buf => {
+    const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+    if (grid.length < 2) throw new Error('Файл пуст');
+    const headers = grid[0];
+    const cm = buildColumnMap(headers);
+    if (cm.service_id < 0) throw new Error('Не найдена колонка "id сервис"');
+    const rows = [];
+    let minDate = null;
+    for (let i = 1; i < grid.length; i++) {
+      const r = grid[i];
+      if (!r || !r.length) continue;
+      const serviceId = cm.service_id >= 0 ? r[cm.service_id] : '';
+      if (serviceId === '' || serviceId == null) continue;
+      const actionDate = cm.action_date >= 0 ? xlsxDateToISO(r[cm.action_date]) : null;
+      if (actionDate && (!minDate || actionDate < minDate)) minDate = actionDate;
+      rows.push({
+        id: 0,   // проставляется при разбивке по неделям: actions PK = (id, report_id)
+        employee:    cm.employee    >= 0 ? String(r[cm.employee]    ?? '').trim() : null,
+        action_date: actionDate,
+        office:      cm.office      >= 0 ? String(r[cm.office]      ?? '').trim() : null,
+        department:  cm.department  >= 0 ? String(r[cm.department]  ?? '').trim() : null,
+        action_type: cm.action_type >= 0 ? String(r[cm.action_type] ?? '').trim() : null,
+        group_name:  cm.group_name  >= 0 ? String(r[cm.group_name]  ?? '').trim() : null,
+        subgroup:    cm.subgroup    >= 0 ? String(r[cm.subgroup]    ?? '').trim() : null,
+        comment:     cm.comment     >= 0 ? String(r[cm.comment]     ?? '').trim() : null,
+        price:       cm.price       >= 0 ? (parseFloat(String(r[cm.price]).replace(',', '.')) || 0) : 0,
+        service_id:  +serviceId,
+        vendor:      cm.vendor      >= 0 ? String(r[cm.vendor]      ?? '').trim() : null,
+      });
+    }
+    if (!rows.length) throw new Error('Не найдено ни одной строки с заполненным id сервис');
+    const fallbackWeek = minDate ? mondayOf(minDate) : new Date().toISOString().slice(0, 10);
+    return { weeks: splitRowsByWeek(rows, fallbackWeek), total: rows.length };
+  });
+}
+
+/* Файл может содержать любой диапазон дат (в т.ч. полгода). Раскладываем строки
+   по неделям — одна неделя = одна запись в uploads, как при обычной еженедельной
+   заливке. Строки без даты уходят в неделю самой ранней даты файла. */
+function splitRowsByWeek(rows, fallbackWeek) {
+  const byWeek = new Map();
+  rows.forEach(r => {
+    const w = r.action_date ? mondayOf(r.action_date) : fallbackWeek;
+    if (!byWeek.has(w)) byWeek.set(w, []);
+    const bucket = byWeek.get(w);
+    r.id = bucket.length + 1;          // id уникален в пределах отчёта
+    bucket.push(r);
+  });
+  return [...byWeek.entries()]
+    .sort((a, b) => a[0] < b[0] ? -1 : 1)
+    .map(([week, wrows]) => ({ week, rows: wrows }));
+}
+
+/* Импорт списка недель: на каждую — те же три шага, что и раньше на один отчёт.
+   Разбито по неделям в том числе из-за statement_timeout: пересчёт полугода
+   одним вызовом в 3 секунды не укладывается. */
+async function importWeeks(filename, weeks, onProgress) {
+  const ids = [], failed = [];
+  for (let i = 0; i < weeks.length; i++) {
+    const { week, rows } = weeks[i];
+    const step = (frac, text) => onProgress((i + frac) / weeks.length, text);
+    const suffix = weeks.length > 1 ? ` (неделя ${i + 1} из ${weeks.length}: ${fmt.weekRange(week)})` : '';
+    let stage = 'импорт строк', reportId = null;
+    try {
+      step(0.05, 'Импорт строк…' + suffix);
+      reportId = await db('import_report_rows', { p_week: week, p_filename: filename, p_rows: rows });
+      stage = 'пересчёт обращений';
+      step(0.4, 'Пересчёт обращений…' + suffix);
+      await db('import_report_recompute', { p_report_id: reportId });
+      stage = 'статистика и аномалии';
+      step(0.75, 'Статистика и аномалии…' + suffix);
+      await db('import_report_stats', { p_report_id: reportId });
+      ids.push(reportId);
+    } catch(e) {
+      // Одна сбойная неделя не должна ронять весь файл: остальные грузим, список
+      // проблемных отдаём наверх — по нему видно, на каком шаге упёрлись.
+      console.error(`Неделя ${week}, шаг «${stage}»:`, e);
+      failed.push(`${fmt.weekRange(week)} — ${stage}: ${e.message}`);
+      // Полуимпортированная неделя (строки есть, агрегаты не посчитаны) даёт
+      // «нулевую» точку в динамике. Откатываем, чтобы недели просто не было.
+      if (reportId) await db('delete_report', { p_report_id: reportId })
+        .catch(err => console.warn(`Откат недели ${week}:`, err));
+    }
+  }
+  if (ids.length) {
+    onProgress(1, 'Обновление статистики планировщика…');
+    await db('import_analyze').catch(e => console.warn('import_analyze:', e));
+  }
+  return { ids, failed };
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2156,26 +4247,23 @@ async function doUpload() {
   progress.style.display = 'block';
   btn.disabled = true;
   fill.style.width = '10%';
-  status.textContent = 'Загрузка файла…';
+  status.textContent = 'Чтение файла…';
 
   try {
-    const formData = new FormData();
-    formData.append('data', uploadFile_, uploadFile_.name);
+    const { weeks, total } = await parseReportXLSX(uploadFile_);
+    fill.style.width = '15%';
 
-    fill.style.width = '30%';
-    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/import-report`, { method: 'POST', body: formData });
-    fill.style.width = '70%';
-    status.textContent = 'Обработка данных…';
-
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
-    const result = text.trim() ? JSON.parse(text) : {};
+    const { ids, failed } = await importWeeks(uploadFile_.name, weeks, (frac, text) => {
+      fill.style.width = (15 + frac * 85) + '%';
+      status.textContent = text;
+    });
     fill.style.width = '100%';
-    status.textContent = 'Готово!';
+    status.textContent = failed.length ? `Готово, с ошибками: ${failed.length}` : 'Готово!';
 
     setTimeout(() => {
       closeUploadModal();
-      showToast(`Отчёт загружен: ${result.row_count || '?'} строк`, 'success');
+      if (failed.length) showToast(`Загружено недель: ${ids.length} из ${weeks.length}. Не удалось: ${failed.join('; ')}`, 'error');
+      else showToast(`Отчёт загружен: ${total} строк, недель: ${weeks.length}`, 'success');
       STATE.loaded.clear();
       loadReports();
     }, 600);
@@ -2246,16 +4334,29 @@ async function loadWorkload() {
     }
   });
 
-  // Day of week aggregation
-  const dowMap = {};
-  dailyRows.forEach(r => {
-    const d = +r.dow;
-    dowMap[d] = (dowMap[d] || 0) + (+r.services || 0);
+  // Day of week average across recent weeks (a single week has each weekday once,
+  // so averaging over history is what distinguishes this from the daily chart above)
+  const DOW_WEEKS = 8;
+  const reports = STATE.reports || [];
+  const repIdx = reports.findIndex(r => r.id === STATE.currentReportId);
+  const dowReportIds = repIdx >= 0 ? reports.slice(repIdx, repIdx + DOW_WEEKS).map(r => r.id) : [STATE.currentReportId];
+  const dowWeeksData = await Promise.all(
+    dowReportIds.map(id => (id === STATE.currentReportId && !isMultiWeekPeriod())
+      ? Promise.resolve(dailyRows)
+      : rpcWithRetry('get_workload_daily', { p_report_id: id }))
+  );
+  const dowSum = {}, dowWeekCount = {};
+  dowWeeksData.forEach(weekRows => {
+    const seenDow = new Set();
+    (weekRows || []).forEach(r => {
+      const d = +r.dow;
+      dowSum[d] = (dowSum[d] || 0) + (+r.services || 0);
+      if (!seenDow.has(d)) { dowWeekCount[d] = (dowWeekCount[d] || 0) + 1; seenDow.add(d); }
+    });
   });
-  const dowCounts = {};
-  dailyRows.forEach(r => { const d = +r.dow; dowCounts[d] = (dowCounts[d] || 0) + 1; });
   const dowOrder = [1,2,3,4,5,6,0];
-  const dowAvg = dowOrder.map(d => dowCounts[d] ? Math.round((dowMap[d]||0) / dowCounts[d] * 10) / 10 : 0);
+  const dowAvg = dowOrder.map(d => dowWeekCount[d] ? Math.round((dowSum[d]||0) / dowWeekCount[d] * 10) / 10 : 0);
+  document.getElementById('wl-dow-title').textContent = `Средняя нагрузка по дням недели (${dowWeeksData.length} нед.)`;
 
   destroyChart('wl-dow');
   const dowCtx = document.getElementById('wl-dow-chart').getContext('2d');
@@ -2356,21 +4457,19 @@ async function doUploadPage() {
   progress.style.display = 'block';
   btn.disabled = true;
   fill.style.width = '10%';
-  status.textContent = 'Загрузка файла…';
+  status.textContent = 'Чтение файла…';
 
   try {
-    const formData = new FormData();
-    formData.append('data', puFile_, puFile_.name);
-    fill.style.width = '30%';
-    const r = await fetch(`${CONFIG.n8nUrl || location.origin}/webhook/import-report`, { method: 'POST', body: formData });
-    fill.style.width = '70%';
-    status.textContent = 'Обработка данных…';
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const text = await r.text();
-    const result = text.trim() ? JSON.parse(text) : {};
+    const { weeks, total } = await parseReportXLSX(puFile_);
+    fill.style.width = '15%';
+    const { ids, failed } = await importWeeks(puFile_.name, weeks, (frac, text) => {
+      fill.style.width = (15 + frac * 85) + '%';
+      status.textContent = text;
+    });
     fill.style.width = '100%';
-    status.textContent = 'Готово!';
-    showToast(`Отчёт загружен: ${result.row_count || '?'} строк`, 'success');
+    status.textContent = failed.length ? `Готово, с ошибками: ${failed.length}` : 'Готово!';
+    if (failed.length) showToast(`Загружено недель: ${ids.length} из ${weeks.length}. Не удалось: ${failed.join('; ')}`, 'error');
+    else showToast(`Отчёт загружен: ${total} строк, недель: ${weeks.length}`, 'success');
     puFile_ = null;
     document.getElementById('pu-filename').style.display = 'none';
     setTimeout(() => {
@@ -2402,15 +4501,16 @@ async function loadUploadPage() {
       const date = r.upload_date ? r.upload_date.slice(0, 16).replace('T', ' ') : '—';
       const isActive = String(r.id) === String(STATE.currentReportId);
       return `<tr style="${isActive ? 'background:rgba(57,187,59,.07)' : ''}">
-        <td style="font-weight:600">Неделя ${r.report_week || r.id}</td>
+        <td style="font-weight:600">${r.report_week ? fmt.weekRange(r.report_week) : `Неделя ${r.id}`}</td>
         <td style="color:var(--text-secondary);font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filename||''}">${r.filename || '—'}</td>
         <td class="num">${(+r.row_count).toLocaleString('ru')}</td>
         <td style="color:var(--text-muted);font-size:12px">${date}</td>
-        <td style="text-align:right">
+        <td style="text-align:right;white-space:nowrap">
           ${isActive
             ? '<span style="font-size:12px;color:var(--accent)">● активен</span>'
             : `<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclick="puSelectReport(${r.id})">Выбрать</button>`
           }
+          <button class="btn btn-ghost" title="Удалить отчёт" style="font-size:12px;padding:4px 8px;color:var(--xf-red);margin-left:4px" onclick="puDeleteReport(${r.id}, this)">✕</button>
         </td>
       </tr>`;
     }).join('');
@@ -2424,6 +4524,22 @@ function puSelectReport(id) {
   STATE.currentReportId = id;
   loadUploadPage();
   showToast('Активен отчёт #' + id, 'success');
+}
+async function puDeleteReport(id, btn) {
+  const rep = (STATE.reports || []).find(r => String(r.id) === String(id));
+  const label = rep ? fmt.weekRange(rep.report_week) : ('#' + id);
+  if (!confirm(`Удалить отчёт «${label}»? Все обращения, статистика и аномалии по нему будут стёрты безвозвратно.`)) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    await db('delete_report', { p_report_id: id });
+    STATE.loaded.clear();
+    await loadReports();      // пересобрать select + сбросить активный, если удалили его
+    loadUploadPage();         // перерисовать историю
+    showToast(`Отчёт «${label}» удалён`, 'success');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '✕'; }
+    showToast('Ошибка удаления: ' + e.message, 'error');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2482,7 +4598,15 @@ function toggleTheme() {
   applyTheme(next);
 }
 
+/** Подставляет SVG в статические плейсхолдеры <div data-ico="name"> */
+function hydrateIcons(root = document) {
+  root.querySelectorAll('[data-ico]').forEach(el => {
+    el.innerHTML = ico(el.dataset.ico, +el.dataset.icoSize || 40);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateIcons();
   initTheme();
   loadSettings();
   loadReports();
