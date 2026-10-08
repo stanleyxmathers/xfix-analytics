@@ -6,5 +6,13 @@
     "url": "/dashboard/",
     "group": "XFIX",
     "icon": "chart"
+  },
+  {
+    "id": "tandem",
+    "title": "Tandem",
+    "desc": "Приложение для пар",
+    "url": "https://tandem.fivenine.space/",
+    "group": "Личное",
+    "icon": "heart"
   }
 ]

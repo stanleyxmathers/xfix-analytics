@@ -219,6 +219,13 @@ BEGIN
     WHERE a.employee IS NOT NULL
     ORDER BY a.service_id, a.action_date DESC NULLS LAST
   ),
+  ssg AS (
+    SELECT DISTINCT ON (a.service_id, a.action_type)
+      a.service_id, a.action_type, a.subgroup, a.group_name
+    FROM scope a
+    WHERE a.action_type IS NOT NULL
+    ORDER BY a.service_id, a.action_type, a.action_date DESC NULLS LAST
+  ),
   sac AS (
     SELECT sal.service_id, sal.action_type,
       cfg.is_base, COALESCE(cfg.base_cost, 0) AS cfg_base_cost
@@ -227,12 +234,16 @@ BEGIN
     ) sal
     JOIN svc_agg sv ON sv.service_id = sal.service_id
     LEFT JOIN spd ON spd.service_id = sal.service_id
+    LEFT JOIN ssg ON ssg.service_id = sal.service_id AND ssg.action_type = sal.action_type
     LEFT JOIN LATERAL (
       SELECT is_base, base_cost FROM action_settings
       WHERE action_name = sal.action_type
         AND (department = '*' OR department = spd.department)
-        AND (device_type = '*' OR device_type = sv.group_name)
-      ORDER BY (department = spd.department)::int DESC, (device_type = sv.group_name)::int DESC
+        AND (device_type = '*' OR device_type = COALESCE(ssg.group_name, sv.group_name))
+        AND (subgroup = '*' OR subgroup = ssg.subgroup)
+      ORDER BY (department = spd.department)::int DESC,
+               (device_type = COALESCE(ssg.group_name, sv.group_name))::int DESC,
+               (subgroup = ssg.subgroup)::int DESC
       LIMIT 1
     ) cfg ON true
   ),
@@ -467,14 +478,20 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     WHERE es.period_key = p_period
     GROUP BY COALESCE(es.department, 'All')
   ),
+  dup_raw AS (
+    SELECT a.employee, a.service_id, a.action_type, COUNT(*) AS cnt
+    FROM actions a, ids
+    WHERE a.report_id = ANY(ids.report_ids) AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
+    GROUP BY a.employee, a.service_id, a.action_type HAVING COUNT(*) > 1
+  ),
   dup_counts AS (
-    SELECT employee, COUNT(*) AS duplicate_count
-    FROM (
-      SELECT a.employee, a.service_id, a.action_type
-      FROM actions a, ids
-      WHERE a.report_id = ANY(ids.report_ids) AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
-      GROUP BY a.employee, a.service_id, a.action_type HAVING COUNT(*) > 1
-    ) d GROUP BY employee
+    /* разобранные вручную случаи (duplicate_reviews) из счётчика исключены */
+    SELECT d.employee, COUNT(*) AS duplicate_count
+    FROM dup_raw d
+    LEFT JOIN duplicate_reviews dr
+      ON dr.employee = d.employee AND dr.service_id = d.service_id AND dr.action_type = d.action_type
+    WHERE dr.employee IS NULL OR dr.reviewed_repeat_count < d.cnt
+    GROUP BY d.employee
   ),
   overrun_idx AS (
     SELECT a.employee,
@@ -501,17 +518,32 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ORDER BY 10 DESC NULLS LAST, 11 DESC NULLS LAST;
 $$;
 
-CREATE OR REPLACE FUNCTION get_employee_duplicates_p(p_period TEXT, p_employee TEXT DEFAULT NULL)
-RETURNS TABLE(employee TEXT, service_id BIGINT, action_type TEXT, repeat_count BIGINT, first_date TEXT, last_date TEXT, total_price NUMERIC, unit_price NUMERIC)
+DROP FUNCTION IF EXISTS get_employee_duplicates_p(TEXT, TEXT);
+CREATE OR REPLACE FUNCTION get_employee_duplicates_p(
+  p_period TEXT, p_employee TEXT DEFAULT NULL, p_include_reviewed BOOLEAN DEFAULT false
+)
+RETURNS TABLE(employee TEXT, service_id BIGINT, action_type TEXT, repeat_count BIGINT, first_date TEXT, last_date TEXT,
+              total_price NUMERIC, unit_price NUMERIC, review_status TEXT, review_note TEXT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT a.employee, a.service_id, a.action_type, COUNT(*), MIN(a.action_date::text), MAX(a.action_date::text), SUM(a.price), MIN(a.price)
-  FROM actions a, periods p
-  WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
-    AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
-    AND (p_employee IS NULL OR a.employee = p_employee)
-  GROUP BY a.employee, a.service_id, a.action_type
-  HAVING COUNT(*) > 1
-  ORDER BY COUNT(*) DESC, SUM(a.price) DESC
+  WITH d AS (
+    SELECT a.employee, a.service_id, a.action_type, COUNT(*) AS cnt,
+           MIN(a.action_date::text) AS first_date, MAX(a.action_date::text) AS last_date,
+           SUM(a.price) AS total_price, MIN(a.price) AS unit_price
+    FROM actions a, periods p
+    WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
+      AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
+      AND (p_employee IS NULL OR a.employee = p_employee)
+    GROUP BY a.employee, a.service_id, a.action_type
+    HAVING COUNT(*) > 1
+  )
+  SELECT d.employee, d.service_id, d.action_type, d.cnt, d.first_date, d.last_date, d.total_price, d.unit_price,
+         CASE WHEN dr.reviewed_repeat_count >= d.cnt THEN dr.status END,
+         CASE WHEN dr.reviewed_repeat_count >= d.cnt THEN dr.note END
+  FROM d
+  LEFT JOIN duplicate_reviews dr
+    ON dr.employee = d.employee AND dr.service_id = d.service_id AND dr.action_type = d.action_type
+  WHERE p_include_reviewed OR dr.employee IS NULL OR dr.reviewed_repeat_count < d.cnt
+  ORDER BY d.cnt DESC, d.total_price DESC
   LIMIT 100;
 $$;
 
@@ -522,6 +554,13 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT an.anomaly_type, an.entity_id, an.message, an.severity, an.metric, an.value, an.avg_value, an.deviation_pct
   FROM anomalies an, periods p
   WHERE p.period_key = p_period AND an.report_id = ANY(p.report_ids)
+    /* разобранные вручную дубли из ленты аномалий убираем */
+    AND NOT (an.metric = 'duplicate_action' AND EXISTS (
+      SELECT 1 FROM duplicate_reviews dr
+      WHERE dr.service_id::text = an.entity_id
+        AND dr.reviewed_repeat_count >= an.value
+        AND an.message LIKE '%"' || dr.action_type || '"%'
+    ))
   ORDER BY an.severity DESC, an.deviation_pct DESC NULLS LAST;
 $$;
 
@@ -554,12 +593,14 @@ $$;
 -- ------------------------------------------------------------
 -- Отчёты по методике №1–6 за период
 -- ------------------------------------------------------------
-CREATE OR REPLACE FUNCTION report_vendor_processed_p(p_period TEXT)
+DROP FUNCTION IF EXISTS report_vendor_processed_p(TEXT);
+CREATE OR REPLACE FUNCTION report_vendor_processed_p(p_period TEXT, p_employees TEXT[] DEFAULT NULL)
 RETURNS TABLE(vendor TEXT, devices BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.vendor, COUNT(DISTINCT a.service_id)
   FROM actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids) AND a.action_type = 'Обработано'
+    AND (p_employees IS NULL OR a.employee = ANY(p_employees))
   GROUP BY a.vendor ORDER BY 2 DESC;
 $$;
 
@@ -614,11 +655,13 @@ $$;
 -- ------------------------------------------------------------
 -- KPI за период
 -- ------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_employee_kpi_p(TEXT, TEXT);
 CREATE OR REPLACE FUNCTION get_employee_kpi_p(p_period TEXT, p_employee TEXT)
 RETURNS TABLE(
   devices BIGINT, actions_count BIGINT, extra_actions INT, total_earnings NUMERIC,
   avg_action_cost NUMERIC, avg_service_cost NUMERIC, avg_earnings_per_service NUMERIC,
-  non_standard_pct NUMERIC, apple_services BIGINT, yandex_services BIGINT
+  non_standard_pct NUMERIC, apple_services BIGINT, yandex_services BIGINT,
+  active_days BIGINT, avg_daily_earnings NUMERIC
 )
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT
@@ -631,18 +674,22 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.service_id),0), 2),
     MAX(es.non_standard_pct),
     COUNT(DISTINCT CASE WHEN a.vendor = 'Apple' THEN a.service_id END),
-    COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END)
+    COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
+    COUNT(DISTINCT a.action_date),
+    ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
   FROM actions a
   JOIN periods p ON p.period_key = p_period AND a.report_id = ANY(p.report_ids)
   LEFT JOIN period_employee_stats es ON es.period_key = p_period AND es.employee = a.employee
   WHERE a.employee = p_employee;
 $$;
 
+DROP FUNCTION IF EXISTS get_employee_kpi_all_p(TEXT);
 CREATE OR REPLACE FUNCTION get_employee_kpi_all_p(p_period TEXT)
 RETURNS TABLE(
   employee TEXT, devices BIGINT, actions_count BIGINT, extra_actions INT, total_earnings NUMERIC,
   avg_action_cost NUMERIC, avg_service_cost NUMERIC, non_standard_pct NUMERIC,
-  apple_services BIGINT, yandex_services BIGINT
+  apple_services BIGINT, yandex_services BIGINT,
+  active_days BIGINT, avg_daily_earnings NUMERIC
 )
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT
@@ -655,13 +702,34 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.service_id),0), 2),
     MAX(es.non_standard_pct),
     COUNT(DISTINCT CASE WHEN a.vendor = 'Apple' THEN a.service_id END),
-    COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END)
+    COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
+    COUNT(DISTINCT a.action_date),
+    ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
   FROM actions a
   JOIN periods p ON p.period_key = p_period AND a.report_id = ANY(p.report_ids)
   LEFT JOIN period_employee_stats es ON es.period_key = p_period AND es.employee = a.employee
   WHERE a.employee IS NOT NULL
   GROUP BY a.employee
   ORDER BY SUM(a.price) DESC NULLS LAST;
+$$;
+
+-- Дни просадки за период (логика — employee_downtime_days_core в supabase_functions.sql)
+DROP FUNCTION IF EXISTS get_employee_downtime_days_p(TEXT);
+CREATE OR REPLACE FUNCTION get_employee_downtime_days_p(p_period TEXT)
+RETURNS TABLE(
+  employee TEXT, department TEXT, action_date DATE,
+  day_earnings NUMERIC, avg_day_earnings NUMERIC,
+  day_actions BIGINT, dept_norm_actions NUMERIC, efficiency NUMERIC,
+  active_emps BIGINT, available_work BIGINT, supply_ratio NUMERIC, dept_output_ratio NUMERIC,
+  avg_day_actions NUMERIC,
+  first_time TIME, last_time TIME, work_minutes INT, avg_work_minutes NUMERIC,
+  idle_minutes INT, idle_with_work_minutes INT, idle_no_work_minutes INT,
+  longest_gap_minutes INT, gaps JSONB, scheduled BOOLEAN,
+  shift_start TIME, shift_end TIME, planned_minutes INT, expected_earnings NUMERIC
+)
+LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT d.* FROM periods p, employee_downtime_days_core(p.report_ids) d
+  WHERE p.period_key = p_period;
 $$;
 
 CREATE OR REPLACE FUNCTION get_employee_kpi_detail_p(p_period TEXT, p_employee TEXT)

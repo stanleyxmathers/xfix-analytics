@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Итоги стажировки Даниила</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f4f3ef; --surface:#fcfcfb; --surface-2:#f0efec; --line:#e2e0da; --grid:#ebe9e4;
+  --text:#0b0b0b; --text-2:#52514e; --text-3:#8a8983;
+  --accent:#2a78d6; --good:#008300; --warn:#b36b00; --bad:#c62f2e;
+  --good-bg:#e6f3e6; --warn-bg:#fcf1dc; --bad-bg:#fbe6e6; --info-bg:#e6effb;
+  --e1:#2a78d6; --e2:#eb6834; --e3:#1baf7a;
+  --m7:#86b6ef; --m8:#3987e5; --m9:#1c5cab;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
+  --g1:#b7d3f6; --g2:#86b6ef; --g3:#5598e7; --g4:#3987e5; --g5:#256abf; --g6:#184f95; --g7:#0d366b;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --line:#33332f; --grid:#2a2a27;
+    --text:#ffffff; --text-2:#c3c2b7; --text-3:#8f8e86;
+    --accent:#3987e5; --good:#3fae3f; --warn:#e0a030; --bad:#e66767;
+    --good-bg:#1c2b1c; --warn-bg:#2e2616; --bad-bg:#321e1e; --info-bg:#1a2536;
+    --e1:#3987e5; --e2:#d95926; --e3:#199e70;
+    --m7:#184f95; --m8:#3987e5; --m9:#9ec5f4;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
+    --g1:#cde2fb; --g2:#9ec5f4; --g3:#6da7ec; --g4:#3987e5; --g5:#2a78d6; --g6:#256abf; --g7:#1c5cab;
+  }
+}
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --line:#33332f; --grid:#2a2a27;
+    --text:#ffffff; --text-2:#c3c2b7; --text-3:#8f8e86;
+    --accent:#3987e5; --good:#3fae3f; --warn:#e0a030; --bad:#e66767;
+    --good-bg:#1c2b1c; --warn-bg:#2e2616; --bad-bg:#321e1e; --info-bg:#1a2536;
+    --e1:#3987e5; --e2:#d95926; --e3:#199e70;
+    --m7:#184f95; --m8:#3987e5; --m9:#9ec5f4;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
+    --g1:#cde2fb; --g2:#9ec5f4; --g3:#6da7ec; --g4:#3987e5; --g5:#2a78d6; --g6:#256abf; --g7:#1c5cab;
+}
+*{box-sizing:border-box}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.slide{min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.card{width:100%;max-width:1180px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:40px 48px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-bottom:6px}
+h1{font-size:40px;line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}
+h2{font-size:28px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}
+h3{font-size:16px;margin:18px 0 8px}
+.lead{font-size:17px;color:var(--text-2);margin:0 0 22px;max-width:900px}
+p{margin:0 0 10px}
+.muted{color:var(--text-2)} .small{font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{background:var(--surface-2);border-radius:12px;padding:16px 18px}
+.tile .v{font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .l{font-size:13px;color:var(--text-2)}
+.tile .d{font-size:13px;font-weight:600;margin-top:4px}
+.up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--text-2)}
+.verdict{border-radius:12px;padding:16px 20px;margin:16px 0;font-size:16px}
+.verdict.good{background:var(--good-bg)} .verdict.warn{background:var(--warn-bg)} .verdict.info{background:var(--info-bg)} .verdict.bad{background:var(--bad-bg)}
+.verdict b{font-weight:700}
+ul.pts{margin:0;padding-left:20px} ul.pts li{margin:0 0 7px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--text-2);font-size:12px}
+tr.sep td{border-top:2px solid var(--line)}
+td.hl{font-weight:700}
+.tw{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--text-2);margin:4px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:inherit}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surface-2);color:var(--text-2);margin-right:6px}
+.emp-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.month-col h3{margin-top:0}
+.month-col{background:var(--surface-2);border-radius:12px;padding:16px 18px}
+.month-col ul{padding-left:18px;margin:6px 0 0} .month-col li{margin-bottom:5px;font-size:14px}
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.14);opacity:0;transition:opacity .08s;max-width:260px}
+#tip b{font-weight:600}
+.nav{position:fixed;right:16px;bottom:16px;display:flex;gap:6px;z-index:40}
+.nav button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;width:38px;height:38px;font-size:16px;cursor:pointer}
+.nav button:hover{background:var(--surface-2)}
+.pg{position:fixed;left:16px;bottom:22px;font-size:12px;color:var(--text-3);z-index:40}
+.hm td{text-align:center} .hm td:first-child{text-align:left}
+.hm td.c{border-radius:0}
+@media (max-width:820px){
+  .card{padding:22px 18px} h1{font-size:28px} h2{font-size:22px}
+  .grid2,.grid3{grid-template-columns:1fr} .grid4{grid-template-columns:1fr 1fr}
+  html{scroll-snap-type:none}
+}
+@media print{
+  html{scroll-snap-type:none} .nav,.pg{display:none}
+  .slide{min-height:auto;page-break-after:always;padding:0} .card{border:none;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="pg" id="pg"></div>
+<div class="nav"><button id="thm" title="Тема">◐</button><button id="prv" title="Назад">↑</button><button id="nxt" title="Вперёд">↓</button></div>
+
+<style>
+:root{--me:#2a78d6;--dept:#b5b3ab;--me-soft:#86b6ef}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--me:#3987e5;--dept:#5f5e58;--me-soft:#184f95}}
+:root[data-theme="dark"]{--me:#3987e5;--dept:#5f5e58;--me-soft:#184f95}
+.prog{display:grid;grid-template-columns:110px 1fr 56px;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.prog .bar{height:12px;background:var(--surface-2);border-radius:99px;position:relative;overflow:hidden}
+.prog .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--me);border-radius:99px}
+.prog .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.col3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.box{background:var(--surface-2);border-radius:12px;padding:16px 18px}
+.box h3{margin-top:0}
+.box ul{padding-left:18px;margin:6px 0 0}.box li{margin-bottom:6px;font-size:14px}
+.box.good{border-top:4px solid var(--good)}.box.warn{border-top:4px solid var(--warn)}.box.info{border-top:4px solid var(--accent)}
+@media (max-width:820px){.col3{grid-template-columns:1fr}}
+</style>
+
+<!-- 1 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Итоги стажировки · XFIX · 1 июля — 2 октября 2026</div>
+  <h1>Даниил, что уже выросло и куда расти дальше</h1>
+  <p class="lead">Разобрали твои целевые действия за три месяца: сколько ты зарабатываешь за день, в каком темпе работаешь, где возникают паузы и как меняется структура работы. Для ориентира рядом показано среднее по опытным диагностам отдела. Имён в презентации нет.</p>
+  <div class="verdict good"><b>Главное: рост третий месяц подряд.</b> В сентябре ты зарабатывал <b>2 013 ₽ за рабочий день</b>. Это на 30% больше, чем в июле, и уже <b>93% от ориентира отдела</b>. Действий за день стало больше на 29%, длинных пауз заметно меньше.</div>
+  <div class="grid4" id="heroTiles"></div>
+  <p class="small muted" style="margin-top:14px">Главная зона роста сейчас — темп между действиями, особенно в базовой диагностике. Подробности на слайдах 6–7.</p>
+</div></section>
+
+<!-- 2 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Как читать презентацию</div>
+  <h2>Откуда цифры</h2>
+  <div class="grid2" style="margin-top:18px">
+    <div>
+      <h3>Данные</h3>
+      <ul class="pts">
+        <li><b>Твои действия</b> — выгрузка целевых действий за 01.07–02.10.2026. Месяцы сравниваются по 28 сентября включительно, неделя 21–27.09 — последняя полная.</li>
+        <li><b>Ориентир отдела</b> — среднее значение опытных диагностов отдела за тот же период. Показан только средний результат, данных отдельных коллег здесь нет.</li>
+        <li>Работа логистики («Распределение карточек») не учитывается: её нет в данных отдела, и так сравнение честнее.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Показатели</h3>
+      <ul class="pts">
+        <li><b>₽ за рабочий день</b> — сумма поля <code>price</code> за день. Рабочий день — день, когда было хотя бы одно действие.</li>
+        <li><b>Активный день</b> — от первого до последнего действия. Из него считаются действия в час и ₽ в час.</li>
+        <li><b>Пауза</b> — время между двумя соседними действиями в один день. Ночь не учитывается.</li>
+        <li>Сравниваем показатели за день и за час, а не суммы за месяц: число рабочих дней в месяцах разное.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- 3 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Заработок</div>
+  <h2>₽ за рабочий день: разрыв с ориентиром почти закрыт</h2>
+  <p class="lead">С июля по сентябрь твой заработок за день вырос с 1 550 до 2 013 ₽. В августе разрыв с ориентиром был больше, но это потому, что август был очень сильным месяцем для всего отдела, а не из-за спада у тебя: ты в августе тоже вырос.</p>
+  <div class="grid2">
+    <div>
+      <div class="legend" id="lg1"></div>
+      <div class="chart" id="chEarn"></div>
+    </div>
+    <div>
+      <h3 style="margin-top:4px">Твой результат в % от ориентира отдела</h3>
+      <div id="progEarn"></div>
+      <h3>₽ за одно действие</h3>
+      <p class="muted">Здесь ты <b>выше ориентира</b>: 64 ₽ против 58 ₽ в сентябре. Значит, ты берёшь не самую простую работу, и разрыв в заработке объясняется только темпом: сколько действий успеваешь сделать за день.</p>
+    </div>
+  </div>
+  <h3>Заработок за месяц по сумме целевых действий</h3>
+  <div class="grid3" id="earnMonth"></div>
+  <p class="small muted" style="margin-top:8px">В сентябре сумма почти как в июле, хотя рабочих дней было на 6 меньше (19 против 25): каждый день стал заметно продуктивнее. Плюс 532 ₽ за 2 октября (до 12:11). Без «Распределения карточек»: с ним июль 39 145 ₽, август 31 479 ₽.</p>
+</div></section>
+
+<!-- 4 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Темп</div>
+  <h2>Действий стало больше, но темп пока ниже ориентира</h2>
+  <p class="lead">За день ты делаешь 31 действие против 24 в июле. В час — 3,9 против 3,1. Это хороший прирост. До ориентира отдела по действиям в час пока остаётся около четверти.</p>
+  <div class="legend" id="lg2"></div>
+  <div class="grid2">
+    <div><h3 style="margin-top:0">Действий за рабочий день</h3><div class="chart" id="chActDay"></div></div>
+    <div><h3 style="margin-top:0">Действий за час активного дня</h3><div class="chart" id="chActHour"></div></div>
+  </div>
+  <div class="verdict info">Рабочий день у тебя не короче, чем у коллег: в сентябре 8,1 часа от первого до последнего действия против 7,3 в среднем по отделу. Значит, добирать нужно не временем, а плотностью работы внутри дня.</div>
+</div></section>
+
+<!-- 5 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Динамика по неделям</div>
+  <h2>Лучшая неделя — 07–13 сентября: выше ориентира отдела</h2>
+  <p class="lead">На неделе 07–13.09 ты делал 43 действия в день, больше среднего по отделу. Это показывает, что такой темп тебе по силам. Последняя полная неделя (21–27.09) слабее: 28 действий в день. Важно понять, что на ней мешало, и закрепить уровень сентябрьских недель.</p>
+  <div class="legend" id="lg3"></div>
+  <div class="chart" id="chWeek"></div>
+  <p class="small muted">Действий за рабочий день по неделям (пн–вс). Недели, где был один рабочий день, не показаны. Наведи курсор, чтобы увидеть заработок за день.</p>
+</div></section>
+
+<!-- 6 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Паузы между действиями</div>
+  <h2>Длинных пауз стало меньше, коротких пока мало</h2>
+  <p class="lead">Доля пауз дольше 30 минут снизилась с 20% в июле до 14% в сентябре. Это заметное улучшение. Но действий, которые идут подряд с паузой до 5 минут, у тебя 27%, а у опытных диагностов около 43%. Средняя пауза — 10 минут против 6–7 в отделе.</p>
+  <div class="legend" id="lgGaps"></div>
+  <div class="chart" id="chGaps"></div>
+  <div class="grid3" id="gapTiles" style="margin-top:14px"></div>
+</div></section>
+
+<!-- 7 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Где теряется время</div>
+  <h2>Больше всего времени уходит перед базовой диагностикой</h2>
+  <p class="lead">Смотрим, сколько минут проходит до действия каждого типа (медиана). Обработка заметно ускорилась: с 21,5 до 12 минут, почти как в отделе. А вот базовая диагностика стала дольше: 10,7 минуты против 3,7 в отделе.</p>
+  <div class="legend" id="lg4"></div>
+  <div class="chart" id="chGT"></div>
+  <div class="verdict warn"><b>Самое большое отличие — базовая диагностика iPhone:</b> около 15 минут в сентябре против 4–7 минут у опытных диагностов. По Станциям — 8 минут против 2–6. Если сократить это время, вырастут и действия в час, и заработок за день.</div>
+</div></section>
+
+<!-- 8 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Качество и структура работы</div>
+  <h2>Что получается хорошо, а что стоит подтянуть</h2>
+  <div class="tw"><table id="tbQ"></table></div>
+  <p class="small muted" style="margin-top:10px">Стрелка показывает изменение с июля по сентябрь. Цвет — лучше (зелёный) или хуже (красный) с точки зрения работы.</p>
+  <div class="grid2" style="margin-top:8px">
+    <div class="verdict good" style="margin:0"><b>Расширенная диагностика.</b> Ты стал чаще находить неисправность: итог «Неисправности не обнаружены» снизился с 93% до 75%, это на уровне отдела. Расширенных диагностик на 100 базовых — 27, это нормальный уровень.</div>
+    <div class="verdict warn" style="margin:0"><b>Норма времени на обработку.</b> В сентябре норма превышена в 56% обработок, в среднем по отделу — 47%. В июле у тебя было 36%. Стоит следить, чтобы устройства не задерживались до обработки.</div>
+  </div>
+</div></section>
+
+<!-- 9 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Итоги</div>
+  <h2>Сильные стороны, зоны роста и цели на октябрь</h2>
+  <div class="col3" style="margin-top:16px">
+    <div class="box good">
+      <h3>Что уже получается</h3>
+      <ul>
+        <li>Рост заработка за день три месяца подряд: 1 550 → 1 743 → 2 013 ₽.</li>
+        <li>Дорогая структура работы: 64 ₽ за действие, выше ориентира.</li>
+        <li>Обработка устройств ускорилась почти вдвое.</li>
+        <li>Длинных пауз (больше 30 мин) стало меньше: 20% → 14%.</li>
+        <li>Неделя 07–13.09 — выше среднего по отделу.</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <h3>Зоны роста</h3>
+      <ul>
+        <li>Базовая диагностика iPhone: около 15 минут против 4–7 у коллег.</li>
+        <li>Мало коротких переходов между действиями: 27% против 43%.</li>
+        <li>Превышение нормы обработки: 56% против 47% в отделе.</li>
+        <li>Неровный темп: после сильных недель бывают провалы (21–27.09).</li>
+      </ul>
+    </div>
+    <div class="box info">
+      <h3>Что можно попробовать</h3>
+      <ul>
+        <li>Посмотреть, как опытный коллега делает базовую диагностику iPhone, и разобрать свой порядок шагов.</li>
+        <li>Делать базовую диагностику сразу после обработки того же устройства, пока оно в руках.</li>
+        <li>Начинать день с устройств, у которых ближе срок обработки.</li>
+        <li>Раз в неделю смотреть свои цифры, чтобы видеть рост.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Цели на октябрь</h3>
+  <div class="tw"><table id="tbGoals"></table></div>
+</div></section>
+
+<!-- 10 -->
+<section class="slide"><div class="card">
+  <div class="kicker">Приложение</div>
+  <h2>Все показатели по месяцам</h2>
+  <div class="tw"><table id="tbAll"></table></div>
+  <p class="small muted" style="margin-top:10px">Ориентир — среднее по опытным диагностам отдела за тот же месяц. Сентябрь — по 28.09.</p>
+</div></section>
+
+<script>
+const D={"d":{"7":{"earn_day":1549.8,"act_day":24.44,"earn_act":63.41243862520458,"act_hour":3.147177327045465,"earn_hour":199.57018909390595,"gap_med":11.116666666666667,"gap_p90":47.38333333333333,"gap_30":20.477815699658702,"gap_60":6.484641638225256,"gap_5":32.25255972696246,"long_h":4.773188888888887,"span":7.765688888888889,"first":658.88,"last":1125,"norm_over":36.318407960199,"ext_per_base":20.657276995305164,"ext_nofault":93.18181818181819,"ext_share_earn":19.450251645373598,"days":25,"n":611,"gap_hist":{"≤2":18.25938566552901,"2–5":13.993174061433447,"5–10":15.017064846416382,"10–20":19.795221843003414,"20–30":12.457337883959044,"30–60":13.993174061433447,">60":6.484641638225256},"types":{"Обработано":32.89689034369886,"Базовая диагностика":34.86088379705401,"Заказ":10.474631751227497,"Услуги":8.8379705400982,"Замена части со склада":2.2913256955810146,"Замена иностранных AirPods":0.9819967266775778,"Расширенная диагностика":7.201309328968904,"Базовая диагностика - Повтор":0.6546644844517185,"Проверка после НАСЦ":0.16366612111292964,"Корректировка даты продажи":0.4909983633387889,"Выходная диагностика":0.6546644844517185,"Выходная диагностика – проблемы":0.16366612111292964,"Локатор – проверка":0.16366612111292964,"Ненормированная работа":0.16366612111292964}},"8":{"earn_day":1743.2777777777778,"act_day":25.27777777777778,"earn_act":68.96483516483516,"act_hour":3.3364497974298337,"earn_hour":230.09771031549616,"gap_med":12.133333333333333,"gap_p90":44.68666666666667,"gap_30":18.993135011441648,"gap_60":5.034324942791762,"gap_5":25.17162471395881,"long_h":4.076358024691358,"span":7.57625,"first":655.9444444444445,"last":1110.5,"norm_over":58.0,"ext_per_base":22.641509433962263,"ext_nofault":66.66666666666667,"ext_share_earn":21.836259919054143,"days":18,"n":455,"gap_hist":{"≤2":13.501144164759726,"2–5":11.670480549199084,"5–10":20.137299771167047,"10–20":23.340961098398168,"20–30":12.356979405034325,"30–60":13.958810068649885,">60":5.034324942791762},"types":{"Расширенная диагностика":7.912087912087912,"Обработано":32.967032967032964,"Базовая диагностика":34.94505494505494,"Замена иностранных AirPods":0.8791208791208791,"Замена части со склада":2.197802197802198,"Выходная диагностика":0.8791208791208791,"Услуги":10.989010989010989,"Заказ":8.131868131868131,"Корректировка даты продажи":0.6593406593406593,"Базовая диагностика - Повтор":0.21978021978021978,"Ненормированная работа":0.21978021978021978}},"9":{"earn_day":2012.863157894737,"act_day":31.36842105263158,"earn_act":64.16845637583893,"act_hour":3.894116899734113,"earn_hour":249.87947040300554,"gap_med":9.966666666666667,"gap_p90":36.23333333333333,"gap_30":13.864818024263432,"gap_60":3.466204506065858,"gap_5":27.03639514731369,"long_h":3.8646637426900585,"span":8.055336257309941,"first":666.3157894736842,"last":1149.7368421052631,"norm_over":55.778894472361806,"ext_per_base":27.083333333333332,"ext_nofault":75.0,"ext_share_earn":24.38265471546161,"days":19,"n":596,"gap_hist":{"≤2":15.944540727902947,"2–5":11.091854419410746,"5–10":23.223570190641247,"10–20":25.64991334488735,"20–30":10.225303292894282,"30–60":10.398613518197573,">60":3.466204506065858},"types":{"Расширенная диагностика":8.724832214765101,"Обработано":33.38926174496644,"Заказ":10.40268456375839,"Базовая диагностика":32.214765100671144,"Проверка после НАСЦ":0.5033557046979866,"Услуги":9.228187919463087,"Замена части со склада":2.1812080536912752,"Корректировка даты продажи":0.6711409395973155,"Замена иностранных AirPods":0.33557046979865773,"Выходная диагностика":0.6711409395973155,"Локатор – проверка":0.16778523489932887,"Ненормированная работа":1.174496644295302,"Базовая диагностика - Повтор":0.16778523489932887,"Заполнены контактные данные корп":0.16778523489932887}}},"t":{"7":{"earn_day":2224.916666666667,"act_day":36.06642512077295,"earn_act":61.93448792799764,"act_hour":4.633127329892666,"earn_hour":289.3428967241162,"gap_med":6.116666666666667,"gap_p90":34.33666666666667,"gap_30":11.972648563557655,"gap_60":3.514856355765447,"gap_5":44.82093663911846,"long_h":4.073636272141707,"span":7.868052200751475,"first":636.7210144927536,"last":1108.8079710144928,"norm_over":34.170386904761905,"ext_per_base":20.614257895182455,"ext_nofault":94.33771486349849,"ext_share_earn":18.62212135385667,"days":20.5,"n":743.0,"gap_hist":{"≤2":27.76711924439197,"2–5":17.053817394726487,"5–10":18.33628492719402,"10–20":16.861963793781975,"20–30":8.008166076347894,"30–60":8.457792207792208,">60":3.514856355765447},"types":{"Заказ":10.314722058443333,"Обработано":30.000520785865874,"Базовая диагностика":29.64387546521987,"Замена части со склада":1.684928271046724,"Расширенная диагностика":6.116165007281703,"Проверка после НАСЦ":1.2660676389242798,"Услуги":12.607481832943055,"Проверка перед выдачей":4.345307068366164,"Корректировка даты продажи":0.6107144252104998,"Локатор – проверка":1.167769306741015,"Замена иностранных AirPods":0.4145827482242132,"Выходная диагностика":0.5527769976322843,"Базовая диагностика - Повтор":0.2540691045645021,"Доделывание работ":0.13819424940807107,"Обращение в Helpdesk":0.08025682182985554,"Ненормированная работа":0.8025682182985554}},"8":{"earn_day":2831.2598684210525,"act_day":46.516447368421055,"earn_act":60.01919104124153,"act_hour":5.609196764982892,"earn_hour":340.7113067630335,"gap_med":5.820833333333333,"gap_p90":28.11833333333334,"gap_30":8.17981914315363,"gap_60":1.7932499876463903,"gap_5":46.203818088978934,"long_h":2.951806469298245,"span":8.256131213450292,"first":642.4325657894738,"last":1137.7615131578946,"norm_over":50.32474088033383,"ext_per_base":23.475880944235374,"ext_nofault":85.5566534914361,"ext_share_earn":21.116033306322464,"days":17.5,"n":827.0,"gap_hist":{"≤2":24.92843142099455,"2–5":21.275386667984385,"5–10":19.7962477969396,"10–20":17.357727594669832,"20–30":8.46238737625801,"30–60":6.386569155507239,">60":1.7932499876463903},"types":{"Обработано":30.59182349532663,"Базовая диагностика":30.34036228050286,"Локатор – проверка":0.8986156249212708,"Услуги":8.821769581538307,"Корректировка даты продажи":0.9463255485853929,"Базовая диагностика - Повтор":0.5208726979568186,"Проверка после НАСЦ":0.7852455092837528,"Выходная диагностика":0.7465107197742675,"Заказ":11.209470183659587,"Расширенная диагностика":7.11208525432696,"Замена части со склада":2.617275086287255,"Доделывание работ":0.24752475247524752,"Обращение в Helpdesk":0.21272642531428715,"Проверка перед выдачей":3.7953795379537953,"Замена иностранных AirPods":0.5337842944599803,"Ненормированная работа":0.33396946564885494,"Осмотр внутри":0.09541984732824428,"Проверка диагностики":0.09541984732824428,"Сбор KBB WUR для отправки":0.04770992366412214,"Замена части":0.04770992366412214}},"9":{"earn_day":2158.156,"act_day":37.379999999999995,"earn_act":57.714147088866184,"act_hour":5.144360235787307,"earn_hour":296.71132918140427,"gap_med":6.541666666666666,"gap_p90":28.433333333333334,"gap_30":9.24613128779341,"gap_60":2.2297354612765234,"gap_5":42.81879763938876,"long_h":3.1843444444444455,"span":7.34475,"first":661.8199999999999,"last":1102.52,"norm_over":46.998545913468135,"ext_per_base":23.384115247322796,"ext_nofault":78.24675324675326,"ext_share_earn":19.839787593864404,"days":17.5,"n":667.5,"gap_hist":{"≤2":26.259679354346165,"2–5":16.559118285042594,"5–10":21.089783206698904,"10–20":19.53835993262321,"20–30":7.306927933495716,"30–60":7.016395826516886,">60":2.2297354612765234},"types":{"Расширенная диагностика":7.02247191011236,"Услуги":7.90347293156282,"Базовая диагностика":30.005107252298263,"Обработано":32.49489274770173,"Проверка перед выдачей":4.39223697650664,"Локатор – проверка":0.30643513789581206,"Заказ":10.112359550561798,"Замена части со склада":2.6046986721144023,"Проверка после НАСЦ":0.7277834525025536,"Корректировка даты продажи":1.1491317671092953,"Ненормированная работа":0.30643513789581206,"Обращение в Helpdesk":0.2425944841675179,"Выходная диагностика":1.238508682328907,"Замена иностранных AirPods":1.238508682328907,"Базовая диагностика - Повтор":0.15321756894790603,"Диагностика с ЗАСЦ":0.10214504596527069}}},"wk":[["2026-06-29",20.666666666666668,1110.0,3,33.5,2026.625],["2026-07-06",27.0,1534.8,5,45.875,2731.75],["2026-07-13",23.666666666666668,1500.5,6,55.0,3195.8333333333335],["2026-07-20",16.166666666666668,1125.3333333333333,6,29.17142857142857,1872.5142857142855],["2026-07-27",35.0,2397.2,5,37.833333333333336,2391.5],["2026-08-03",37.0,2396.4,5,51.0,3454.4],["2026-08-10",null,null,null,51.775,2971.85],["2026-08-17",21.833333333333332,1485.8333333333333,6,50.75,3447.0],["2026-08-24",23.8,1539.6,5,41.833333333333336,2448.375],["2026-08-31",16.0,1225.2,5,35.55,2078.166666666667],["2026-09-07",43.2,2625.2799999999997,5,40.57142857142857,2479.971428571429],["2026-09-14",35.6,2289.6,5,47.166666666666664,2683.1666666666665],["2026-09-21",27.8,1903.6,5,34.96666666666667,1988.85]],"gt":[["Базовая диагностика",6.458333333333334,10.7,3.725],["Обработано",21.5,11.991666666666667,10.420833333333334],["Расширенная диагностика",14.491666666666667,11.866666666666667,9.766666666666667],["Услуги",10.341666666666667,7.183333333333334,3.2583333333333333],["Заказ",3.275,1.7666666666666666,2.6791666666666667]],"lastwk":{"n":139,"days":5,"act_day":27.8,"earn_day":1903.6,"gap_med":11.658333333333333,"gap_30":16.417910447761194,"act_hour":3.4876183971173482}};
+const MON=[['7','Июль'],['8','Август'],['9','Сентябрь']];
+const EARN={'7':38745,'8':31379,'9':38244.4};
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const nf=(v,d=0)=>v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const tip=document.getElementById('tip');
+function showTip(e,h){tip.innerHTML=h;tip.style.opacity=1;const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8);const y=Math.min(e.clientY+14,innerHeight-tip.offsetHeight-8);tip.style.left=x+'px';tip.style.top=y+'px'}
+function hideTip(){tip.style.opacity=0}
+const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e}
+function txt(p,a,s){const t=el('text',a,p);t.textContent=s;return t}
+function legend(id,items){document.getElementById(id).innerHTML=items.map(([l,c])=>`<span><i style="background:var(${c})"></i>${l}</span>`).join('')}
+function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+function fmtMin(m){const h=Math.floor(m/60),mm=Math.round(m%60);return h+':'+String(mm).padStart(2,'0')}
+const pc=(a,b)=>Math.round((a/b-1)*100);
+
+// paired bars by month: me vs dept
+function pair(id,key,fmt,unit,d=0){
+  const host=document.getElementById(id);host.innerHTML='';
+  const W=560,H=250,L=44,R=8,T=22,B=30;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},host);
+  const vals=MON.flatMap(([m])=>[D.d[m][key],D.t[m][key]]);
+  const mx=niceMax(Math.max(...vals)*1.1),y=v=>T+(H-T-B)*(1-v/mx);
+  for(let i=0;i<=4;i++){const v=mx*i/4;el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:cv('--grid')},svg);txt(svg,{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11,fill:cv('--text-3')},nf(v,v%1?1:0))}
+  const gw=(W-L-R)/3,bw=Math.min(54,(gw-36)/2);
+  MON.forEach(([m,mn],gi)=>{
+    const gx=L+gi*gw+(gw-bw*2-4)/2;
+    txt(svg,{x:L+gi*gw+gw/2,y:H-8,'text-anchor':'middle','font-size':13,'font-weight':600,fill:cv('--text')},mn);
+    [['Даниил',D.d[m][key],'--me'],['Ориентир отдела',D.t[m][key],'--dept']].forEach(([n,v,c],i)=>{
+      const x=gx+i*(bw+4),yy=y(v);
+      el('path',{d:`M${x},${y(0)}V${yy+4}q0,-4 4,-4h${bw-8}q4,0 4,4V${y(0)}Z`,fill:cv(c)},svg);
+      txt(svg,{x:x+bw/2,y:yy-6,'text-anchor':'middle','font-size':11.5,'font-weight':i?400:600,fill:cv(i?'--text-2':'--text')},fmt(v));
+      const hit=el('rect',{x,y:T,width:bw,height:y(0)-T,fill:'transparent'},svg);
+      hit.addEventListener('mousemove',e=>showTip(e,`<b>${n} · ${mn}</b><br>${fmt(v)} ${unit}`));hit.addEventListener('mouseleave',hideTip);
+    });
+  });
+  el('line',{x1:L,x2:W-R,y1:y(0),y2:y(0),stroke:cv('--text-3')},svg);
+}
+
+function weekly(){
+  const host=document.getElementById('chWeek');host.innerHTML='';
+  const wk=D.wk,W=980,H=300,L=40,R=130,T=14,B=44;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},host);
+  const x=i=>L+(W-L-R)*i/(wk.length-1),mx=60,y=v=>T+(H-T-B)*(1-v/mx);
+  for(let v=0;v<=mx;v+=10){el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:cv('--grid')},svg);txt(svg,{x:L-8,y:y(v)+4,'text-anchor':'end','font-size':11,fill:cv('--text-3')},v)}
+  const fd=s=>{const d=new Date(s);return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')};
+  wk.forEach((w,i)=>txt(svg,{x:x(i),y:H-B+18,'text-anchor':'middle','font-size':11,fill:cv('--text-3')},fd(w[0])));
+  [['Июль',0,4],['Август',5,9],['Сентябрь',10,12]].forEach(([n,a,b])=>txt(svg,{x:(x(a)+x(b))/2,y:H-6,'text-anchor':'middle','font-size':12,'font-weight':600,fill:cv('--text-2')},n));
+  [4.5,9.5].forEach(i=>el('line',{x1:(x(i-.5)+x(i+.5))/2,x2:(x(i-.5)+x(i+.5))/2,y1:T,y2:H-B,stroke:cv('--line'),'stroke-dasharray':'3 4'},svg));
+  const S=[{n:'Ориентир отдела',c:'--dept',k:4,e:5,w:2},{n:'Даниил',c:'--me',k:1,e:2,w:3}];
+  S.forEach(s=>{
+    let d='',pen=false;wk.forEach((r,i)=>{if(r[s.k]==null){pen=false;return}d+=(pen?'L':'M')+x(i)+','+y(r[s.k]);pen=true});
+    el('path',{d,fill:'none',stroke:cv(s.c),'stroke-width':s.w,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
+    wk.forEach((r,i)=>r[s.k]!=null&&el('circle',{cx:x(i),cy:y(r[s.k]),r:s.w+1.5,fill:cv(s.c),stroke:cv('--surface'),'stroke-width':2},svg));
+    const li=wk.length-1;txt(svg,{x:x(li)+10,y:y(wk[li][s.k])+(s.k===1?14:-4),'font-size':12,'font-weight':600,fill:cv('--text')},s.n);
+  });
+  const best=10;txt(svg,{x:x(best),y:y(wk[best][1])-12,'text-anchor':'middle','font-size':11.5,'font-weight':600,fill:cv('--me')},'лучшая неделя');
+  const cross=el('line',{y1:T,y2:H-B,stroke:cv('--text-3'),opacity:0},svg);
+  const hit=el('rect',{x:L,y:T,width:W-L-R,height:H-T-B,fill:'transparent'},svg);
+  hit.addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect();const px=(e.clientX-r.left)*W/r.width;const i=Math.max(0,Math.min(wk.length-1,Math.round((px-L)/(W-L-R)*(wk.length-1))));cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('opacity',.6);
+    const end=new Date(wk[i][0]);end.setDate(end.getDate()+6);const w=wk[i];
+    showTip(e,`<b>Неделя ${fd(w[0])}–${fd(end)}</b><br>Даниил: `+(w[1]!=null?`${nf(w[1],1)} д/день · ${nf(w[2])} ₽/день · ${w[3]} дн.`:'не работал / 1 день')+`<br>Ориентир отдела: ${nf(w[4],1)} д/день · ${nf(w[5])} ₽/день`)});
+  hit.addEventListener('mouseleave',()=>{hideTip();cross.setAttribute('opacity',0)});
+}
+
+const GL=['≤2','2–5','5–10','10–20','20–30','30–60','>60'];
+function gaps(){
+  const host=document.getElementById('chGaps');host.innerHTML='';
+  const rows=[...MON.map(([m,mn])=>({l:`Даниил · ${mn}`,v:D.d[m].gap_hist})),...MON.map(([m,mn],j)=>({l:`Отдел · ${mn}`,v:D.t[m].gap_hist,sep:j===0}))];
+  const W=980,L=150,R=6,rh=24,gap=8,T=4,H=T+rows.length*(rh+gap)+12;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},host);let yy=T;
+  rows.forEach(r=>{
+    if(r.sep)yy+=10;
+    txt(svg,{x:0,y:yy+rh/2+4,'font-size':13,'font-weight':r.l.startsWith('Д')?600:400,fill:cv(r.l.startsWith('Д')?'--text':'--text-2')},r.l);
+    let x=L;const w=W-L-R;
+    GL.forEach((g,gi)=>{const v=r.v[g]||0;const sw=w*v/100;if(sw<=0)return;
+      el('rect',{x,y:yy,width:Math.max(sw-2,.5),height:rh,rx:3,fill:cv('--g'+(gi+1))},svg);
+      if(sw>34)txt(svg,{x:x+sw/2-1,y:yy+rh/2+4,'text-anchor':'middle','font-size':11,'font-weight':600,fill:gi<3?'#0b0b0b':'#ffffff'},Math.round(v)+'%');
+      const h=el('rect',{x,y:yy,width:sw,height:rh,fill:'transparent'},svg);
+      h.addEventListener('mousemove',e=>showTip(e,`<b>${r.l}</b><br>Пауза ${g} мин: ${nf(v,1)}% пауз`));h.addEventListener('mouseleave',hideTip);x+=sw});
+    yy+=rh+gap;
+  });
+  const d=D.d['9'],t=D.t['9'],dj=D.d['7'];
+  document.getElementById('gapTiles').innerHTML=[
+    ['Средняя пауза (медиана), сентябрь',nf(d.gap_med,1)+' мин',`в июле ${nf(dj.gap_med,1)} · ориентир ${nf(t.gap_med,1)}`],
+    ['Пауз дольше 30 минут',nf(d.gap_30,1)+'%',`в июле ${nf(dj.gap_30,1)}% · ориентир ${nf(t.gap_30,1)}%`],
+    ['Пауз до 5 минут',nf(d.gap_5,0)+'%',`в июле ${nf(dj.gap_5,0)}% · ориентир ${nf(t.gap_5,0)}%`]
+  ].map(([l,v,s])=>`<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="d flat">${s}</div></div>`).join('');
+}
+
+function gapType(){
+  const host=document.getElementById('chGT');host.innerHTML='';
+  const rows=D.gt,W=980,L=190,R=50,bh=13,gg=22,T=4,H=T+rows.length*(bh*3+4+gg);
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},host);
+  const mx=25,x=v=>L+(W-L-R)*Math.min(v,mx)/mx;
+  [0,5,10,15,20,25].forEach(v=>el('line',{x1:x(v),x2:x(v),y1:T,y2:H-gg+4,stroke:cv('--grid')},svg));
+  let yy=T;
+  rows.forEach(([t,a,b,c])=>{
+    txt(svg,{x:0,y:yy+bh*1.5+8,'font-size':13,'font-weight':600,fill:cv('--text')},t);
+    [['Даниил · июль',a,'--me-soft'],['Даниил · сентябрь',b,'--me'],['Ориентир отдела',c,'--dept']].forEach(([n,v,col],i)=>{
+      const y0=yy+i*(bh+2);
+      el('rect',{x:L,y:y0,width:Math.max(x(v)-L,1),height:bh,rx:3,fill:cv(col)},svg);
+      txt(svg,{x:x(v)+6,y:y0+bh-2,'font-size':11,fill:cv(i===1?'--text':'--text-2'),'font-weight':i===1?600:400},nf(v,1)+' мин');
+      const h=el('rect',{x:L,y:y0,width:W-L-R,height:bh,fill:'transparent'},svg);
+      h.addEventListener('mousemove',e=>showTip(e,`<b>${t}</b><br>${n}: ${nf(v,1)} мин до действия (медиана)`));h.addEventListener('mouseleave',hideTip);
+    });
+    yy+=bh*3+4+gg;
+  });
+}
+
+function tables(){
+  const d7=D.d['7'],d9=D.d['9'],t9=D.t['9'];
+  const arrow=(a,b,dir)=>{const r=pc(a,b);const cls=Math.abs(r)<3?'flat':(r*dir>0?'up':'down');return `<span class="${cls}">${r>0?'↑ +':r<0?'↓ ':''}${nf(r)}%</span>`};
+  const Q=[['₽ за одно действие','earn_act',1,1,' ₽'],['Расширенных диагностик на 100 базовых','ext_per_base',0,0,''],['Итог «Неисправности не обнаружены» в расширенной','ext_nofault',-1,0,'%'],['Доля заработка от расширенной диагностики','ext_share_earn',0,0,'%'],['Обработок с превышением нормы времени','norm_over',-1,0,'%']];
+  let h='<tr><th>Показатель</th><th>Июль</th><th>Сентябрь</th><th>Изменение</th><th>Ориентир, сентябрь</th></tr>';
+  Q.forEach(([l,k,dir,dd,u])=>{h+=`<tr><td>${l}</td><td>${nf(d7[k],dd)}${u}</td><td class="hl">${nf(d9[k],dd)}${u}</td><td>${dir?arrow(d9[k],d7[k],dir):'<span class="flat">'+(pc(d9[k],d7[k])>0?'+':'')+nf(pc(d9[k],d7[k]))+'%</span>'}</td><td class="muted">${nf(t9[k],dd)}${u}</td></tr>`});
+  document.getElementById('tbQ').innerHTML=h;
+  const G=[['₽ за рабочий день',nf(d9.earn_day),'≥ 2 150 ₽','уровень ориентира отдела'],['Действий за день',nf(d9.act_day,1),'≥ 34','как на сильных неделях сентября'],['Действий в час',nf(d9.act_hour,1),'≥ 4,5','плюс одно действие каждые два часа'],['Средняя пауза между действиями',nf(d9.gap_med,1)+' мин','≤ 8 мин','ориентир 6–7 мин'],['Пауз дольше 30 минут',nf(d9.gap_30,1)+'%','≤ 10%','ориентир 9%'],['Пауза перед базовой диагностикой',nf(D.gt[0][2],1)+' мин','≤ 6 мин','ориентир около 4 мин'],['Обработок с превышением нормы',nf(d9.norm_over,0)+'%','≤ 45%','ориентир 47%']];
+  h='<tr><th>Показатель</th><th>Сентябрь</th><th>Цель на октябрь</th><th>Почему такая цель</th></tr>';
+  G.forEach(r=>h+=`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="hl">${r[2]}</td><td class="muted" style="text-align:left">${r[3]}</td></tr>`);
+  document.getElementById('tbGoals').innerHTML=h;
+  const A=[['Рабочих дней','days',0],['Действий','n',0],['Заработок за месяц, ₽','earn',0],['₽ за рабочий день','earn_day',0],['₽ за действие','earn_act',1],['Действий за день','act_day',1],['Действий в час','act_hour',1],['₽ в час','earn_hour',0],['Активный день, ч','span',1],['Первое действие','first',-1],['Последнее действие','last',-1],['Медиана паузы, мин','gap_med',1],['Пауз до 5 мин, %','gap_5',0],['Пауз > 30 мин, %','gap_30',1],['Пауз > 60 мин, %','gap_60',1],['Расширенных на 100 базовых','ext_per_base',0],['«Неисправности не обнаружены», %','ext_nofault',0],['Превышение нормы обработки, %','norm_over',0]];
+  h='<tr><th>Показатель</th>'+MON.map(([,mn])=>`<th>${mn}: Даниил</th><th>ориентир</th>`).join('')+'</tr>';
+  A.forEach(([l,k,dd])=>{h+=`<tr><td>${l}</td>`+MON.map(([m])=>{const f=v=>dd<0?fmtMin(v):nf(v,dd);return `<td class="hl">${k==='earn'?nf(EARN[m]):k==='days'||k==='n'?(k==='n'?nf(D.d[m][k]):D.d[m][k]):f(D.d[m][k])}</td><td class="muted">${k==='days'||k==='n'||k==='earn'?'—':f(D.t[m][k])}</td>`}).join('')+'</tr>'});
+  document.getElementById('tbAll').innerHTML=h;
+}
+
+function render(){
+  ['lg1','lg2'].forEach(i=>legend(i,[['Даниил','--me'],['Ориентир отдела','--dept']]));
+  legend('lg3',[['Даниил','--me'],['Ориентир отдела','--dept']]);
+  legend('lg4',[['Даниил · июль','--me-soft'],['Даниил · сентябрь','--me'],['Ориентир отдела','--dept']]);
+  legend('lgGaps',GL.map((g,i)=>[g+' мин','--g'+(i+1)]));
+  pair('chEarn','earn_day',v=>nf(v),'₽ за рабочий день');
+  pair('chActDay','act_day',v=>nf(v,1),'действий за день');
+  pair('chActHour','act_hour',v=>nf(v,1),'действий в час');
+  weekly();gaps();gapType();
+  document.getElementById('earnMonth').innerHTML=MON.map(([m,mn])=>`<div class="tile"><div class="l">${mn}</div><div class="v">${nf(EARN[m])} ₽</div><div class="d flat">${D.d[m].days} раб. дней · ${nf(D.d[m].n)} действий · ${nf(D.d[m].earn_day)} ₽/день</div></div>`).join('');
+  document.getElementById('progEarn').innerHTML=MON.map(([m,mn])=>{const r=D.d[m].earn_day/D.t[m].earn_day*100;return `<div class="prog"><span>${mn}</span><div class="bar"><i style="width:${Math.min(r,100)}%"></i></div><span class="v">${nf(r)}%</span></div>`}).join('');
+  const d=D.d['9'],j=D.d['7'],t=D.t['9'];
+  const up=(a,b)=>{const r=pc(a,b);return `<span class="${r>=0?'up':'down'}">${r>0?'+':''}${nf(r)}%</span>`};
+  document.getElementById('heroTiles').innerHTML=[
+    ['₽ за рабочий день',nf(d.earn_day),`${up(d.earn_day,j.earn_day)} к июлю · ориентир ${nf(t.earn_day)}`],
+    ['Действий за день',nf(d.act_day,1),`${up(d.act_day,j.act_day)} к июлю · ориентир ${nf(t.act_day,1)}`],
+    ['Действий в час',nf(d.act_hour,1),`${up(d.act_hour,j.act_hour)} к июлю · ориентир ${nf(t.act_hour,1)}`],
+    ['Пауз дольше 30 мин',nf(d.gap_30,1)+'%',`<span class="up">было ${nf(j.gap_30,1)}%</span> · ориентир ${nf(t.gap_30,1)}%`]
+  ].map(([l,v,s])=>`<div class="tile"><div class="l">${l}, сентябрь</div><div class="v">${v}</div><div class="d">${s}</div></div>`).join('');
+}
+tables();render();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+document.getElementById('thm').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('thm',r.dataset.theme)}catch(e){}render()};
+try{const t=localStorage.getItem('thm');if(t){document.documentElement.dataset.theme=t;render()}}catch(e){}
+
+// navigation
+const S=[...document.querySelectorAll('.slide')];
+const cur=()=>{let best=0,bd=1e9;S.forEach((s,i)=>{const d=Math.abs(s.getBoundingClientRect().top);if(d<bd){bd=d;best=i}});return best};
+const go=i=>S[Math.max(0,Math.min(S.length-1,i))].scrollIntoView({behavior:'smooth'});
+document.getElementById('nxt').onclick=()=>go(cur()+1);document.getElementById('prv').onclick=()=>go(cur()-1);
+addEventListener('keydown',e=>{if(['ArrowDown','ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur()+1)}if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur()-1)}});
+const pg=document.getElementById('pg');const upd=()=>pg.textContent=(cur()+1)+' / '+S.length;addEventListener('scroll',upd,{passive:true});upd();
+</script>
+</body>
+</html>

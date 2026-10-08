@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS actions (
   price        NUMERIC(10,2) DEFAULT 0,
   service_id   BIGINT,         -- "id сервис" — единица анализа
   vendor       VARCHAR(100),   -- Apple / Яндекс
+  action_time  TIME,           -- "время" действия
+  accepted_at  TIMESTAMP,      -- "Дата время приёма устройства"
   PRIMARY KEY (id, report_id)
 );
 
@@ -122,22 +124,56 @@ CREATE TABLE IF NOT EXISTS action_settings (
   id           SERIAL PRIMARY KEY,
   department   TEXT NOT NULL DEFAULT '*',
   device_type  TEXT NOT NULL DEFAULT '*',
+  subgroup     TEXT NOT NULL DEFAULT '*',  -- напр. "Без ремонта" / "Ремонт выполнен" (actions.subgroup)
   action_name  TEXT NOT NULL,
   is_base      BOOLEAN NOT NULL DEFAULT false,
   base_cost    NUMERIC(10,2),
   updated_at   TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(department, device_type, action_name)
+  UNIQUE(department, device_type, action_name, subgroup)
 );
 
 -- индекс под LATERAL-джойн в recompute_services_for_report (action_name = ... AND department/device_type)
 CREATE INDEX IF NOT EXISTS idx_action_settings_lookup ON action_settings(action_name);
 
--- 8. Ручное переопределение отдела сотрудника (если не совпадает с тем, что в отчёте)
+-- 8. Карточка сотрудника: ручное переопределение отдела (если не совпадает с тем,
+--    что в отчёте) + маркер актуальности.
+--    is_active = false — сотрудник больше не работает: в отчётах и агрегатах он
+--    остаётся (история не переписывается), но пропадает из списков «текущие
+--    сотрудники» на странице KPI. Фильтрация — на клиенте, чтобы уволенных можно
+--    было показать галочкой без перезагрузки данных.
 CREATE TABLE IF NOT EXISTS employee_departments (
-  employee     TEXT PRIMARY KEY,
-  department   TEXT NOT NULL,
-  updated_at   TIMESTAMPTZ DEFAULT NOW()
+  employee       TEXT PRIMARY KEY,
+  department     TEXT,
+  is_active      BOOLEAN NOT NULL DEFAULT true,
+  inactive_since DATE,
+  updated_at     TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- миграция существующей таблицы
+ALTER TABLE employee_departments ALTER COLUMN department DROP NOT NULL;
+ALTER TABLE employee_departments ADD COLUMN IF NOT EXISTS is_active      BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE employee_departments ADD COLUMN IF NOT EXISTS inactive_since DATE;
+
+-- 9. Разобранные дубли: пометка «я это посмотрел».
+--    resolved      — реальный дубль, лишние строки удалены в учётной базе;
+--    not_duplicate — не дубль по сути (несколько одинаковых услуг, разные типы
+--                    работ, записанные одним названием действия).
+--    В обоих случаях случай уходит из статистики дублей.
+--    reviewed_repeat_count фиксирует, сколько повторов было на момент разбора:
+--    если после переимпорта повторов стало больше, случай всплывёт снова.
+CREATE TABLE IF NOT EXISTS duplicate_reviews (
+  employee              TEXT   NOT NULL,
+  service_id            BIGINT NOT NULL,
+  action_type           TEXT   NOT NULL,
+  status                TEXT   NOT NULL DEFAULT 'resolved'
+                          CHECK (status IN ('resolved', 'not_duplicate')),
+  reviewed_repeat_count INT    NOT NULL DEFAULT 0,
+  note                  TEXT,
+  reviewed_at           TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (employee, service_id, action_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dupreviews_service ON duplicate_reviews(service_id);
 
 -- ============================================================
 -- Представления (Views)
@@ -202,6 +238,7 @@ ALTER TABLE weekly_insights     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE employee_stats      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE action_settings     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE employee_departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE duplicate_reviews    ENABLE ROW LEVEL SECURITY;
 
 -- Таблицы с данными отчётов: только чтение анонимам напрямую (для отладки),
 -- запись — только через RPC (SECURITY DEFINER обходит RLS своего владельца).
@@ -223,7 +260,9 @@ DROP POLICY IF EXISTS anon_all ON action_settings;
 CREATE POLICY anon_all ON action_settings FOR ALL TO anon USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS anon_all ON employee_departments;
 CREATE POLICY anon_all ON employee_departments FOR ALL TO anon USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS anon_all ON duplicate_reviews;
+CREATE POLICY anon_all ON duplicate_reviews FOR ALL TO anon USING (true) WITH CHECK (true);
 
 GRANT SELECT ON uploads, actions, services, anomalies, weekly_insights, employee_stats TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON action_settings, employee_departments TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON action_settings, employee_departments, duplicate_reviews TO anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
