@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fivenine.space</title>
+<link rel="icon" href="/_assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300..700&family=Onest:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/500.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/600.css">
+<link rel="stylesheet" href="/_assets/fivenine.css">
+<script src="/_assets/theme.js"></script>
+<style>
+  .search { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; width: 280px; max-width: 100%; border-radius: var(--radius-md); background: var(--glass-strong); box-shadow: inset 0 0 0 1px var(--hairline); color: var(--ink-muted); transition: box-shadow 120ms; }
+  .search:focus-within { box-shadow: inset 0 0 0 1px var(--sat-edge), var(--shadow-focus); }
+  .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 14px; font-weight: 500; color: var(--ink); }
+
+  .groups { display: flex; flex-direction: column; gap: 28px; }
+  .group { display: flex; flex-direction: column; gap: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
+
+  /* Плитка с вырезом-орбитой и спутником в нём */
+  .tile { position: relative; min-height: 172px; display: block; }
+  .tile::before { content: ''; position: absolute; left: 14px; right: 14px; top: 22px; bottom: -8px; border-radius: var(--radius-xl); background: var(--tile-shadow); filter: blur(22px); opacity: .9; }
+  .tile-body {
+    position: absolute; inset: 0; border-radius: var(--radius-xl); padding: 22px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--blur-glass); backdrop-filter: var(--blur-glass);
+    -webkit-mask: radial-gradient(circle 20px at calc(100% - 34px) 34px, transparent 19px, #000 20px);
+    mask: radial-gradient(circle 20px at calc(100% - 34px) 34px, transparent 19px, #000 20px);
+    transition: background 200ms, transform 200ms;
+  }
+  .tile-moon { position: absolute; right: 29px; top: 29px; width: 10px; height: 10px; border-radius: 50%; background: var(--sat); transition: transform 300ms cubic-bezier(0.16,1,0.3,1); }
+  .tile:hover .tile-body, .tile:focus-visible .tile-body { background: var(--glass-strong); transform: translateY(-2px); }
+  .tile:hover .tile-moon { transform: translate(-3px, -1px) scale(1.15); }
+  .tile:focus-visible { outline: none; }
+  .tile:focus-visible .tile-body { box-shadow: var(--shadow-focus); }
+  .tile-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--accent-text); background: var(--sat-tint); }
+  .tile-text { display: flex; flex-direction: column; gap: 4px; }
+  .tile-title { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; }
+  .tile-desc { font-size: 13px; line-height: 1.45; color: var(--ink-muted); }
+
+  /* Компактные плитки (настройка в профиле) */
+  [data-density="compact"] .grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+  [data-density="compact"] .tile { min-height: 84px; }
+  [data-density="compact"] .tile-body { flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; padding: 16px 56px 16px 16px; }
+  [data-density="compact"] .tile-body { -webkit-mask: radial-gradient(circle 16px at calc(100% - 28px) 50%, transparent 15px, #000 16px); mask: radial-gradient(circle 16px at calc(100% - 28px) 50%, transparent 15px, #000 16px); }
+  [data-density="compact"] .tile-moon { top: calc(50% - 4px); right: 24px; width: 8px; height: 8px; }
+  [data-density="compact"] .tile-title { font-size: 16px; }
+  [data-density="compact"] .tile-desc { display: none; }
+
+  .empty { padding: 40px 24px; display: grid; justify-items: center; gap: 14px; text-align: center; color: var(--ink-muted); }
+  .empty a { color: var(--accent-text); font-weight: 600; }
+  .notice { padding: 12px 16px; border-radius: var(--radius-md); background: var(--sat-tint); color: var(--accent-text); font-size: 14px; font-weight: 500; }
+  @media (max-width: 860px) { .search { width: 100%; } .head > div, .head form { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar glass" id="sidebar"></aside>
+
+  <main class="content">
+    <div class="head">
+      <div>
+        <h1 id="greeting">Инструменты</h1>
+        <p>Личные и рабочие — в одном месте</p>
+      </div>
+      <form role="search" onsubmit="return false">
+        <label class="search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+          <input type="search" id="search" placeholder="Найти инструмент" aria-label="Найти инструмент" autocomplete="off">
+        </label>
+      </form>
+    </div>
+    <div id="notice"></div>
+    <div id="groups"></div>
+  </main>
+</div>
+
+<script src="/_assets/shell.js"></script>
+<script>
+const { svg, esc, groupBy } = FN;
+let TOOLS = [];
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+}
+
+function renderTiles(query = '') {
+  const q = query.trim().toLowerCase();
+  const list = q ? TOOLS.filter((t) => `${t.title} ${t.desc || ''} ${t.group || ''}`.toLowerCase().includes(q)) : TOOLS;
+  const root = document.getElementById('groups');
+  if (!FN.me.tools.length) {
+    root.innerHTML = '<div class="empty glass"><span class="dots"><span></span><span></span><span></span><span></span><span></span></span>Пока нет доступных инструментов. Обратитесь к администратору.</div>';
+    return;
+  }
+  if (!TOOLS.length) {
+    root.innerHTML = '<div class="empty glass">Все плитки скрыты. <a href="/profile/#home">Настроить главную</a></div>';
+    return;
+  }
+  if (!list.length) {
+    root.innerHTML = '<div class="empty glass">Ничего не нашлось</div>';
+    return;
+  }
+  root.innerHTML = '<div class="groups">' + [...groupBy(list)].map(([g, tools]) => `
+    <section class="group">
+      <h2 class="label">${esc(g)}</h2>
+      <div class="grid">${tools.map((t) => `
+        <a class="tile" href="${esc(t.url)}">
+          <span class="tile-body">
+            <span class="tile-icon">${svg(t.icon, 22)}</span>
+            <span class="tile-text">
+              <span class="tile-title">${esc(t.title)}</span>
+              ${t.desc ? `<span class="tile-desc">${esc(t.desc)}</span>` : ''}
+            </span>
+          </span>
+          <span class="tile-moon"></span>
+        </a>`).join('')}
+      </div>
+    </section>`).join('') + '</div>';
+}
+
+FN.ready.then((me) => {
+  const prefs = me.prefs || {};
+  const hidden = new Set(prefs.hidden || []);
+  TOOLS = me.tools.filter((t) => !hidden.has(t.id));
+  if (prefs.greeting !== false) document.getElementById('greeting').textContent = `${greeting()}, ${me.name.split(' ')[0]}`;
+  if (new URLSearchParams(location.search).has('denied')) {
+    document.getElementById('notice').innerHTML = '<div class="notice">К этой странице у вас нет доступа.</div>';
+  }
+  renderTiles();
+  document.getElementById('search').addEventListener('input', (e) => renderTiles(e.target.value));
+});
+</script>
+</body>
+</html>

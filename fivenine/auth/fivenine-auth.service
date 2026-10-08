@@ -1,0 +1,22 @@
+[Unit]
+Description=fivenine auth service
+After=network.target
+
+[Service]
+Type=simple
+User=fivenine
+Group=fivenine
+WorkingDirectory=/opt/fivenine/auth
+ExecStart=/usr/bin/node /opt/fivenine/auth/server.js
+Environment=PORT=4180
+Environment=FIVENINE_DATA=/etc/fivenine
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/etc/fivenine
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Профиль · fivenine.space</title>
+<link rel="icon" href="/_assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300..700&family=Onest:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/500.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/600.css">
+<link rel="stylesheet" href="/_assets/fivenine.css">
+<script src="/_assets/theme.js"></script>
+<style>
+  .content { max-width: 760px; }
+  .panels { display: grid; gap: 20px; }
+  .account { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; }
+  .avatar-lg { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--sat-tint); color: var(--accent-text); font-family: var(--font-display); font-size: 30px; font-weight: 600; }
+  .account-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .account-meta strong { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-right: 4px; }
+  .pill-quiet { height: 24px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .input[readonly] { color: var(--ink-muted); background: transparent; }
+  .hint { font-size: 13px; color: var(--ink-muted); }
+  .error-text { font-size: 13px; color: var(--danger); font-weight: 500; }
+  .tool-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hairline); }
+  .tool-row:first-child { border-top: 0; }
+  .tool-row .tile-icon { width: 36px; height: 36px; flex: none; border-radius: 10px; display: grid; place-items: center; color: var(--accent-text); background: var(--sat-tint); }
+  .tool-row .row-text { flex: 1; }
+  .tool-group { padding-top: 8px; }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .row { flex-direction: column; align-items: flex-start; }
+    .panel { padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar glass" id="sidebar"></aside>
+
+  <main class="content">
+    <div class="head">
+      <div>
+        <h1>Профиль</h1>
+        <p>Учётная запись и настройки панели</p>
+      </div>
+    </div>
+
+    <div class="panels">
+      <!-- Учётная запись -->
+      <section class="panel glass" id="account" aria-labelledby="account-title">
+        <div class="account">
+          <span class="avatar-lg" id="avatar-lg"></span>
+          <div class="panel-head">
+            <div class="account-meta"><strong id="account-name"></strong><span class="pill" id="account-role"></span></div>
+            <p id="account-access"></p>
+          </div>
+        </div>
+        <h2 class="label" id="account-title">Учётная запись</h2>
+        <form id="name-form" class="form-grid" novalidate>
+          <div class="field">
+            <label for="name">Имя</label>
+            <input class="input" id="name" name="name" maxlength="40" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="login">Логин</label>
+            <input class="input" id="login" readonly tabindex="-1">
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Сохранить</button>
+            <span class="hint">Имя видно в приветствии и в панели</span>
+          </div>
+        </form>
+      </section>
+
+      <!-- Оформление -->
+      <section class="panel glass" id="look">
+        <div class="panel-head"><h2>Оформление</h2><p>Сохраняется сразу и применяется на всех устройствах</p></div>
+        <div>
+          <div class="row">
+            <div class="row-text"><span class="row-title">Тема</span><span class="row-sub">Действует и в дашбордах</span></div>
+            <div class="seg" role="radiogroup" aria-label="Тема">
+              <label><input type="radio" name="theme" value="light"><span>Светлая</span></label>
+              <label><input type="radio" name="theme" value="dark"><span>Тёмная</span></label>
+              <label><input type="radio" name="theme" value="system"><span>Как в системе</span></label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text"><span class="row-title">Плитки на главной</span><span class="row-sub">Компактные — в одну строку, без описания</span></div>
+            <div class="seg" role="radiogroup" aria-label="Плитки">
+              <label><input type="radio" name="density" value="cozy"><span>Обычные</span></label>
+              <label><input type="radio" name="density" value="compact"><span>Компактные</span></label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-text"><span class="row-title">Приветствие</span><span class="row-sub">«Добрый день, имя» вместо «Инструменты»</span></div>
+            <label class="switch"><input type="checkbox" id="greeting" aria-label="Показывать приветствие"><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Главная -->
+      <section class="panel glass" id="home">
+        <div class="panel-head"><h2>Главная</h2><p>Какие инструменты показывать плитками. В боковой панели остаются все.</p></div>
+        <div id="tools-list"></div>
+      </section>
+
+      <!-- Безопасность -->
+      <section class="panel glass" id="security">
+        <div class="panel-head"><h2>Пароль</h2><p>После смены все остальные устройства выйдут из учётной записи</p></div>
+        <form id="password-form" class="form-grid" novalidate>
+          <div class="field" style="grid-column: 1 / -1">
+            <label for="pw-current">Текущий пароль</label>
+            <input class="input" id="pw-current" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="field">
+            <label for="pw-new">Новый пароль</label>
+            <input class="input" id="pw-new" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <div class="field">
+            <label for="pw-repeat">Повторите новый</label>
+            <input class="input" id="pw-repeat" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <div class="form-actions" style="grid-column: 1 / -1">
+            <button class="btn" type="submit">Сменить пароль</button>
+            <span class="error-text" id="pw-error" role="alert"></span>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/_assets/shell.js"></script>
+<script>
+const { svg, esc, plural, groupBy } = FN;
+
+let toastTimer;
+function toast(text, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function renderAccount(me) {
+  document.getElementById('avatar-lg').textContent = me.name.slice(0, 1).toUpperCase();
+  document.getElementById('account-name').textContent = me.name;
+  document.getElementById('account-role').textContent = me.admin ? 'Администратор' : 'Пользователь';
+  const n = me.tools.length;
+  document.getElementById('account-access').textContent = me.admin
+    ? 'Доступ ко всем инструментам'
+    : n ? `Доступ: ${n} ${plural(n, 'инструмент', 'инструмента', 'инструментов')}` : 'Пока без доступа к инструментам';
+}
+
+async function save(patch, okText = 'Сохранено') {
+  try {
+    const me = await FN.savePrefs(patch);
+    FN.refreshMe(me);
+    toast(okText);
+    return me;
+  } catch (e) {
+    if (e.message !== 'auth') toast(e.message, true);
+    throw e;
+  }
+}
+
+function renderTools(me) {
+  const hidden = new Set(me.prefs.hidden || []);
+  const root = document.getElementById('tools-list');
+  if (!me.tools.length) { root.innerHTML = '<p class="hint">Инструментов пока нет.</p>'; return; }
+  root.innerHTML = [...groupBy(me.tools)].map(([g, list]) => `
+    <div class="tool-group"><div class="label" style="padding: 4px 0 6px">${esc(g)}</div>
+    ${list.map((t) => `
+      <div class="tool-row">
+        <span class="tile-icon">${svg(t.icon, 20)}</span>
+        <span class="row-text"><span class="row-title">${esc(t.title)}</span>${t.desc ? `<span class="row-sub">${esc(t.desc)}</span>` : ''}</span>
+        <label class="switch"><input type="checkbox" data-tool="${esc(t.id)}" ${hidden.has(t.id) ? '' : 'checked'} aria-label="Показывать «${esc(t.title)}» на главной"><span></span></label>
+      </div>`).join('')}
+    </div>`).join('');
+  root.addEventListener('change', (e) => {
+    const box = e.target.closest('input[data-tool]');
+    if (!box) return;
+    const ids = [...root.querySelectorAll('input[data-tool]')].filter((x) => !x.checked).map((x) => x.dataset.tool);
+    save({ hidden: ids }, box.checked ? 'Плитка показана на главной' : 'Плитка скрыта с главной').catch(() => { box.checked = !box.checked; });
+  });
+}
+
+FN.ready.then((me) => {
+  const prefs = me.prefs || {};
+  renderAccount(me);
+  document.getElementById('name').value = me.name;
+  document.getElementById('login').value = me.login;
+
+  // Оформление
+  const theme = prefs.theme || localStorage.getItem('fn-theme') || 'light';
+  document.querySelector(`input[name="theme"][value="${theme}"]`).checked = true;
+  document.querySelector(`input[name="density"][value="${prefs.density || 'cozy'}"]`).checked = true;
+  document.getElementById('greeting').checked = prefs.greeting !== false;
+
+  document.querySelectorAll('input[name="theme"]').forEach((r) => r.addEventListener('change', () => {
+    FN.applyTheme(r.value);
+    save({ theme: r.value }).catch(() => {});
+  }));
+  // Кнопка темы в панели тоже меняет выбор
+  document.addEventListener('fn:theme', (e) => {
+    const r = document.querySelector(`input[name="theme"][value="${e.detail}"]`);
+    if (r) r.checked = true;
+  });
+  document.querySelectorAll('input[name="density"]').forEach((r) => r.addEventListener('change', () => {
+    document.documentElement.dataset.density = r.value;
+    save({ density: r.value }).catch(() => {});
+  }));
+  document.getElementById('greeting').addEventListener('change', (e) => {
+    save({ greeting: e.target.checked }).catch(() => { e.target.checked = !e.target.checked; });
+  });
+
+  renderTools(me);
+  if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+});
+
+// Имя
+document.getElementById('name-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  if (!name) { toast('Введите имя', true); return; }
+  try {
+    const me = await FN.api('/api/profile', { name });
+    FN.refreshMe(me);
+    renderAccount(me);
+    toast('Имя сохранено');
+  } catch (err) {
+    if (err.message !== 'auth') toast(err.message, true);
+  }
+});
+
+// Пароль
+document.getElementById('password-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('pw-error');
+  const current = document.getElementById('pw-current').value;
+  const next = document.getElementById('pw-new').value;
+  const repeat = document.getElementById('pw-repeat').value;
+  errEl.textContent = '';
+  if (!current) { errEl.textContent = 'Введите текущий пароль'; return; }
+  if (next.length < 8) { errEl.textContent = 'Новый пароль: не короче 8 символов'; return; }
+  if (next !== repeat) { errEl.textContent = 'Пароли не совпадают'; return; }
+  try {
+    await FN.api('/api/password', { current, next });
+    e.target.reset();
+    toast('Пароль изменён');
+  } catch (err) {
+    if (err.message !== 'auth') errEl.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>

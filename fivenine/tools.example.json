@@ -1,0 +1,10 @@
+[
+  {
+    "id": "xfix-dashboard",
+    "title": "Аналитика целевых действий",
+    "desc": "Дашборд сервисного центра XFIX",
+    "url": "/dashboard/",
+    "group": "XFIX",
+    "icon": "chart"
+  }
+]
