@@ -129,7 +129,7 @@ BEGIN
     INTO v_from, v_to, v_data
   FROM uploads u WHERE u.id = ANY(v_ids);
 
-  SELECT COALESCE(MAX(a.updated_at), 'epoch'::timestamptz) INTO v_settings FROM action_settings a;
+  v_settings := scope_stamp();   -- action_settings + отделы сотрудников + «мой отдел»
 
   -- statement_timeout = 3s, поэтому чанк держим мелким (~5k строк действий).
   -- Если и этого мало, клиент дробит дальше через параметр p_buckets.
@@ -194,7 +194,7 @@ BEGIN
   IF v_lo > v_max THEN RETURN; END IF;
 
   WITH scope AS (
-    SELECT * FROM actions
+    SELECT * FROM dept_actions
     WHERE report_id = ANY(v_ids)
       AND service_id >= v_lo AND service_id < v_hi
   ),
@@ -326,7 +326,7 @@ BEGIN
     ROUND(COUNT(DISTINCT CASE WHEN s.zone <> 'normal' THEN a.service_id END) * 100.0 / NULLIF(COUNT(DISTINCT a.service_id), 0), 2),
     COUNT(CASE WHEN a.action_type IS NOT NULL AND s.extra_actions IS NOT NULL AND a.action_type = ANY(s.extra_actions) THEN 1 END),
     ROUND(COALESCE(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END), 0) / NULLIF(COUNT(DISTINCT a.service_id), 0), 2)
-  FROM actions a
+  FROM dept_actions a
   LEFT JOIN period_services s ON s.period_key = p_period AND s.service_id = a.service_id
   WHERE a.report_id = ANY(v_ids) AND a.employee IS NOT NULL
     AND (p_bucket IS NULL OR ABS(hashtext(a.employee) % v_buckets) = p_bucket)
@@ -340,7 +340,7 @@ LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   UPDATE periods SET
     built_at       = NOW(),
-    settings_stamp = (SELECT COALESCE(MAX(updated_at), 'epoch'::timestamptz) FROM action_settings),
+    settings_stamp = scope_stamp(),
     data_stamp     = (SELECT MAX(u.upload_date) FROM uploads u WHERE u.id = ANY(periods.report_ids))
   WHERE period_key = p_period;
 END;
@@ -467,7 +467,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   WITH ids AS (SELECT report_ids FROM periods WHERE period_key = p_period),
   action_counts AS (
     SELECT employee, COUNT(*) AS total_actions
-    FROM actions, ids WHERE report_id = ANY(ids.report_ids) AND employee IS NOT NULL
+    FROM dept_actions, ids WHERE report_id = ANY(ids.report_ids) AND employee IS NOT NULL
     GROUP BY employee
   ),
   dept_medians AS (
@@ -480,7 +480,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ),
   dup_raw AS (
     SELECT a.employee, a.service_id, a.action_type, COUNT(*) AS cnt
-    FROM actions a, ids
+    FROM dept_actions a, ids
     WHERE a.report_id = ANY(ids.report_ids) AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
     GROUP BY a.employee, a.service_id, a.action_type HAVING COUNT(*) > 1
   ),
@@ -498,7 +498,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
       ROUND(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END)::numeric / NULLIF(COUNT(DISTINCT s.service_id)::numeric, 0), 2) AS overrun_index
     FROM period_services s
     JOIN ids ON true
-    JOIN actions a ON a.service_id = s.service_id AND a.report_id = ANY(ids.report_ids)
+    JOIN dept_actions a ON a.service_id = s.service_id AND a.report_id = ANY(ids.report_ids)
     WHERE s.period_key = p_period AND a.employee IS NOT NULL
     GROUP BY a.employee
   )
@@ -529,7 +529,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     SELECT a.employee, a.service_id, a.action_type, COUNT(*) AS cnt,
            MIN(a.action_date::text) AS first_date, MAX(a.action_date::text) AS last_date,
            SUM(a.price) AS total_price, MIN(a.price) AS unit_price
-    FROM actions a, periods p
+    FROM dept_actions a, periods p
     WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
       AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
       AND (p_employee IS NULL OR a.employee = p_employee)
@@ -569,7 +569,7 @@ RETURNS TABLE(date TEXT, dow INT, label TEXT, services BIGINT, employees_active 
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.action_date::text, EXTRACT(DOW FROM a.action_date)::int, TO_CHAR(a.action_date, 'DD.MM'),
     COUNT(DISTINCT a.service_id), COUNT(DISTINCT a.employee), COUNT(*)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
     AND a.action_date IS NOT NULL AND a.action_type = 'Обработано'
   GROUP BY a.action_date ORDER BY a.action_date;
@@ -580,7 +580,7 @@ RETURNS TABLE(employee TEXT, days_worked BIGINT, total_services BIGINT, avg_per_
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   WITH daily AS (
     SELECT a.employee, a.action_date, COUNT(DISTINCT a.service_id) AS day_services
-    FROM actions a, periods p
+    FROM dept_actions a, periods p
     WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
       AND a.employee IS NOT NULL AND a.action_date IS NOT NULL AND a.action_type = 'Обработано'
     GROUP BY a.employee, a.action_date
@@ -598,7 +598,7 @@ CREATE OR REPLACE FUNCTION report_vendor_processed_p(p_period TEXT, p_employees 
 RETURNS TABLE(vendor TEXT, devices BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.vendor, COUNT(DISTINCT a.service_id)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids) AND a.action_type = 'Обработано'
     AND (p_employees IS NULL OR a.employee = ANY(p_employees))
   GROUP BY a.vendor ORDER BY 2 DESC;
@@ -608,7 +608,7 @@ CREATE OR REPLACE FUNCTION report_employee_devices_p(p_period TEXT)
 RETURNS TABLE(employee TEXT, subgroup TEXT, vendor TEXT, devices BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.employee, a.subgroup, a.vendor, COUNT(DISTINCT a.service_id)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
     AND a.action_type = 'Обработано' AND a.employee IS NOT NULL
   GROUP BY a.employee, a.subgroup, a.vendor ORDER BY a.employee, 4 DESC;
@@ -618,7 +618,7 @@ CREATE OR REPLACE FUNCTION report_employee_actions_p(p_period TEXT)
 RETURNS TABLE(employee TEXT, action_type TEXT, cnt BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.employee, a.action_type, COUNT(DISTINCT a.service_id)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
     AND a.employee IS NOT NULL AND a.action_type IS NOT NULL
   GROUP BY a.employee, a.action_type ORDER BY a.employee, 3 DESC;
@@ -628,7 +628,7 @@ CREATE OR REPLACE FUNCTION report_employee_payouts_p(p_period TEXT)
 RETURNS TABLE(employee TEXT, action_type TEXT, total_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.employee, a.action_type, SUM(a.price)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids) AND a.employee IS NOT NULL
   GROUP BY a.employee, a.action_type ORDER BY a.employee, 3 DESC;
 $$;
@@ -637,7 +637,7 @@ CREATE OR REPLACE FUNCTION report_vendor_payouts_p(p_period TEXT)
 RETURNS TABLE(vendor TEXT, employee TEXT, action_type TEXT, devices BIGINT, total_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.vendor, a.employee, a.action_type, COUNT(DISTINCT a.service_id), SUM(a.price)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids) AND a.employee IS NOT NULL
   GROUP BY a.vendor, a.employee, a.action_type ORDER BY a.vendor, 5 DESC;
 $$;
@@ -646,7 +646,7 @@ CREATE OR REPLACE FUNCTION report_unscheduled_work_p(p_period TEXT)
 RETURNS TABLE(employee TEXT, devices BIGINT, total_price NUMERIC, avg_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.employee, COUNT(DISTINCT a.service_id), SUM(a.price), AVG(a.price)
-  FROM actions a, periods p
+  FROM dept_actions a, periods p
   WHERE p.period_key = p_period AND a.report_id = ANY(p.report_ids)
     AND a.action_type = 'Ненормированная работа' AND a.employee IS NOT NULL
   GROUP BY a.employee ORDER BY 3 DESC;
@@ -677,7 +677,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
     COUNT(DISTINCT a.action_date),
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
-  FROM actions a
+  FROM dept_actions a
   JOIN periods p ON p.period_key = p_period AND a.report_id = ANY(p.report_ids)
   LEFT JOIN period_employee_stats es ON es.period_key = p_period AND es.employee = a.employee
   WHERE a.employee = p_employee;
@@ -705,7 +705,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
     COUNT(DISTINCT a.action_date),
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
-  FROM actions a
+  FROM dept_actions a
   JOIN periods p ON p.period_key = p_period AND a.report_id = ANY(p.report_ids)
   LEFT JOIN period_employee_stats es ON es.period_key = p_period AND es.employee = a.employee
   WHERE a.employee IS NOT NULL
@@ -741,7 +741,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.service_id, a.action_date, a.vendor, a.group_name, a.action_type, a.price,
     COALESCE(s.zone, 'normal'),
     (a.action_type = ANY(COALESCE(s.extra_actions, ARRAY[]::text[])))
-  FROM actions a
+  FROM dept_actions a
   JOIN periods p ON p.period_key = p_period AND a.report_id = ANY(p.report_ids)
   LEFT JOIN period_services s ON s.period_key = p_period AND s.service_id = a.service_id
   WHERE a.employee = p_employee

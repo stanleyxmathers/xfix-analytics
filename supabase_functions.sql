@@ -5,6 +5,45 @@
 -- ============================================================
 
 -- ------------------------------------------------------------
+-- «МОЙ ОТДЕЛ»: область показателей
+-- Общий отчёт содержит действия всех сотрудников (нужно для KPI руководителя и
+-- проверок перед выдачей). Показатели дашборда — «Главная», графики, перерасход,
+-- сотрудники, еженедельный отчёт, аномалии — считаются только по сотрудникам
+-- отдела из app_settings.my_department (отдел сотрудника: ручной из
+-- employee_departments, иначе из отчёта). Отдел не задан — все действия.
+-- ------------------------------------------------------------
+ALTER TABLE actions ADD COLUMN IF NOT EXISTS is_corp    SMALLINT;
+ALTER TABLE actions ADD COLUMN IF NOT EXISTS is_overdue SMALLINT;
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key        TEXT PRIMARY KEY,
+  value      JSONB,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS anon_all ON app_settings;
+CREATE POLICY anon_all ON app_settings FOR ALL TO anon USING (true) WITH CHECK (true);
+GRANT SELECT, INSERT, UPDATE, DELETE ON app_settings TO anon;
+
+CREATE OR REPLACE VIEW dept_actions AS
+  SELECT a.*
+  FROM actions a
+  LEFT JOIN employee_departments ed ON ed.employee = a.employee
+  CROSS JOIN (SELECT (SELECT value #>> '{}' FROM app_settings WHERE key = 'my_department') AS dept) s
+  WHERE s.dept IS NULL OR COALESCE(ed.department, a.department) = s.dept;
+
+-- Метка «область изменилась»: смена отдела или назначений сотрудников делает
+-- собранные периоды устаревшими (как правка action_settings).
+CREATE OR REPLACE FUNCTION scope_stamp()
+RETURNS TIMESTAMPTZ
+LANGUAGE sql STABLE AS $$
+  SELECT GREATEST(
+    (SELECT COALESCE(MAX(updated_at), 'epoch'::timestamptz) FROM action_settings),
+    (SELECT COALESCE(MAX(updated_at), 'epoch'::timestamptz) FROM employee_departments),
+    (SELECT COALESCE(MAX(updated_at), 'epoch'::timestamptz) FROM app_settings WHERE key = 'my_department'));
+$$;
+
+-- ------------------------------------------------------------
 -- ВНУТРЕННЕЕ: пересчёт services по report_id
 -- (overrun/zone через action_settings.is_base — это боевая логика,
 --  была введена как resync_services поверх старой pattern-mining схемы)
@@ -22,7 +61,7 @@ BEGIN
       COUNT(DISTINCT employee) AS employee_count,
       ARRAY_AGG(DISTINCT employee) FILTER (WHERE employee IS NOT NULL) AS employees,
       ARRAY_AGG(DISTINCT action_type) FILTER (WHERE action_type IS NOT NULL) AS action_types
-    FROM actions
+    FROM dept_actions
     WHERE report_id = p_report_id
     GROUP BY service_id, report_id
   ),
@@ -30,7 +69,7 @@ BEGIN
     SELECT DISTINCT ON (a.service_id)
       a.service_id,
       COALESCE(ed.department, a.department) AS department
-    FROM actions a
+    FROM dept_actions a
     LEFT JOIN employee_departments ed ON ed.employee = a.employee
     WHERE a.report_id = p_report_id AND a.employee IS NOT NULL
     ORDER BY a.service_id, a.action_date DESC NULLS LAST
@@ -38,7 +77,7 @@ BEGIN
   ssg AS (
     SELECT DISTINCT ON (a.service_id, a.action_type)
       a.service_id, a.action_type, a.subgroup, a.group_name
-    FROM actions a
+    FROM dept_actions a
     WHERE a.report_id = p_report_id AND a.action_type IS NOT NULL
     ORDER BY a.service_id, a.action_type, a.action_date DESC NULLS LAST
   ),
@@ -46,7 +85,7 @@ BEGIN
     SELECT sal.service_id, sal.action_type,
       cfg.is_base, COALESCE(cfg.base_cost, 0) AS cfg_base_cost
     FROM (
-      SELECT DISTINCT service_id, action_type FROM actions
+      SELECT DISTINCT service_id, action_type FROM dept_actions
       WHERE report_id = p_report_id AND action_type IS NOT NULL
     ) sal
     JOIN svc_agg sv ON sv.service_id = sal.service_id
@@ -66,7 +105,7 @@ BEGIN
   ),
   sap AS (
     SELECT service_id, action_type, SUM(price) AS actual_price
-    FROM actions WHERE report_id = p_report_id AND action_type IS NOT NULL
+    FROM dept_actions WHERE report_id = p_report_id AND action_type IS NOT NULL
     GROUP BY service_id, action_type
   ),
   enriched AS (
@@ -152,7 +191,7 @@ BEGIN
     'duplicate_action', d.cnt, 1, NULL
   FROM (
     SELECT employee, service_id, action_type, COUNT(*) AS cnt
-    FROM actions WHERE report_id = p_report_id AND action_type IS NOT NULL AND employee IS NOT NULL
+    FROM dept_actions WHERE report_id = p_report_id AND action_type IS NOT NULL AND employee IS NOT NULL
     GROUP BY employee, service_id, action_type HAVING COUNT(*) > 1
   ) d
   LEFT JOIN duplicate_reviews dr
@@ -170,7 +209,7 @@ BEGIN
     SELECT employee, MAX(department) AS department,
       COUNT(*)::numeric / NULLIF(COUNT(DISTINCT service_id),0) AS avg_per_service,
       COUNT(DISTINCT service_id) AS svc_count
-    FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL
+    FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL
     GROUP BY employee
   ) ac
   JOIN (
@@ -178,7 +217,7 @@ BEGIN
     FROM (
       SELECT employee, MAX(department) AS department,
         COUNT(*)::numeric / NULLIF(COUNT(DISTINCT service_id),0) AS avg_per_service
-      FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL
+      FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL
       GROUP BY employee
     ) x GROUP BY department
   ) dm ON dm.department = ac.department
@@ -195,7 +234,7 @@ BEGIN
   FROM (
     SELECT service_id, 'Обработка + базовая диагностика' AS stage, 2 AS limit_days,
       (MAX(action_date) - MIN(action_date) + 1) AS days
-    FROM actions
+    FROM dept_actions
     WHERE report_id = p_report_id AND action_date IS NOT NULL
       AND (action_type ILIKE 'Обработ%' OR action_type ILIKE 'Базовая диагностика%')
     GROUP BY service_id
@@ -205,7 +244,7 @@ BEGIN
 
     SELECT service_id, 'Обработка + базовая диагностика + расширенное тестирование' AS stage, 7 AS limit_days,
       (MAX(action_date) - MIN(action_date) + 1) AS days
-    FROM actions
+    FROM dept_actions
     WHERE report_id = p_report_id AND action_date IS NOT NULL
       AND (action_type ILIKE 'Обработ%' OR action_type ILIKE 'Базовая диагностика%' OR action_type ILIKE 'Расширенн%')
     GROUP BY service_id
@@ -342,7 +381,7 @@ BEGIN
     ROUND(COUNT(DISTINCT CASE WHEN s.zone <> 'normal' THEN a.service_id END) * 100.0 / NULLIF(COUNT(DISTINCT a.service_id), 0), 2),
     COUNT(CASE WHEN a.action_type IS NOT NULL AND s.extra_actions IS NOT NULL AND a.action_type = ANY(s.extra_actions) THEN 1 END),
     ROUND(COALESCE(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END), 0) / NULLIF(COUNT(DISTINCT a.service_id), 0), 2)
-  FROM actions a
+  FROM dept_actions a
   LEFT JOIN services s ON s.service_id = a.service_id AND s.report_id = a.report_id
   WHERE a.report_id = p_report_id AND a.employee IS NOT NULL
   GROUP BY a.report_id, a.employee;
@@ -438,7 +477,7 @@ RETURNS TABLE(
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   WITH action_counts AS (
     SELECT report_id, employee, COUNT(*) AS total_actions
-    FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL
+    FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL
     GROUP BY report_id, employee
   ),
   dept_medians AS (
@@ -451,7 +490,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ),
   dup_raw AS (
     SELECT report_id, employee, service_id, action_type, COUNT(*) AS cnt
-    FROM actions WHERE report_id = p_report_id AND action_type IS NOT NULL AND employee IS NOT NULL
+    FROM dept_actions WHERE report_id = p_report_id AND action_type IS NOT NULL AND employee IS NOT NULL
     GROUP BY report_id, employee, service_id, action_type HAVING COUNT(*) > 1
   ),
   dup_counts AS (
@@ -467,7 +506,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   overrun_idx AS (
     SELECT a.employee,
       ROUND(SUM(CASE WHEN s.overrun > 0 THEN s.overrun ELSE 0 END)::numeric / NULLIF(COUNT(DISTINCT s.service_id)::numeric, 0), 2) AS overrun_index
-    FROM services s JOIN actions a ON a.service_id = s.service_id AND a.report_id = s.report_id
+    FROM services s JOIN dept_actions a ON a.service_id = s.service_id AND a.report_id = s.report_id
     WHERE s.report_id = p_report_id AND a.employee IS NOT NULL
     GROUP BY a.employee
   )
@@ -500,7 +539,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     SELECT a.employee, a.service_id, a.action_type, COUNT(*) AS cnt,
            MIN(a.action_date::text) AS first_date, MAX(a.action_date::text) AS last_date,
            SUM(a.price) AS total_price, MIN(a.price) AS unit_price
-    FROM actions a
+    FROM dept_actions a
     WHERE a.report_id = p_report_id AND a.action_type IS NOT NULL AND a.employee IS NOT NULL
       AND (p_employee IS NULL OR a.employee = p_employee)
     GROUP BY a.employee, a.service_id, a.action_type
@@ -534,7 +573,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT t.day, t.vendor, COUNT(*)::BIGINT
   FROM (
     SELECT a.service_id, a.vendor, MIN(a.action_date) AS day
-    FROM actions a
+    FROM dept_actions a
     WHERE a.report_id = ANY(p_report_ids)
       AND a.action_date IS NOT NULL
       AND NULLIF(a.vendor, '') IS NOT NULL
@@ -550,7 +589,7 @@ CREATE OR REPLACE FUNCTION get_vendor_money_trend(p_report_ids INT[])
 RETURNS TABLE(day DATE, vendor TEXT, payments NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.action_date AS day, a.vendor, COALESCE(SUM(a.price), 0)::NUMERIC
-  FROM actions a
+  FROM dept_actions a
   WHERE a.report_id = ANY(p_report_ids)
     AND a.action_date IS NOT NULL
     AND NULLIF(a.vendor, '') IS NOT NULL
@@ -587,7 +626,7 @@ RETURNS TABLE(date TEXT, dow INT, label TEXT, services BIGINT, employees_active 
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT action_date::text, EXTRACT(DOW FROM action_date)::int, TO_CHAR(action_date, 'DD.MM'),
     COUNT(DISTINCT service_id), COUNT(DISTINCT employee), COUNT(*)
-  FROM actions
+  FROM dept_actions
   WHERE report_id = p_report_id AND action_date IS NOT NULL AND action_type = 'Обработано'
   GROUP BY action_date ORDER BY action_date;
 $$;
@@ -597,7 +636,7 @@ RETURNS TABLE(employee TEXT, days_worked BIGINT, total_services BIGINT, avg_per_
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   WITH daily AS (
     SELECT employee, action_date, COUNT(DISTINCT service_id) AS day_services
-    FROM actions
+    FROM dept_actions
     WHERE report_id = p_report_id AND employee IS NOT NULL AND action_date IS NOT NULL AND action_type = 'Обработано'
     GROUP BY employee, action_date
   )
@@ -658,7 +697,7 @@ CREATE OR REPLACE FUNCTION report_vendor_processed(p_report_id INT, p_employees 
 RETURNS TABLE(vendor TEXT, devices BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT vendor, COUNT(DISTINCT service_id) AS devices
-  FROM actions
+  FROM dept_actions
   WHERE report_id = p_report_id AND action_type = 'Обработано'
     AND (p_employees IS NULL OR employee = ANY(p_employees))
   GROUP BY vendor ORDER BY 2 DESC;
@@ -669,7 +708,7 @@ CREATE OR REPLACE FUNCTION report_employee_devices(p_report_id INT)
 RETURNS TABLE(employee TEXT, subgroup TEXT, vendor TEXT, devices BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT employee, subgroup, vendor, COUNT(DISTINCT service_id) AS devices
-  FROM actions WHERE report_id = p_report_id AND action_type = 'Обработано' AND employee IS NOT NULL
+  FROM dept_actions WHERE report_id = p_report_id AND action_type = 'Обработано' AND employee IS NOT NULL
   GROUP BY employee, subgroup, vendor ORDER BY employee, 4 DESC;
 $$;
 
@@ -678,7 +717,7 @@ CREATE OR REPLACE FUNCTION report_employee_actions(p_report_id INT)
 RETURNS TABLE(employee TEXT, action_type TEXT, cnt BIGINT)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT employee, action_type, COUNT(DISTINCT service_id) AS cnt
-  FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL AND action_type IS NOT NULL
+  FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL AND action_type IS NOT NULL
   GROUP BY employee, action_type ORDER BY employee, 3 DESC;
 $$;
 
@@ -687,7 +726,7 @@ CREATE OR REPLACE FUNCTION report_employee_payouts(p_report_id INT)
 RETURNS TABLE(employee TEXT, action_type TEXT, total_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT employee, action_type, SUM(price) AS total_price
-  FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL
+  FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL
   GROUP BY employee, action_type ORDER BY employee, 3 DESC;
 $$;
 
@@ -696,7 +735,7 @@ CREATE OR REPLACE FUNCTION report_vendor_payouts(p_report_id INT)
 RETURNS TABLE(vendor TEXT, employee TEXT, action_type TEXT, devices BIGINT, total_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT vendor, employee, action_type, COUNT(DISTINCT service_id) AS devices, SUM(price) AS total_price
-  FROM actions WHERE report_id = p_report_id AND employee IS NOT NULL
+  FROM dept_actions WHERE report_id = p_report_id AND employee IS NOT NULL
   GROUP BY vendor, employee, action_type ORDER BY vendor, 5 DESC;
 $$;
 
@@ -705,7 +744,7 @@ CREATE OR REPLACE FUNCTION report_unscheduled_work(p_report_id INT)
 RETURNS TABLE(employee TEXT, devices BIGINT, total_price NUMERIC, avg_price NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT employee, COUNT(DISTINCT service_id) AS devices, SUM(price) AS total_price, AVG(price) AS avg_price
-  FROM actions WHERE report_id = p_report_id AND action_type = 'Ненормированная работа' AND employee IS NOT NULL
+  FROM dept_actions WHERE report_id = p_report_id AND action_type = 'Ненормированная работа' AND employee IS NOT NULL
   GROUP BY employee ORDER BY 3 DESC;
 $$;
 
@@ -732,7 +771,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
     COUNT(DISTINCT a.action_date),
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
-  FROM actions a
+  FROM dept_actions a
   LEFT JOIN employee_stats es ON es.employee = a.employee AND es.report_id = a.report_id
   WHERE a.report_id = p_report_id AND a.employee = p_employee;
 $$;
@@ -773,7 +812,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     COUNT(DISTINCT CASE WHEN a.vendor = 'Яндекс' THEN a.service_id END),
     COUNT(DISTINCT a.action_date),
     ROUND(SUM(a.price) / NULLIF(COUNT(DISTINCT a.action_date),0), 2)
-  FROM actions a
+  FROM dept_actions a
   LEFT JOIN employee_stats es ON es.employee = a.employee AND es.report_id = a.report_id
   WHERE a.report_id = p_report_id AND a.employee IS NOT NULL
   GROUP BY a.employee
@@ -824,12 +863,12 @@ RETURNS TABLE(
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   WITH bounds AS (
     SELECT MIN(action_date) AS d_from, MAX(action_date) AS d_to
-    FROM actions WHERE report_id = ANY(p_report_ids)
+    FROM dept_actions WHERE report_id = ANY(p_report_ids)
   ),
   -- основной отдел: ручной из карточки, иначе самый частый в отчётах вокруг периода
   emp_dept AS (
     SELECT a.employee, COALESCE(MAX(ed.department), mode() WITHIN GROUP (ORDER BY a.department), '—') AS dept
-    FROM actions a
+    FROM dept_actions a
     CROSS JOIN bounds b
     LEFT JOIN employee_departments ed ON ed.employee = a.employee
     WHERE a.employee IS NOT NULL AND a.action_date BETWEEN b.d_from - 60 AND b.d_to + 60
@@ -840,7 +879,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
       SUM(a.price) AS day_earnings,
       COUNT(*) AS day_actions,
       bool_or(a.accepted_at IS NOT NULL) AS has_acc
-    FROM actions a
+    FROM dept_actions a
     WHERE a.report_id = ANY(p_report_ids) AND a.action_date IS NOT NULL AND a.employee IS NOT NULL
     GROUP BY a.employee, a.action_date
   ),
@@ -893,7 +932,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ),
   cand AS (
     SELECT DISTINCT a.service_id
-    FROM actions a, bounds b
+    FROM dept_actions a, bounds b
     WHERE a.action_date BETWEEN b.d_from AND b.d_to + 60
       AND a.accepted_at IS NOT NULL AND a.accepted_at::date <= b.d_to
   ),
@@ -901,7 +940,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
     SELECT a.service_id, a.action_date, a.accepted_at, d.dept,
       -- 00:00 в выгрузке = время не заполнено (напр., все действия курьеров)
       a.action_date + NULLIF(a.action_time, TIME '00:00') AS ts
-    FROM actions a
+    FROM dept_actions a
     JOIN cand c ON c.service_id = a.service_id
     JOIN emp_dept d ON d.employee = a.employee
     WHERE a.action_date IS NOT NULL
@@ -947,7 +986,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   emp_ts AS (
     SELECT a.employee, d.dept, a.action_date, a.action_type,
       a.action_date + a.action_time AS ts
-    FROM actions a
+    FROM dept_actions a
     JOIN emp_dept d ON d.employee = a.employee
     WHERE a.report_id = ANY(p_report_ids) AND a.action_date IS NOT NULL
       AND a.action_time IS NOT NULL AND a.action_time <> TIME '00:00'
@@ -1092,7 +1131,7 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.service_id, a.action_date, a.vendor, a.group_name, a.action_type, a.price,
     COALESCE(s.zone, 'normal') AS zone,
     (a.action_type = ANY(COALESCE(s.extra_actions, ARRAY[]::text[]))) AS is_extra
-  FROM actions a
+  FROM dept_actions a
   LEFT JOIN services s ON s.service_id = a.service_id AND s.report_id = a.report_id
   WHERE a.report_id = p_report_id AND a.employee = p_employee
   ORDER BY a.service_id, a.action_date;

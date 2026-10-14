@@ -4,7 +4,8 @@
 --   • недели / перерасход / еженедельный отчёт (actions, как раньше);
 --   • KPI руководителя с октября 2026 (actions по датам месяца);
 --   • проверки перед выдачей (issue_checks — строки этого типа при импорте).
--- Плюс «мой отдел» для фильтра перерасхода.
+-- Показатели дашборда считаются только по «моему отделу» — см. dept_actions
+-- в supabase_functions.sql; KPI и проверки — по всем действиям.
 -- Прогнать целиком в Supabase SQL Editor ПОСЛЕ supabase_functions.sql,
 -- supabase_periods.sql, supabase_issue_checks.sql, supabase_kpi.sql (идемпотентно).
 -- ============================================================
@@ -126,35 +127,10 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ORDER BY 1, 2, 3, 4, 5, 6;   -- стабильный порядок: клиент читает постранично
 $$;
 
--- 4. Перерасход по действиям заданных сотрудников (режим «Мой отдел»).
--- Доп. действие обращения = тип из period_services.extra_actions; сумма — только
--- по строкам этих сотрудников. Одна строка на (обращение, тип действия).
-CREATE OR REPLACE FUNCTION get_overruns_by_employees_p(p_period TEXT, p_employees TEXT[])
-RETURNS TABLE(service_id BIGINT, action_type TEXT, amount NUMERIC, employees TEXT[])
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT a.service_id, a.action_type::text, SUM(a.price), ARRAY_AGG(DISTINCT a.employee::text)
-  FROM periods p
-  JOIN period_services ps ON ps.period_key = p.period_key AND ps.overrun > 0
-  JOIN actions a ON a.report_id = ANY(p.report_ids)
-                AND a.service_id = ps.service_id
-                AND a.action_type = ANY(ps.extra_actions)
-                AND a.employee = ANY(p_employees)
-  WHERE p.period_key = p_period
-  GROUP BY a.service_id, a.action_type;
-$$;
-
--- 5. Настройки приложения (ключ → значение). Сейчас: my_department.
-CREATE TABLE IF NOT EXISTS app_settings (
-  key        TEXT PRIMARY KEY,
-  value      JSONB,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS anon_all ON app_settings;
-CREATE POLICY anon_all ON app_settings FOR ALL TO anon USING (true) WITH CHECK (true);
-GRANT SELECT, INSERT, UPDATE, DELETE ON app_settings TO anon;
+-- 4. Переключатель «Мой отдел / Все» в перерасходе больше не нужен: область
+--    задаётся на уровне агрегатов (dept_actions в supabase_functions.sql).
+DROP FUNCTION IF EXISTS get_overruns_by_employees_p(TEXT, TEXT[]);
 
 GRANT EXECUTE ON FUNCTION import_report_rows(DATE, TEXT, JSONB) TO anon;
 GRANT EXECUTE ON FUNCTION get_kpi_months() TO anon;
 GRANT EXECUTE ON FUNCTION get_kpi_month_rows(DATE) TO anon;
-GRANT EXECUTE ON FUNCTION get_overruns_by_employees_p(TEXT, TEXT[]) TO anon;

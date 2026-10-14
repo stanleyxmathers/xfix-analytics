@@ -1067,12 +1067,8 @@ body:not(.presentation) .present-exit { display: none; }
 
       <!-- ─ Overruns ─────────────────────────────────────────────────────── -->
       <div class="page" id="page-overruns">
-        <div class="section-header" style="align-items:flex-start">
-          <div><div class="section-title">Причины перерасходов</div><div class="section-sub" id="ovr-scope-sub">ТОП дополнительных действий</div></div>
-          <div class="tabs" style="margin:0">
-            <button class="tab" id="ovr-scope-mine" style="white-space:nowrap" onclick="setOverrunScope('mine')" title="Только доп. действия сотрудников вашего отдела (Настройки → Сотрудники)">Мой отдел</button>
-            <button class="tab" id="ovr-scope-all" onclick="setOverrunScope('all')">Все</button>
-          </div>
+        <div class="section-header">
+          <div><div class="section-title">Причины перерасходов</div><div class="section-sub">ТОП дополнительных действий</div></div>
         </div>
         <div class="charts-grid">
           <div class="card">
@@ -1718,7 +1714,8 @@ body:not(.presentation) .present-exit { display: none; }
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;border-radius:12px;background:var(--bg-hover,rgba(128,128,128,.08))">
               <span style="font-weight:600;font-size:13px">Мой отдел</span>
               <select id="my-dept-select" class="report-select" style="max-width:220px" onchange="saveMyDept(this.value)"></select>
-              <span style="font-size:12px;color:var(--text-muted)">Перерасход в режиме «Мой отдел» считает только действия сотрудников этого отдела. Остальные сотрудники остаются в отчёте и KPI.</span>
+              <button class="btn btn-ghost" onclick="recomputeAllWeeks()" title="Нужно после смены отделов у сотрудников">Пересчитать недели</button>
+              <span id="my-dept-status" style="font-size:12px;color:var(--text-muted)">Главная, перерасход, сотрудники и еженедельный отчёт считаются только по сотрудникам этого отдела. KPI руководителя и проверки перед выдачей — по всем действиям. После смены отделов у сотрудников нажмите «Пересчитать недели».</span>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
               <input id="emp-search" class="settings-input" style="max-width:280px" type="text" placeholder="Поиск сотрудника..." oninput="filterEmpTable()">
@@ -3467,18 +3464,17 @@ async function loadDynamics() {
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE: OVERRUNS
 ══════════════════════════════════════════════════════════════════════════════ */
-/* ─── «Мой отдел»: фильтр перерасхода ──────────────────────────────────────
+/* ─── «Мой отдел»: область показателей ─────────────────────────────────────
    Отдел задаётся в Настройках → Сотрудники (app_settings.my_department).
-   В режиме «Мой отдел» перерасход обращения = доп. действия только сотрудников
-   отдела (get_overruns_by_employees_p); чужие сотрудники остаются в данных. */
+   В базе показатели читают dept_actions — действия только сотрудников отдела;
+   KPI руководителя и проверки перед выдачей — все действия. Недельные агрегаты
+   хранятся готовыми, поэтому после смены отдела их пересчитываем. */
 const myDept = { name: null, loaded: false };
-let ovrScope = (() => { try { return localStorage.getItem('ovrScope') || 'mine'; } catch { return 'mine'; } })();
-let _ovrMineCache = { key: null, map: null };
 
 async function loadMyDept() {
   if (myDept.loaded || !sb) return myDept.name;
   const { data, error } = await sb.from('app_settings').select('value').eq('key', 'my_department').maybeSingle();
-  if (error) console.warn('app_settings:', error.message, '— прогоните supabase_unified_upload.sql');
+  if (error) console.warn('app_settings:', error.message, '— прогоните supabase_functions.sql');
   myDept.name = data && data.value ? data.value : null;
   myDept.loaded = true;
   return myDept.name;
@@ -3491,10 +3487,10 @@ async function saveMyDept(name) {
       : await sb.from('app_settings').delete().eq('key', 'my_department');
     if (error) throw error;
     myDept.name = name || null;
-    _ovrMineCache = { key: null, map: null };
-    showToast(name ? `Мой отдел: ${name}` : 'Мой отдел не задан', 'success');
+    showToast(name ? `Мой отдел: ${name}. Пересчитываю недели…` : 'Мой отдел не задан — считаются все сотрудники. Пересчитываю недели…', 'success');
+    await recomputeAllWeeks();
   } catch (e) {
-    showToast('Ошибка сохранения: ' + e.message + (/app_settings/.test(e.message) ? ' — прогоните supabase_unified_upload.sql' : ''), 'error');
+    showToast('Ошибка сохранения: ' + e.message + (/app_settings/.test(e.message) ? ' — прогоните supabase_functions.sql' : ''), 'error');
   }
 }
 
@@ -3505,76 +3501,47 @@ async function fillMyDeptSelect() {
   const depts = new Set(DEPTS);
   _empDeptData.forEach(r => { if (r.department) depts.add(r.department); });
   if (myDept.name) depts.add(myDept.name);
-  sel.innerHTML = `<option value="">— не задан —</option>` +
+  sel.innerHTML = `<option value="">— все сотрудники —</option>` +
     [...depts].sort((a, b) => a.localeCompare(b, 'ru')).map(d => `<option value="${esc(d)}"${d === myDept.name ? ' selected' : ''}>${esc(d)}</option>`).join('');
 }
 
-function setOverrunScope(scope) {
-  ovrScope = scope;
-  try { localStorage.setItem('ovrScope', scope); } catch {}
-  loadOverruns(); loadReasons();
-}
-
-/* Режим «Мой отдел» активен? Возвращает список сотрудников отдела или null */
-async function overrunScopeEmployees() {
-  await loadMyDept();
-  const mineBtn = document.getElementById('ovr-scope-mine');
-  const allBtn = document.getElementById('ovr-scope-all');
-  const sub = document.getElementById('ovr-scope-sub');
-  mineBtn.textContent = myDept.name ? `Мой отдел · ${myDept.name}` : 'Мой отдел';
-  mineBtn.disabled = !myDept.name;
-  const mine = ovrScope === 'mine' && !!myDept.name;
-  mineBtn.classList.toggle('active', mine);
-  allBtn.classList.toggle('active', !mine);
-  sub.textContent = mine
-    ? `ТОП дополнительных действий сотрудников отдела «${myDept.name}»`
-    : (myDept.name ? 'ТОП дополнительных действий — все сотрудники' : 'ТОП дополнительных действий — все сотрудники. Свой отдел задаётся в Настройках → Сотрудники');
-  if (!mine) return null;
-  await ensureEmployeeList();
-  return _empDeptData.filter(r => r.department === myDept.name).map(r => r.employee);
-}
-
-/* service_id → {amount, types:[], employees:[], byType:{type: amount}} по сотрудникам отдела */
-async function overrunMineMap(emps) {
-  const key = STATE.period.key + '|' + myDept.name;
-  if (_ovrMineCache.key === key) return _ovrMineCache.map;
-  const map = new Map();
-  if (emps.length) {
-    const rows = await rpcWithRetry('get_overruns_by_employees_p', { p_period: STATE.period.key, p_employees: emps });
-    for (const r of rows || []) {
-      const m = map.get(r.service_id) || { amount: 0, types: [], employees: new Set(), byType: {} };
-      m.amount += +r.amount || 0;
-      m.types.push(r.action_type);
-      m.byType[r.action_type] = (m.byType[r.action_type] || 0) + (+r.amount || 0);
-      (r.employees || []).forEach(e => m.employees.add(e));
-      map.set(r.service_id, m);
+/* Пересчитать готовые агрегаты всех загруженных недель под текущую область.
+   Периоды пересоберутся сами (scope_stamp в period_begin). */
+let _recomputeBusy = false;
+async function recomputeAllWeeks() {
+  if (_recomputeBusy || !sb) return;
+  _recomputeBusy = true;
+  const status = document.getElementById('my-dept-status');
+  const prev = status ? status.textContent : '';
+  const failed = [];
+  try {
+    const reports = await api('uploads');
+    const list = Array.isArray(reports) ? reports : (reports.rows || []);
+    for (let i = 0; i < list.length; i++) {
+      if (status) status.textContent = `Пересчёт недель: ${i + 1} из ${list.length}…`;
+      try {
+        await db('import_report_recompute', { p_report_id: list[i].id });
+        await db('import_report_stats', { p_report_id: list[i].id });
+      } catch (e) { failed.push(`${fmt.weekRange(list[i].report_week)}: ${e.message}`); }
     }
+    await db('import_analyze').catch(() => {});
+    if (failed.length) showToast(`Пересчитано с ошибками: ${failed.join('; ')}`, 'error');
+    else showToast(`Пересчитано недель: ${list.length}`, 'success');
+    STATE.loaded.clear();
+    await loadReports();
+  } catch (e) {
+    showToast('Ошибка пересчёта: ' + e.message, 'error');
+  } finally {
+    _recomputeBusy = false;
+    if (status) status.textContent = prev;
   }
-  _ovrMineCache = { key, map };
-  return map;
-}
-
-/* Зона по доле перерасхода — те же границы, что в period_build_services */
-function overrunZone(overrun, base) {
-  if (!base || !overrun) return 'normal';
-  const k = overrun / base;
-  return k <= 0.30 ? 'small' : k <= 1.00 ? 'elevated' : 'critical';
 }
 
 async function loadOverruns() {
   if (!STATE.currentReportId) return;
   try {
-    const emps = await overrunScopeEmployees();
     const data = await api('overruns', { report_id: STATE.currentReportId });
-    let rows = Array.isArray(data) ? data : (data.rows || []);
-    if (emps) {
-      const map = await overrunMineMap(emps);
-      rows = rows.filter(r => map.has(r.service_id)).map(r => {
-        const m = map.get(r.service_id);
-        return { ...r, overrun: m.amount, overrun_pct: r.base_cost ? m.amount / r.base_cost * 100 : 0,
-          zone: overrunZone(m.amount, +r.base_cost), employees: [...m.employees], extra_actions: m.types };
-      }).sort((a, b) => b.overrun - a.overrun);
-    }
+    const rows = Array.isArray(data) ? data : (data.rows || []);
     const tbody = document.getElementById('overruns-tbody');
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Перерасходов нет</td></tr>';
@@ -3594,10 +3561,7 @@ async function loadOverruns() {
         <td style="font-size:11px;color:var(--text-muted);max-width:200px">${(r.extra_actions||[]).join(', ')||'—'}</td>
       </tr>
     `).join('');
-  } catch(e) {
-    console.error('overruns', e);
-    if (/get_overruns_by_employees_p|app_settings/.test(e.message)) showToast('Перерасход «Мой отдел»: прогоните supabase_unified_upload.sql', 'error');
-  }
+  } catch(e) { console.error('overruns', e); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3606,22 +3570,8 @@ async function loadOverruns() {
 async function loadReasons() {
   if (!STATE.currentReportId) return;
   try {
-    const emps = await overrunScopeEmployees();
-    let rows;
-    if (emps) {
-      const agg = new Map();
-      for (const m of (await overrunMineMap(emps)).values()) {
-        for (const [type, amount] of Object.entries(m.byType)) {
-          const a = agg.get(type) || { reason: type, cases_count: 0, total_overrun: 0 };
-          a.cases_count++; a.total_overrun += amount;
-          agg.set(type, a);
-        }
-      }
-      rows = [...agg.values()].sort((a, b) => b.total_overrun - a.total_overrun).slice(0, 10);
-    } else {
-      const data = await api('reasons', { report_id: STATE.currentReportId });
-      rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 10);
-    }
+    const data = await api('reasons', { report_id: STATE.currentReportId });
+    const rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 10);
     if (!rows.length) {
       destroyChart('chart-reasons');
       document.getElementById('reasons-bars').innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px 0">Перерасходов нет</div>';
