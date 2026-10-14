@@ -297,44 +297,8 @@ ALTER TABLE actions ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMP;
 -- поиск обращений, ожидавших работы в заданные дни (дни просадки)
 CREATE INDEX IF NOT EXISTS idx_actions_action_date ON actions(action_date);
 
-CREATE OR REPLACE FUNCTION import_report_rows(p_week DATE, p_filename TEXT, p_rows JSONB)
-RETURNS INT
-LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE
-  v_report_id INT;
-BEGIN
-  INSERT INTO uploads(report_week, filename, row_count)
-  VALUES (p_week, p_filename, jsonb_array_length(p_rows))
-  -- upload_date обновляем и при перезаливке: по нему периоды понимают, что кэш протух
-  ON CONFLICT (report_week) DO UPDATE SET filename = EXCLUDED.filename, upload_date = NOW()
-  RETURNING id INTO v_report_id;
-
-  DELETE FROM actions WHERE report_id = v_report_id;
-
-  INSERT INTO actions(id, report_id, employee, action_date, office, department, action_type, group_name, subgroup, comment, price, service_id, vendor, action_time, accepted_at)
-  SELECT
-    (r->>'id')::bigint,
-    v_report_id,
-    NULLIF(r->>'employee',''),
-    NULLIF(r->>'action_date','')::date,
-    NULLIF(r->>'office',''),
-    NULLIF(r->>'department',''),
-    NULLIF(r->>'action_type',''),
-    NULLIF(r->>'group_name',''),
-    NULLIF(r->>'subgroup',''),
-    NULLIF(r->>'comment',''),
-    COALESCE((r->>'price')::numeric, 0),
-    (r->>'service_id')::bigint,
-    NULLIF(r->>'vendor',''),
-    NULLIF(r->>'action_time','')::time,
-    NULLIF(r->>'accepted_at','')::timestamp
-  FROM jsonb_array_elements(p_rows) AS r;
-
-  UPDATE uploads SET row_count = (SELECT COUNT(*) FROM actions WHERE report_id = v_report_id) WHERE id = v_report_id;
-
-  RETURN v_report_id;
-END;
-$$;
+-- import_report_rows — в supabase_unified_upload.sql (один отчёт на всё:
+-- KPI-признаки, проверки перед выдачей, замена только дат из файла).
 
 -- SET LOCAL поднимает лимит только на эту транзакцию: anon-роль ограничена 3s
 -- (достаточно для чтений дашборда), а пересчёт при импорте — тяжелее и не

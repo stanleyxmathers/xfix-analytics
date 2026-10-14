@@ -12,6 +12,9 @@
 ├── supabase_functions.sql    # RPC поверх report_id (импорт + чтение)
 ├── supabase_periods.sql      # слой периодов: неделя / месяц / квартал / диапазон
 ├── supabase_health.sql       # журнал ошибок + снимок состояния Postgres
+├── supabase_issue_checks.sql # проверки перед выдачей
+├── supabase_kpi.sql          # KPI руководителя: схемы по месяцам, история до окт. 2026
+├── supabase_unified_upload.sql # один отчёт на всё: импорт, KPI из actions, «мой отдел»
 └── supabase/functions/db-health/index.ts   # Edge Function: прокси к Metrics API
 ```
 
@@ -45,7 +48,13 @@ dashboard.html <──supabase-js RPC──────────────�
 2. supabase_functions.sql   # RPC поверх report_id
 3. supabase_periods.sql     # слой периодов (зависит от п.2)
 4. supabase_health.sql      # мониторинг (можно позже)
+5. supabase_issue_checks.sql, supabase_kpi.sql, supabase_duty.sql, supabase_schedule.sql
+6. supabase_unified_upload.sql  # импорт общего отчёта (зависит от п.2 и п.5)
 ```
+
+Грузится один общий отчёт (все сотрудники, все типы действий, колонки «Маркер корп»,
+«Ключ просрочен», «id»). Из него собираются недели и перерасход, еженедельный отчёт,
+KPI руководителя за месяц и проверки перед выдачей.
 
 ### 3. Указать ключи в дашборде
 

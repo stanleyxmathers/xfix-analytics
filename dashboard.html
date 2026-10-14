@@ -1067,8 +1067,12 @@ body:not(.presentation) .present-exit { display: none; }
 
       <!-- ─ Overruns ─────────────────────────────────────────────────────── -->
       <div class="page" id="page-overruns">
-        <div class="section-header">
-          <div><div class="section-title">Причины перерасходов</div><div class="section-sub">ТОП дополнительных действий</div></div>
+        <div class="section-header" style="align-items:flex-start">
+          <div><div class="section-title">Причины перерасходов</div><div class="section-sub" id="ovr-scope-sub">ТОП дополнительных действий</div></div>
+          <div class="tabs" style="margin:0">
+            <button class="tab" id="ovr-scope-mine" style="white-space:nowrap" onclick="setOverrunScope('mine')" title="Только доп. действия сотрудников вашего отдела (Настройки → Сотрудники)">Мой отдел</button>
+            <button class="tab" id="ovr-scope-all" onclick="setOverrunScope('all')">Все</button>
+          </div>
         </div>
         <div class="charts-grid">
           <div class="card">
@@ -1261,16 +1265,12 @@ body:not(.presentation) .present-exit { display: none; }
         <div class="section-header" style="align-items:flex-start">
           <div>
             <div class="section-title">KPI руководителя</div>
-            <div class="section-sub">Показатели просрочки по отделу за месяц. Отдельный отчёт — считаются только показатели руководителя.</div>
+            <div class="section-sub">Показатели отдела за месяц. С октября 2026 считаются из общего отчёта (Загрузка данных); до октября — из прежних месячных загрузок.</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <select class="report-select" id="kpi-mgr-month" onchange="loadManagerKpi()" style="max-width:200px">
               <option value="">Нет отчётов</option>
             </select>
-            <button class="btn btn-primary" onclick="openKpiUploadModal()" title="Загрузить месячный отчёт для KPI">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Загрузить отчёт
-            </button>
           </div>
         </div>
 
@@ -1299,7 +1299,7 @@ body:not(.presentation) .present-exit { display: none; }
         <div id="kpi-mgr-empty" class="empty-state">
           <div class="empty-state-icon" data-ico="chart"></div>
           <div class="empty-state-title">Нет данных за месяц</div>
-          <div style="color:var(--text-muted);font-size:13px">Загрузите месячный отчёт кнопкой «Загрузить отчёт»</div>
+          <div style="color:var(--text-muted);font-size:13px">Загрузите общий отчёт за месяц на странице «Загрузка данных»</div>
         </div>
 
         <!-- Карточки показателей -->
@@ -1464,7 +1464,7 @@ body:not(.presentation) .present-exit { display: none; }
         <!-- 7. KPI руководителя — только просмотр (плитки + шкала баллов) -->
         <div id="meth-kpi7" style="display:none">
           <div class="card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-            <div style="font-size:13px;color:var(--text-muted)">Показатели просрочки по отделу за месяц. Отдельный месячный отчёт; настройки и план — во вкладке «Отдел диагностики → KPI руководителя».</div>
+            <div style="font-size:13px;color:var(--text-muted)">Показатели отдела за месяц из общего отчёта; веса, шкалы и план — во вкладке «Отдел диагностики → KPI руководителя».</div>
             <select class="report-select" id="meth-kpi7-month" onchange="renderWeeklyKpiMonth()" style="max-width:220px">
               <option value="">Нет отчётов</option>
             </select>
@@ -1473,7 +1473,7 @@ body:not(.presentation) .present-exit { display: none; }
           <div id="meth-kpi7-empty" class="empty-state">
             <div class="empty-state-icon" data-ico="chart"></div>
             <div class="empty-state-title">Нет данных за месяц</div>
-            <div style="color:var(--text-muted);font-size:13px">Загрузите месячный отчёт во вкладке «Отдел диагностики → KPI руководителя»</div>
+            <div style="color:var(--text-muted);font-size:13px">Загрузите общий отчёт за месяц на странице «Загрузка данных»</div>
           </div>
 
           <!-- Итоговый балл -->
@@ -1509,13 +1509,8 @@ body:not(.presentation) .present-exit { display: none; }
 
         <!-- 9. Проверка перед выдачей — ошибки ОКК, сопоставленные с исполнителями карточек -->
         <div id="meth-checks" style="display:none">
-          <div class="card" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-            <div style="font-size:13px;color:var(--text-muted);max-width:720px">Карточки из выгрузки «Проверка перед выдачей» сопоставлены с загруженными отчётами по id сервиса. Ответственный — сотрудник отчёта с наибольшим заработком на карточке до даты проверки (проверяющий не учитывается).</div>
-            <label class="btn btn-ghost" style="cursor:pointer" title="Excel-выгрузка с Тип = «Проверка перед выдачей». Повторная загрузка тех же строк обновляет их.">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Загрузить проверки
-              <input type="file" id="checks-file-input" accept=".xlsx,.xls" style="display:none" onchange="importIssueChecks(this)">
-            </label>
+          <div class="card" style="margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-muted);max-width:720px">Проверки «Проверка перед выдачей» берутся из общего отчёта при загрузке и сопоставляются с действиями по id сервиса. Ответственный — сотрудник отчёта с наибольшим заработком на карточке до даты проверки (проверяющий не учитывается).</div>
           </div>
           <div id="meth-checks-body"></div>
         </div>
@@ -1570,11 +1565,11 @@ body:not(.presentation) .present-exit { display: none; }
             <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--text-secondary)">
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <span style="color:var(--accent);font-size:16px;line-height:1">①</span>
-                <span>Выгрузите из системы отчёт за нужную неделю в формате Excel (.xlsx)</span>
+                <span>Выгрузите из системы один общий отчёт за неделю или месяц (.xlsx): <b>все сотрудники и все типы действий</b>, включая «Проверку перед выдачей»</span>
               </div>
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <span style="color:var(--accent);font-size:16px;line-height:1">②</span>
-                <span>Убедитесь, что в файле есть колонки: сотрудник, обращение, действие, цена, дата</span>
+                <span>Колонки: ФИО, дата, время, тип, группа, подгруппа, цена, id сервис, вендор, id, «Маркер корп», «Ключ просрочен»</span>
               </div>
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <span style="color:var(--accent);font-size:16px;line-height:1">③</span>
@@ -1582,11 +1577,11 @@ body:not(.presentation) .present-exit { display: none; }
               </div>
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <span style="color:var(--accent);font-size:16px;line-height:1">④</span>
-                <span>После обработки все страницы дашборда обновятся автоматически</span>
+                <span>Из файла сами собираются недели и перерасход, еженедельный отчёт, KPI руководителя за месяц и проверки перед выдачей. Повторная загрузка заменяет только даты из нового файла</span>
               </div>
             </div>
             <div style="margin-top:18px;padding:12px;background:var(--bg-card);border-radius:var(--radius-sm);font-size:12px;color:var(--text-muted)">
-              Обработка занимает от нескольких секунд до несколькихминут в зависимости от объёма данных.
+              Обработка занимает от нескольких секунд до нескольких минут в зависимости от объёма данных.
             </div>
           </div>
         </div>
@@ -1720,6 +1715,11 @@ body:not(.presentation) .present-exit { display: none; }
               Назначьте каждому сотруднику отдел вручную. Это переопределяет отдел из отчёта и влияет на расчёт базовых действий и перерасхода.<br>
               Уволенных отметьте как «не работает»: в отчётах и агрегатах они остаются, но пропадают из списков текущих сотрудников на странице KPI.
             </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;border-radius:12px;background:var(--bg-hover,rgba(128,128,128,.08))">
+              <span style="font-weight:600;font-size:13px">Мой отдел</span>
+              <select id="my-dept-select" class="report-select" style="max-width:220px" onchange="saveMyDept(this.value)"></select>
+              <span style="font-size:12px;color:var(--text-muted)">Перерасход в режиме «Мой отдел» считает только действия сотрудников этого отдела. Остальные сотрудники остаются в отчёте и KPI.</span>
+            </div>
             <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
               <input id="emp-search" class="settings-input" style="max-width:280px" type="text" placeholder="Поиск сотрудника..." oninput="filterEmpTable()">
               <label style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer">
@@ -1829,31 +1829,6 @@ body:not(.presentation) .present-exit { display: none; }
     <div style="display:flex;gap:10px;margin-top:20px">
       <button class="btn btn-ghost" style="flex:1" onclick="closeUploadModal()">Отмена</button>
       <button class="btn btn-primary" style="flex:2" onclick="doUpload()" id="upload-btn" disabled>Загрузить и обработать</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─── KPI руководителя: загрузка месячного отчёта ─────────────────────── -->
-<div class="modal-overlay" id="kpi-upload-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Загрузить отчёт для KPI руководителя</div>
-      <button class="modal-close" onclick="closeKpiUploadModal()">✕</button>
-    </div>
-    <div class="drop-zone" id="kpi-drop-zone" onclick="document.getElementById('kpi-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="onKpiDrop(event)">
-      <div class="drop-zone-icon" style="color:var(--xf-ink-400)"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
-      <div class="drop-zone-title">Перетащите Excel файл или нажмите</div>
-      <div class="drop-zone-sub">Месяц определяется по датам в файле. Повторная загрузка месяца заменяет данные.</div>
-      <div id="kpi-selected-filename" style="margin-top:10px;font-size:13px;color:var(--accent);display:none"></div>
-    </div>
-    <input type="file" id="kpi-file-input" accept=".xlsx,.xls" style="display:none" onchange="onKpiFileSelect(event)">
-    <div class="upload-progress" id="kpi-upload-progress" style="display:none">
-      <div style="font-size:12px;color:var(--text-secondary)" id="kpi-upload-status">Загрузка…</div>
-      <div class="upload-bar"><div class="upload-fill" id="kpi-upload-fill"></div></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn btn-ghost" style="flex:1" onclick="closeKpiUploadModal()">Отмена</button>
-      <button class="btn btn-primary" style="flex:2" onclick="doKpiUpload()" id="kpi-upload-btn" disabled>Загрузить</button>
     </div>
   </div>
 </div>
@@ -2267,6 +2242,7 @@ async function loadEmployeeDepts() {
   try {
     _empListPromise = api('employee_list').then(applyEmployeeList);
     await _empListPromise;
+    fillMyDeptSelect();
     const cnt = document.getElementById('emp-count');
     if (cnt) {
       const active = _empDeptData.length - _inactiveEmps.size;
@@ -3491,11 +3467,114 @@ async function loadDynamics() {
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE: OVERRUNS
 ══════════════════════════════════════════════════════════════════════════════ */
+/* ─── «Мой отдел»: фильтр перерасхода ──────────────────────────────────────
+   Отдел задаётся в Настройках → Сотрудники (app_settings.my_department).
+   В режиме «Мой отдел» перерасход обращения = доп. действия только сотрудников
+   отдела (get_overruns_by_employees_p); чужие сотрудники остаются в данных. */
+const myDept = { name: null, loaded: false };
+let ovrScope = (() => { try { return localStorage.getItem('ovrScope') || 'mine'; } catch { return 'mine'; } })();
+let _ovrMineCache = { key: null, map: null };
+
+async function loadMyDept() {
+  if (myDept.loaded || !sb) return myDept.name;
+  const { data, error } = await sb.from('app_settings').select('value').eq('key', 'my_department').maybeSingle();
+  if (error) console.warn('app_settings:', error.message, '— прогоните supabase_unified_upload.sql');
+  myDept.name = data && data.value ? data.value : null;
+  myDept.loaded = true;
+  return myDept.name;
+}
+
+async function saveMyDept(name) {
+  try {
+    const { error } = name
+      ? await sb.from('app_settings').upsert({ key: 'my_department', value: name, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+      : await sb.from('app_settings').delete().eq('key', 'my_department');
+    if (error) throw error;
+    myDept.name = name || null;
+    _ovrMineCache = { key: null, map: null };
+    showToast(name ? `Мой отдел: ${name}` : 'Мой отдел не задан', 'success');
+  } catch (e) {
+    showToast('Ошибка сохранения: ' + e.message + (/app_settings/.test(e.message) ? ' — прогоните supabase_unified_upload.sql' : ''), 'error');
+  }
+}
+
+async function fillMyDeptSelect() {
+  const sel = document.getElementById('my-dept-select');
+  if (!sel) return;
+  await loadMyDept();
+  const depts = new Set(DEPTS);
+  _empDeptData.forEach(r => { if (r.department) depts.add(r.department); });
+  if (myDept.name) depts.add(myDept.name);
+  sel.innerHTML = `<option value="">— не задан —</option>` +
+    [...depts].sort((a, b) => a.localeCompare(b, 'ru')).map(d => `<option value="${esc(d)}"${d === myDept.name ? ' selected' : ''}>${esc(d)}</option>`).join('');
+}
+
+function setOverrunScope(scope) {
+  ovrScope = scope;
+  try { localStorage.setItem('ovrScope', scope); } catch {}
+  loadOverruns(); loadReasons();
+}
+
+/* Режим «Мой отдел» активен? Возвращает список сотрудников отдела или null */
+async function overrunScopeEmployees() {
+  await loadMyDept();
+  const mineBtn = document.getElementById('ovr-scope-mine');
+  const allBtn = document.getElementById('ovr-scope-all');
+  const sub = document.getElementById('ovr-scope-sub');
+  mineBtn.textContent = myDept.name ? `Мой отдел · ${myDept.name}` : 'Мой отдел';
+  mineBtn.disabled = !myDept.name;
+  const mine = ovrScope === 'mine' && !!myDept.name;
+  mineBtn.classList.toggle('active', mine);
+  allBtn.classList.toggle('active', !mine);
+  sub.textContent = mine
+    ? `ТОП дополнительных действий сотрудников отдела «${myDept.name}»`
+    : (myDept.name ? 'ТОП дополнительных действий — все сотрудники' : 'ТОП дополнительных действий — все сотрудники. Свой отдел задаётся в Настройках → Сотрудники');
+  if (!mine) return null;
+  await ensureEmployeeList();
+  return _empDeptData.filter(r => r.department === myDept.name).map(r => r.employee);
+}
+
+/* service_id → {amount, types:[], employees:[], byType:{type: amount}} по сотрудникам отдела */
+async function overrunMineMap(emps) {
+  const key = STATE.period.key + '|' + myDept.name;
+  if (_ovrMineCache.key === key) return _ovrMineCache.map;
+  const map = new Map();
+  if (emps.length) {
+    const rows = await rpcWithRetry('get_overruns_by_employees_p', { p_period: STATE.period.key, p_employees: emps });
+    for (const r of rows || []) {
+      const m = map.get(r.service_id) || { amount: 0, types: [], employees: new Set(), byType: {} };
+      m.amount += +r.amount || 0;
+      m.types.push(r.action_type);
+      m.byType[r.action_type] = (m.byType[r.action_type] || 0) + (+r.amount || 0);
+      (r.employees || []).forEach(e => m.employees.add(e));
+      map.set(r.service_id, m);
+    }
+  }
+  _ovrMineCache = { key, map };
+  return map;
+}
+
+/* Зона по доле перерасхода — те же границы, что в period_build_services */
+function overrunZone(overrun, base) {
+  if (!base || !overrun) return 'normal';
+  const k = overrun / base;
+  return k <= 0.30 ? 'small' : k <= 1.00 ? 'elevated' : 'critical';
+}
+
 async function loadOverruns() {
   if (!STATE.currentReportId) return;
   try {
+    const emps = await overrunScopeEmployees();
     const data = await api('overruns', { report_id: STATE.currentReportId });
-    const rows = Array.isArray(data) ? data : (data.rows || []);
+    let rows = Array.isArray(data) ? data : (data.rows || []);
+    if (emps) {
+      const map = await overrunMineMap(emps);
+      rows = rows.filter(r => map.has(r.service_id)).map(r => {
+        const m = map.get(r.service_id);
+        return { ...r, overrun: m.amount, overrun_pct: r.base_cost ? m.amount / r.base_cost * 100 : 0,
+          zone: overrunZone(m.amount, +r.base_cost), employees: [...m.employees], extra_actions: m.types };
+      }).sort((a, b) => b.overrun - a.overrun);
+    }
     const tbody = document.getElementById('overruns-tbody');
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px">Перерасходов нет</td></tr>';
@@ -3515,7 +3594,10 @@ async function loadOverruns() {
         <td style="font-size:11px;color:var(--text-muted);max-width:200px">${(r.extra_actions||[]).join(', ')||'—'}</td>
       </tr>
     `).join('');
-  } catch(e) { console.error('overruns', e); }
+  } catch(e) {
+    console.error('overruns', e);
+    if (/get_overruns_by_employees_p|app_settings/.test(e.message)) showToast('Перерасход «Мой отдел»: прогоните supabase_unified_upload.sql', 'error');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3524,9 +3606,27 @@ async function loadOverruns() {
 async function loadReasons() {
   if (!STATE.currentReportId) return;
   try {
-    const data = await api('reasons', { report_id: STATE.currentReportId });
-    const rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 10);
-    if (!rows.length) return;
+    const emps = await overrunScopeEmployees();
+    let rows;
+    if (emps) {
+      const agg = new Map();
+      for (const m of (await overrunMineMap(emps)).values()) {
+        for (const [type, amount] of Object.entries(m.byType)) {
+          const a = agg.get(type) || { reason: type, cases_count: 0, total_overrun: 0 };
+          a.cases_count++; a.total_overrun += amount;
+          agg.set(type, a);
+        }
+      }
+      rows = [...agg.values()].sort((a, b) => b.total_overrun - a.total_overrun).slice(0, 10);
+    } else {
+      const data = await api('reasons', { report_id: STATE.currentReportId });
+      rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 10);
+    }
+    if (!rows.length) {
+      destroyChart('chart-reasons');
+      document.getElementById('reasons-bars').innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:20px 0">Перерасходов нет</div>';
+      return;
+    }
 
     mkChart('chart-reasons', {
       type: 'bar',
@@ -5558,7 +5658,7 @@ function renderMethChecks() {
     body.innerHTML = `<div class="card"><div class="empty-state">
       <div class="empty-state-icon">${ico('inbox', 40)}</div>
       <div class="empty-state-title">Проверок за период нет</div>
-      <div style="color:var(--text-muted);font-size:13px">За период ${currentReportLabel()} проверки перед выдачей не загружены — нажмите «Загрузить проверки»</div>
+      <div style="color:var(--text-muted);font-size:13px">За период ${currentReportLabel()} проверок перед выдачей нет — перезагрузите общий отчёт за эти даты (строки «Проверка перед выдачей» попадут сюда автоматически)</div>
     </div></div>`;
     return;
   }
@@ -5640,57 +5740,6 @@ async function loadMethChecks() {
     console.error('meth_checks', e);
   }
 }
-async function importIssueChecks(input) {
-  const file = input.files[0];
-  input.value = '';
-  if (!file || !sb) return;
-  if (!window.XLSX) { showToast('Библиотека XLSX не загружена', 'error'); return; }
-  try {
-    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
-    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '', raw: true });
-    if (grid.length < 2) throw new Error('Файл пуст');
-    const cm = buildColumnMap(grid[0]);
-    const idCol = grid[0].map(normHeader).indexOf('id');
-    if (idCol < 0) throw new Error('Не найдена колонка "id"');
-    if (cm.service_id < 0) throw new Error('Не найдена колонка "id сервис"');
-    const byId = new Map();
-    let skipped = 0;
-    for (let i = 1; i < grid.length; i++) {
-      const r = grid[i];
-      if (!r || !r.length) continue;
-      const type = cm.action_type >= 0 ? String(r[cm.action_type] ?? '').trim() : ISSUE_CHECK_TYPE;
-      const checkId = +r[idCol], serviceId = +r[cm.service_id];
-      const date = cm.action_date >= 0 ? xlsxDateToISO(r[cm.action_date]) : null;
-      if (type !== ISSUE_CHECK_TYPE || !checkId || !serviceId || !date) { skipped++; continue; }
-      const group = cm.group_name >= 0 ? String(r[cm.group_name] ?? '').trim().toLowerCase() : '';
-      byId.set(checkId, {
-        check_id: checkId,
-        check_date: date,
-        check_time: cm.action_time >= 0 ? xlsxTimeToISO(r[cm.action_time]) : null,
-        checker: cm.employee >= 0 ? String(r[cm.employee] ?? '').trim() || null : null,
-        service_id: serviceId,
-        passed: !group.startsWith('ошиб'),
-        comment: cm.comment >= 0 ? String(r[cm.comment] ?? '').trim() || null : null,
-        vendor: cm.vendor >= 0 ? String(r[cm.vendor] ?? '').trim() || null : null,
-        uploaded_at: new Date().toISOString(),
-      });
-    }
-    const rows = [...byId.values()];
-    if (!rows.length) throw new Error(`В файле нет строк «${ISSUE_CHECK_TYPE}»`);
-    for (let i = 0; i < rows.length; i += 500) {
-      const { error } = await sb.from('issue_checks').upsert(rows.slice(i, i + 500), { onConflict: 'check_id' });
-      if (error) throw error;
-    }
-    const errs = rows.filter(r => !r.passed).length;
-    showToast(`Загружено проверок: ${rows.length}, с ошибками: ${errs}${skipped ? ` · пропущено строк: ${skipped}` : ''}`, 'success');
-    loadMethChecks();
-  } catch(e) {
-    const hint = /issue_checks/.test(e.message) ? ' — выполните supabase_issue_checks.sql в SQL Editor' : '';
-    showToast(`Проверки: ${e.message}${hint}`, 'error');
-    console.error('importIssueChecks', e);
-  }
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    PAGE: REPORT
 ══════════════════════════════════════════════════════════════════════════════ */
@@ -5913,6 +5962,9 @@ function parseReportXLSX(file) {
     const headers = grid[0];
     const cm = buildColumnMap(headers);
     if (cm.service_id < 0) throw new Error('Не найдена колонка "id сервис"');
+    const idCol = headers.map(normHeader).indexOf('id');   // "id" строки — check_id проверок перед выдачей
+    // Признаки KPI: нет колонки → null (не 0), чтобы отличать «не просрочен» от «неизвестно»
+    const flag = (col, r) => col < 0 ? null : (String(r[col] ?? '').trim() === '1' ? 1 : 0);
     const rows = [];
     let minDate = null;
     for (let i = 1; i < grid.length; i++) {
@@ -5937,6 +5989,9 @@ function parseReportXLSX(file) {
         vendor:      cm.vendor      >= 0 ? String(r[cm.vendor]      ?? '').trim() : null,
         action_time: cm.action_time >= 0 ? xlsxTimeToISO(r[cm.action_time]) : null,
         accepted_at: cm.accepted_at >= 0 ? xlsxDateTimeToISO(r[cm.accepted_at]) : null,
+        is_corp:     flag(cm.is_corp, r),
+        is_overdue:  flag(cm.is_overdue, r),
+        row_id:      idCol >= 0 && +r[idCol] ? +r[idCol] : null,
       });
     }
     if (!rows.length) throw new Error('Не найдено ни одной строки с заполненным id сервис');
@@ -5960,47 +6015,6 @@ function splitRowsByWeek(rows, fallbackWeek) {
   return [...byWeek.entries()]
     .sort((a, b) => a[0] < b[0] ? -1 : 1)
     .map(([week, wrows]) => ({ week, rows: wrows }));
-}
-
-/* ─── KPI руководителя: парсер месячного отчёта ───────────────────────────
-   Тот же Excel, что и обычный отчёт, но берём только поля для показателей и
-   складываем плоским списком по месяцу (первый день месяца самой частой даты). */
-function parseKpiReportXLSX(file) {
-  if (!window.XLSX) throw new Error('Библиотека XLSX не загрузилась (CDN недоступен). Обновите страницу — Ctrl+Shift+R.');
-  return file.arrayBuffer().then(buf => {
-    const wb = XLSX.read(buf, { type: 'array', cellDates: false });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
-    if (grid.length < 2) throw new Error('Файл пуст');
-    const cm = buildColumnMap(grid[0]);
-    if (cm.action_type < 0) throw new Error('Не найдена колонка "Тип"');
-    const flag = v => (String(v ?? '').trim() === '1' ? 1 : 0);
-    const rows = [];
-    const monthCount = new Map();   // 'YYYY-MM' → сколько строк, чтобы выбрать основной месяц
-    for (let i = 1; i < grid.length; i++) {
-      const r = grid[i];
-      if (!r || !r.length) continue;
-      const at = cm.action_type >= 0 ? String(r[cm.action_type] ?? '').trim() : '';
-      if (!at) continue;
-      const iso = cm.action_date >= 0 ? xlsxDateToISO(r[cm.action_date]) : null;
-      if (iso) { const mk = iso.slice(0, 7); monthCount.set(mk, (monthCount.get(mk) || 0) + 1); }
-      rows.push({
-        employee:    cm.employee   >= 0 ? String(r[cm.employee]   ?? '').trim() : null,
-        action_type: at,
-        subgroup:    cm.subgroup   >= 0 ? String(r[cm.subgroup]   ?? '').trim() : null,
-        group_name:  cm.group_name >= 0 ? String(r[cm.group_name] ?? '').trim() : null,
-        is_corp:     cm.is_corp    >= 0 ? flag(r[cm.is_corp])    : 0,
-        is_overdue:  cm.is_overdue >= 0 ? flag(r[cm.is_overdue]) : 0,
-        price:       cm.price      >= 0 ? (parseFloat(String(r[cm.price]).replace(',', '.')) || 0) : 0,
-      });
-    }
-    if (!rows.length) throw new Error('Не найдено ни одной строки с заполненным «Тип»');
-    // основной месяц — с наибольшим числом строк; фолбэк — текущий месяц
-    let month = null, best = -1;
-    for (const [mk, c] of monthCount) if (c > best) { best = c; month = mk; }
-    month = (month || new Date().toISOString().slice(0, 7)) + '-01';
-    return { rows, month, total: rows.length };
-  });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -6167,8 +6181,9 @@ function kpiComputeMetric(m) {
   const denSub = m.denSub !== undefined ? m.denSub : (m.subgroup ?? null);
   const numRows = rows.filter(r => kpiRowMatch(r, m.numTypes, m.numCorp, m.numOverdue, numSub, m.numGroup));
   const denRows = rows.filter(r => kpiRowMatch(r, m.denTypes, m.denCorp, m.denOverdue, denSub, m.denGroup));
-  let num = numRows.length, den = denRows.length, source = null;
-  // В отчёте нет «Группы» у проверок перед выдачей → берём отдельную выгрузку проверок (issue_checks)
+  const cnt = list => list.reduce((s, r) => s + (r.n != null ? +r.n : 1), 0);   // n — свёрнутые строки общего отчёта
+  let num = cnt(numRows), den = cnt(denRows), source = null;
+  // В отчёте нет «Группы» у проверок перед выдачей → берём проверки из issue_checks
   const ic = kpiMgr.issueChecks;
   if (m.issueChecksFallback && ic && ic.total && !denRows.some(r => r.group_name)) {
     num = ic.errors; den = ic.total; source = 'issue_checks';
@@ -6214,10 +6229,19 @@ async function loadManagerKpiTab() {
   }
 }
 
+/* Месяцы KPI: с KPI_SCHEME_START — из общего отчёта (actions), раньше — из
+   прежних месячных загрузок (kpi_uploads/kpi_rows, история не пересчитывается). */
 async function loadKpiMonths() {
-  const { data, error } = await sb.from('kpi_uploads').select('month, filename, row_count').order('month', { ascending: false });
-  if (error) throw error;
-  kpiMgr.months = data || [];
+  const [legacy, fromActions] = await Promise.all([
+    sb.from('kpi_uploads').select('month, row_count').lt('month', KPI_SCHEME_START).order('month', { ascending: false }),
+    sb.rpc('get_kpi_months'),
+  ]);
+  if (legacy.error) throw legacy.error;
+  if (fromActions.error) console.warn('get_kpi_months:', fromActions.error.message, '— прогоните supabase_unified_upload.sql');
+  kpiMgr.months = [
+    ...(fromActions.data || []).map(m => ({ month: m.month, row_count: +m.row_count, with_flags: +m.with_flags, source: 'actions' })),
+    ...(legacy.data || []).map(m => ({ month: m.month, row_count: m.row_count, source: 'kpi' })),
+  ];
   const sel = document.getElementById('kpi-mgr-month');
   if (!kpiMgr.months.length) {
     sel.innerHTML = '<option value="">Нет отчётов</option>';
@@ -6260,8 +6284,26 @@ async function loadKpiSchemes() {
   kpiMgr.schemes = data || [];
 }
 
-/* Постранично вытянуть ВСЕ строки месяца (PostgREST режет ответ на 1000). */
+/* Строки месяца для показателей: из общего отчёта (свёрнуты, n — число действий)
+   или из прежней месячной загрузки (одна строка = одно действие). */
 async function fetchAllKpiRows(month) {
+  const info = kpiMgr.months.find(m => m.month === month);
+  if (info && info.source === 'actions') {
+    const out = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await sb.rpc('get_kpi_month_rows', { p_month: month }).range(from, from + 999);
+      if (error) throw error;
+      if (!data || !data.length) break;
+      out.push(...data);
+      if (data.length < 1000) break;
+    }
+    return out;
+  }
+  return fetchLegacyKpiRows(month);
+}
+
+/* Постранично вытянуть ВСЕ строки месяца (PostgREST режет ответ на 1000). */
+async function fetchLegacyKpiRows(month) {
   const CHUNK = 1000;
   // group_name появилась с октября 2026; без колонки в базе — читаем как раньше
   let cols = 'employee, action_type, subgroup, group_name, is_corp, is_overdue, price';
@@ -6792,7 +6834,7 @@ function renderKpiCards(prefix = 'kpi-mgr') {
     const color = ratio >= 0.9 ? 'var(--xf-green,#39bb3b)' : ratio >= 0.5 ? 'var(--warn-text)' : 'var(--xf-red,#e5484d)';
     const detail = m.plan
       ? `${res.den ? `${res.num} из ${res.den} не выполнили` : 'план не задан'}`
-      : `${res.num} / ${res.den}${res.empty ? ' · нет данных' : ''}${res.source === 'issue_checks' ? ' · из выгрузки проверок' : ''}`;
+      : `${res.num} / ${res.den}${res.empty ? ' · нет данных' : ''}${res.source === 'issue_checks' ? ' · по таблице проверок' : ''}`;
     return `<div class="kpi-card" title="${esc(m.desc)}">
       <div class="kpi-label">${m.order}. ${esc(m.title)}</div>
       <div class="kpi-value" style="color:${color}">${res.pts}<span style="font-size:14px;color:var(--text-muted);font-weight:500"> / ${m.maxPts}</span></div>
@@ -6815,6 +6857,10 @@ function renderKpiCards(prefix = 'kpi-mgr') {
   document.getElementById(prefix + '-scheme').textContent = scheme.legacy
     ? `Старая схема (до ${kpiMonthGen(KPI_SCHEME_START)})`
     : `Схема с ${kpiMonthGen(scheme.from)}`;
+  const info = kpiMgr.months.find(m => m.month === kpiMgr.month);
+  if (info && info.source === 'actions' && !info.with_flags) {
+    document.getElementById(prefix + '-scheme').innerHTML += ' · <span style="color:var(--xf-red,#e5484d)">в загруженном отчёте нет колонки «Ключ просрочен» — перезагрузите общий отчёт за месяц</span>';
+  }
   const pass = total >= thr;
   const bar = document.getElementById(prefix + '-bar');
   bar.style.width = (max ? Math.min(100, total / max * 100) : 0) + '%';
@@ -7096,72 +7142,6 @@ async function deleteKpiScheme() {
   }
 }
 
-/* ─── Загрузка месячного KPI-отчёта ────────────────────────────────────── */
-let kpiUploadFile_ = null;
-function openKpiUploadModal() { document.getElementById('kpi-upload-modal').classList.add('open'); }
-function closeKpiUploadModal() {
-  document.getElementById('kpi-upload-modal').classList.remove('open');
-  kpiUploadFile_ = null;
-  document.getElementById('kpi-selected-filename').style.display = 'none';
-  document.getElementById('kpi-upload-btn').disabled = true;
-  document.getElementById('kpi-upload-progress').style.display = 'none';
-  document.getElementById('kpi-upload-fill').style.width = '0';
-}
-function kpiPickFile(f) {
-  if (!f) return;
-  if (!(f.name.endsWith('.xlsx') || f.name.endsWith('.xls'))) { showToast('Поддерживаются только .xlsx и .xls', 'error'); return; }
-  kpiUploadFile_ = f;
-  const el = document.getElementById('kpi-selected-filename');
-  el.textContent = f.name; el.style.display = 'block';
-  document.getElementById('kpi-upload-btn').disabled = false;
-}
-function onKpiFileSelect(e) { kpiPickFile(e.target.files[0]); }
-function onKpiDrop(e) {
-  e.preventDefault();
-  document.getElementById('kpi-drop-zone').classList.remove('drag-over');
-  kpiPickFile(e.dataTransfer.files[0]);
-}
-
-async function doKpiUpload() {
-  if (!kpiUploadFile_ || !sb) return;
-  const prog = document.getElementById('kpi-upload-progress');
-  const fill = document.getElementById('kpi-upload-fill');
-  const status = document.getElementById('kpi-upload-status');
-  const btn = document.getElementById('kpi-upload-btn');
-  prog.style.display = 'block'; btn.disabled = true;
-  fill.style.width = '10%'; status.textContent = 'Чтение файла…';
-  try {
-    const { rows, month, total } = await parseKpiReportXLSX(kpiUploadFile_);
-    fill.style.width = '25%'; status.textContent = `Месяц: ${kpiMonthLabel(month)}. Запись…`;
-
-    // upsert аплоада (месяц уникален → повторная заливка заменяет)
-    const { data: up, error: upErr } = await sb.from('kpi_uploads')
-      .upsert({ month, filename: kpiUploadFile_.name, row_count: total }, { onConflict: 'month' })
-      .select('id').single();
-    if (upErr) throw upErr;
-    await sb.from('kpi_rows').delete().eq('kpi_upload_id', up.id);
-
-    const CH = 500;
-    for (let i = 0; i < rows.length; i += CH) {
-      const chunk = rows.slice(i, i + CH).map(r => ({ ...r, kpi_upload_id: up.id, month }));
-      const { error } = await sb.from('kpi_rows').insert(chunk);
-      if (error) throw error;
-      fill.style.width = (25 + (i + CH) / rows.length * 70) + '%';
-    }
-    fill.style.width = '100%'; status.textContent = 'Готово!';
-    setTimeout(async () => {
-      closeKpiUploadModal();
-      showToast(`KPI-отчёт загружен: ${kpiMonthLabel(month)}, ${total} строк`, 'success');
-      kpiMgr.month = month;
-      await loadKpiMonths();
-      await loadManagerKpi();
-    }, 500);
-  } catch (e) {
-    status.textContent = 'Ошибка: ' + e.message;
-    fill.style.width = '0'; btn.disabled = false;
-    showToast('Ошибка загрузки KPI: ' + e.message + (/relation .* does not exist|group_name/i.test(e.message) ? ' — прогоните supabase_kpi.sql' : ''), 'error');
-  }
-}
 
 /* Импорт списка недель: на каждую — те же три шага, что и раньше на один отчёт.
    Разбито по неделям в том числе из-за statement_timeout: пересчёт полугода
