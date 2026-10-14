@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS kpi_rows (
   is_overdue    SMALLINT DEFAULT 0,   -- "Ключ просрочен" = 1
   price         NUMERIC(12,2) DEFAULT 0
 );
+-- "Группа" (с октября 2026: «Проверка перед выдачей» с Группой «Ошибки»)
+ALTER TABLE kpi_rows ADD COLUMN IF NOT EXISTS group_name VARCHAR(255);
 CREATE INDEX IF NOT EXISTS idx_kpi_rows_month  ON kpi_rows(month);
 CREATE INDEX IF NOT EXISTS idx_kpi_rows_upload ON kpi_rows(kpi_upload_id);
 
@@ -36,6 +38,16 @@ CREATE TABLE IF NOT EXISTS kpi_settings (
   metric_key TEXT PRIMARY KEY,
   config     JSONB       NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3a. Версии схемы KPI (веса, шкалы, правила отбора) по месяцам.
+--     Схема действует с effective_from и до следующей версии. Месяцы до
+--     октября 2026 считаются по старой схеме (код + kpi_settings) и не меняются.
+--     config: {threshold, pointRub, metrics: [{key, title, maxPts, scale, …}]}
+CREATE TABLE IF NOT EXISTS kpi_schemes (
+  effective_from DATE        PRIMARY KEY,   -- первый день месяца
+  config         JSONB       NOT NULL,
+  updated_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 4. Личный план сотрудников по месяцам (метрика 6). Руководитель выставляет
@@ -63,6 +75,7 @@ CREATE TABLE IF NOT EXISTS kpi_plan_excluded (
 ALTER TABLE kpi_uploads  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kpi_rows     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kpi_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE kpi_schemes  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kpi_plan     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kpi_plan_excluded ENABLE ROW LEVEL SECURITY;
 
@@ -74,8 +87,10 @@ DROP POLICY IF EXISTS anon_all ON kpi_rows;
 CREATE POLICY anon_all ON kpi_rows     FOR ALL TO anon USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS anon_all ON kpi_settings;
 CREATE POLICY anon_all ON kpi_settings FOR ALL TO anon USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS anon_all ON kpi_schemes;
+CREATE POLICY anon_all ON kpi_schemes  FOR ALL TO anon USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS anon_all ON kpi_plan;
 CREATE POLICY anon_all ON kpi_plan     FOR ALL TO anon USING (true) WITH CHECK (true);
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON kpi_uploads, kpi_rows, kpi_settings, kpi_plan, kpi_plan_excluded TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON kpi_uploads, kpi_rows, kpi_settings, kpi_schemes, kpi_plan, kpi_plan_excluded TO anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;

@@ -1279,19 +1279,20 @@ body:not(.presentation) .present-exit { display: none; }
           <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div>
               <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Итоговый балл за месяц</div>
+              <div id="kpi-mgr-scheme" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
               <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
                 <span id="kpi-mgr-total" style="font-size:38px;font-weight:700;line-height:1">0</span>
-                <span style="font-size:18px;color:var(--text-muted)">/ 130</span>
+                <span id="kpi-mgr-max" style="font-size:18px;color:var(--text-muted)">/ 130</span>
               </div>
             </div>
             <div id="kpi-mgr-badge" style="text-align:right"></div>
           </div>
           <div style="margin-top:14px;height:10px;border-radius:6px;background:var(--border,rgba(128,128,128,.2));overflow:hidden;position:relative">
             <div id="kpi-mgr-bar" style="height:100%;width:0;border-radius:6px;transition:width .4s"></div>
-            <div title="Порог премии — 100 баллов" style="position:absolute;top:-3px;bottom:-3px;left:76.9%;width:2px;background:var(--text-secondary,#888)"></div>
+            <div id="kpi-mgr-thr" title="Порог премии — 100 баллов" style="position:absolute;top:-3px;bottom:-3px;left:76.9%;width:2px;background:var(--text-secondary,#888)"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
-            <span>0</span><span>порог премии — 100</span><span>130</span>
+            <span>0</span><span id="kpi-mgr-thr-label">порог премии — 100</span><span id="kpi-mgr-max-label">130</span>
           </div>
         </div>
 
@@ -1332,7 +1333,7 @@ body:not(.presentation) .present-exit { display: none; }
         <!-- Настройки показателей (шкалы + названия действий) -->
         <div class="card" style="margin-top:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer" onclick="toggleKpiSettings()">
-            <div class="card-title" style="margin:0">Настройки показателей</div>
+            <div><div class="card-title" style="margin:0">Веса и шкалы показателей</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">Схема KPI по месяцам: правка действует с выбранного месяца, прошлые месяцы не пересчитываются</div></div>
             <svg id="kpi-settings-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div id="kpi-settings-body" style="display:none;margin-top:16px"></div>
@@ -1480,19 +1481,20 @@ body:not(.presentation) .present-exit { display: none; }
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
               <div>
                 <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Итоговый балл за месяц</div>
+                <div id="meth-kpi7-scheme" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
                 <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
                   <span id="meth-kpi7-total" style="font-size:38px;font-weight:700;line-height:1">0</span>
-                  <span style="font-size:18px;color:var(--text-muted)">/ 130</span>
+                  <span id="meth-kpi7-max" style="font-size:18px;color:var(--text-muted)">/ 130</span>
                 </div>
               </div>
               <div id="meth-kpi7-badge" style="text-align:right"></div>
             </div>
             <div style="margin-top:14px;height:10px;border-radius:6px;background:var(--border,rgba(128,128,128,.2));overflow:hidden;position:relative">
               <div id="meth-kpi7-bar" style="height:100%;width:0;border-radius:6px;transition:width .4s"></div>
-              <div title="Порог премии — 100 баллов" style="position:absolute;top:-3px;bottom:-3px;left:76.9%;width:2px;background:var(--text-secondary,#888)"></div>
+              <div id="meth-kpi7-thr" title="Порог премии — 100 баллов" style="position:absolute;top:-3px;bottom:-3px;left:76.9%;width:2px;background:var(--text-secondary,#888)"></div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
-              <span>0</span><span>порог премии — 100</span><span>130</span>
+              <span>0</span><span id="meth-kpi7-thr-label">порог премии — 100</span><span id="meth-kpi7-max-label">130</span>
             </div>
           </div>
 
@@ -5986,6 +5988,7 @@ function parseKpiReportXLSX(file) {
         employee:    cm.employee   >= 0 ? String(r[cm.employee]   ?? '').trim() : null,
         action_type: at,
         subgroup:    cm.subgroup   >= 0 ? String(r[cm.subgroup]   ?? '').trim() : null,
+        group_name:  cm.group_name >= 0 ? String(r[cm.group_name] ?? '').trim() : null,
         is_corp:     cm.is_corp    >= 0 ? flag(r[cm.is_corp])    : 0,
         is_overdue:  cm.is_overdue >= 0 ? flag(r[cm.is_overdue]) : 0,
         price:       cm.price      >= 0 ? (parseFloat(String(r[cm.price]).replace(',', '.')) || 0) : 0,
@@ -6007,9 +6010,15 @@ function parseKpiReportXLSX(file) {
 ══════════════════════════════════════════════════════════════════════════════ */
 
 /* Определения показателей. corp/overdue: null = не фильтровать, 1 = требовать 1,
-   0 = требовать 0. subgroup применяется и к числителю, и к знаменателю.
-   scale: [[порог %, баллы], …] по возрастанию; берётся первый порог >= pct. */
-const DEFAULT_KPI_METRICS = [
+   0 = требовать 0. numSub/denSub, numGroup/denGroup — фильтр по Подгруппе/Группе.
+   scale: [[порог %, баллы], …] по возрастанию; берётся первый порог >= pct.
+
+   Схемы по месяцам: до KPI_SCHEME_START — старая схема (LEGACY_KPI_METRICS +
+   kpi_settings, больше не редактируется, история не пересчитывается). С него —
+   версии из kpi_schemes (действуют с effective_from до следующей версии);
+   встроенная KPI_SCHEME_2026_10 — если в базе нет своей версии. */
+const KPI_SCHEME_START = '2026-10-01';
+const LEGACY_KPI_METRICS = [
   { key: 'processing', order: 1, title: 'Обработка', maxPts: 40,
     desc: 'Просроченные среди действий «Обработано»',
     numTypes: ['Обработано'], denTypes: ['Обработано'],
@@ -6046,25 +6055,92 @@ const DEFAULT_KPI_METRICS = [
     numOverdue: null, denOverdue: null, numCorp: null, denCorp: null, numSub: 'Ошибка диагноста', denSub: null,
     scale: [[1,15],[3,13],[5,10],[10,5],[100,0]] },
 ];
-const KPI_PREMIUM_THRESHOLD = 100;
-const KPI_MAX_SCORE = DEFAULT_KPI_METRICS.reduce((s, m) => s + m.maxPts, 0);   // 130
+const KPI_LEGACY_THRESHOLD = 100;
 
-const kpiMgr = { month: null, rows: [], plan: [], settings: {}, months: [], excluded: [] };
+/* Новая схема с октября 2026 (документ «KPI руководителя диагностики»).
+   130 баллов, порог 100, 350 ₽ за балл; упор на сроки обработки и расширенной
+   диагностики, добавлены «Ошибки перед выдачей». */
+const KPI_SCHEME_2026_10 = {
+  threshold: 100, pointRub: 350,
+  metrics: [
+    { key: 'processing', title: 'Обработка', maxPts: 40,
+      desc: '«Обработано» с ключом «просрочен» к общему числу «Обработано»',
+      numTypes: ['Обработано'], denTypes: ['Обработано'],
+      numOverdue: 1, denOverdue: null, numCorp: null, denCorp: null, numSub: null, denSub: null,
+      scale: [[1,40],[3,32],[5,24],[7,16],[10,8]] },
+    { key: 'ext_diag', title: 'Расширенная диагностика', maxPts: 40,
+      desc: 'Просроченные «Расширенная диагностика» ко всем расширенным',
+      numTypes: ['Расширенная диагностика'], denTypes: ['Расширенная диагностика'],
+      numOverdue: 1, denOverdue: null, numCorp: null, denCorp: null, numSub: null, denSub: null,
+      scale: [[5,40],[10,32],[15,24],[20,16],[25,8]] },
+    { key: 'checks', title: 'Проверка', maxPts: 8,
+      desc: 'Проверка после НАСЦ / Выходная диагностика, корп — просроченные',
+      numTypes: ['Проверка после НАСЦ', 'Выходная диагностика', 'Выходная диагностика – проблемы'],
+      denTypes: ['Проверка после НАСЦ', 'Выходная диагностика', 'Выходная диагностика – проблемы'],
+      numOverdue: 1, denOverdue: null, numCorp: 1, denCorp: 1, numSub: null, denSub: null,
+      scale: [[3,8],[5,6],[10,5],[15,3],[20,2]] },
+    { key: 'airpods', title: 'Замена компонента AirPods', maxPts: 5,
+      desc: '«Замена части со склада», подгруппа «Наушники», корп — просроченные',
+      numTypes: ['Замена части со склада'], denTypes: ['Замена части со склада'],
+      numOverdue: 1, denOverdue: null, numCorp: 1, denCorp: 1, numSub: 'Наушники', denSub: 'Наушники',
+      scale: [[10,5],[20,4],[30,3],[40,2],[50,1]] },
+    { key: 'diag_check', title: 'Ошибка диагноста', maxPts: 10,
+      desc: '«Проверка диагностики - корректировка» с подгруппой «Ошибка диагноста» к общему числу «Обработано»',
+      numTypes: ['Проверка диагностики - корректировка'], denTypes: ['Обработано'],
+      numOverdue: null, denOverdue: null, numCorp: null, denCorp: null, numSub: 'Ошибка диагноста', denSub: null,
+      scale: [[1,10],[2,8],[3,6],[4,4],[5,2]] },
+    { key: 'issue_errors', title: 'Ошибки перед выдачей', maxPts: 10,
+      desc: '«Проверка перед выдачей» с Группой «Ошибки» ко всем проверкам перед выдачей',
+      numTypes: ['Проверка перед выдачей'], denTypes: ['Проверка перед выдачей'],
+      numOverdue: null, denOverdue: null, numCorp: null, denCorp: null, numSub: null, denSub: null,
+      numGroup: 'Ошибки', denGroup: null, issueChecksFallback: true,
+      scale: [[2,10],[4,8],[6,6],[8,4],[10,2]] },
+    { key: 'redo', title: 'Доделывание работ', maxPts: 7,
+      desc: '«Доделывание работ» к общему числу «Обработано»',
+      numTypes: ['Доделывание работ'], denTypes: ['Обработано'],
+      numOverdue: null, denOverdue: null, numCorp: null, denCorp: null, numSub: null, denSub: null,
+      scale: [[1,7],[2,6],[3,4],[4,3],[5,1]] },
+    { key: 'plan', title: 'Выполнение личного плана', maxPts: 10,
+      desc: 'Доля сотрудников, не выполнивших план заработка',
+      plan: true,
+      scale: [[0,10],[34,8]] },
+  ],
+};
 
-/* Слить сохранённые настройки поверх дефолтов (по metric_key) */
-function kpiMetrics() {
-  return DEFAULT_KPI_METRICS.map(def => {
+const kpiMgr = { month: null, rows: [], plan: [], settings: {}, schemes: [], months: [], excluded: [], issueChecks: null, schemeMonth: null, draft: null };
+
+/* Старая схема: дефолты поверх сохранённых kpi_settings (как было до октября 2026) */
+function kpiLegacyScheme() {
+  const metrics = LEGACY_KPI_METRICS.map(def => {
     const ov = kpiMgr.settings[def.key];
     return ov ? { ...def, ...ov } : { ...def };
-  });
+  }).sort((a, b) => a.order - b.order);
+  return { from: null, legacy: true, stored: false, config: { threshold: KPI_LEGACY_THRESHOLD, pointRub: null, metrics } };
+}
+
+/* Схема, действующая в месяце 'YYYY-MM-01': последняя версия с effective_from <= month */
+function kpiSchemeFor(month) {
+  if (!month || month < KPI_SCHEME_START) return kpiLegacyScheme();
+  const list = kpiMgr.schemes.map(r => ({ from: r.effective_from, config: r.config, stored: true }));
+  if (!list.some(r => r.from === KPI_SCHEME_START)) list.push({ from: KPI_SCHEME_START, config: KPI_SCHEME_2026_10, stored: false });
+  const cur = list.filter(r => r.from <= month).sort((a, b) => b.from.localeCompare(a.from))[0];
+  return { ...cur, legacy: false };
+}
+
+function kpiSchemeMax(cfg) { return cfg.metrics.reduce((s, m) => s + (+m.maxPts || 0), 0); }
+
+/* Показатели месяца с порядковыми номерами (порядок = порядок в схеме) */
+function kpiMetrics(month = kpiMgr.month) {
+  return kpiSchemeFor(month).config.metrics.map((m, i) => ({ ...m, order: i + 1 }));
 }
 
 /* Строка подходит под фильтры */
-function kpiRowMatch(r, types, corp, overdue, subgroup) {
+function kpiRowMatch(r, types, corp, overdue, subgroup, group) {
   if (types && types.length && !types.includes(r.action_type)) return false;
   if (corp === 1 || corp === 0)       { if ((+r.is_corp    ? 1 : 0) !== corp)    return false; }
   if (overdue === 1 || overdue === 0) { if ((+r.is_overdue ? 1 : 0) !== overdue) return false; }
   if (subgroup && r.subgroup !== subgroup) return false;
+  if (group && String(r.group_name || '').trim().toLowerCase() !== group.trim().toLowerCase()) return false;
   return true;
 }
 
@@ -6089,11 +6165,31 @@ function kpiComputeMetric(m) {
   // legacy-конфиги с одним subgroup применяются к обоим.
   const numSub = m.numSub !== undefined ? m.numSub : (m.subgroup ?? null);
   const denSub = m.denSub !== undefined ? m.denSub : (m.subgroup ?? null);
-  const num = rows.filter(r => kpiRowMatch(r, m.numTypes, m.numCorp, m.numOverdue, numSub)).length;
-  const den = rows.filter(r => kpiRowMatch(r, m.denTypes, m.denCorp, m.denOverdue, denSub)).length;
+  const numRows = rows.filter(r => kpiRowMatch(r, m.numTypes, m.numCorp, m.numOverdue, numSub, m.numGroup));
+  const denRows = rows.filter(r => kpiRowMatch(r, m.denTypes, m.denCorp, m.denOverdue, denSub, m.denGroup));
+  let num = numRows.length, den = denRows.length, source = null;
+  // В отчёте нет «Группы» у проверок перед выдачей → берём отдельную выгрузку проверок (issue_checks)
+  const ic = kpiMgr.issueChecks;
+  if (m.issueChecksFallback && ic && ic.total && !denRows.some(r => r.group_name)) {
+    num = ic.errors; den = ic.total; source = 'issue_checks';
+  }
   const pct = den ? num / den * 100 : 0;
   // den=0 → нет базы для оценки: 0 баллов, а не максимум за «пустой» 0%.
-  return { num, den, pct, pts: den ? kpiScore(pct, m.scale) : 0, empty: den === 0 };
+  return { num, den, pct, pts: den ? kpiScore(pct, m.scale) : 0, empty: den === 0, source };
+}
+
+/* Проверки перед выдачей за месяц из issue_checks: {total, errors} или null */
+async function loadKpiIssueChecks(month) {
+  kpiMgr.issueChecks = null;
+  if (!month || !kpiMetrics(month).some(m => m.issueChecksFallback)) return;
+  const [y, mo] = month.split('-').map(Number);
+  const to = new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10);   // последний день месяца
+  const q = () => sb.from('issue_checks').select('check_id', { count: 'exact', head: true }).gte('check_date', month).lte('check_date', to);
+  try {
+    const [all, err] = await Promise.all([q(), q().eq('passed', false)]);
+    if (all.error || err.error) throw all.error || err.error;
+    kpiMgr.issueChecks = { total: all.count || 0, errors: err.count || 0 };
+  } catch (e) { console.warn('KPI issue_checks:', e.message); }
 }
 
 /* Фактический заработок по сотрудникам за месяц (сумма price по всем действиям) */
@@ -6110,8 +6206,7 @@ function kpiEarningsByEmployee() {
 async function loadManagerKpiTab() {
   if (!sb) { document.getElementById('kpi-mgr-empty').style.display = ''; return; }
   try {
-    await Promise.all([loadKpiMonths(), loadKpiSettings(), loadKpiExcluded()]);
-    renderKpiSettings();
+    await Promise.all([loadKpiMonths(), loadKpiSettings(), loadKpiSchemes(), loadKpiExcluded()]);
     await loadManagerKpi();
   } catch (e) {
     console.error('loadManagerKpiTab:', e);
@@ -6134,6 +6229,12 @@ async function loadKpiMonths() {
   sel.innerHTML = kpiMgr.months.map(m => `<option value="${m.month}" ${m.month === kpiMgr.month ? 'selected' : ''}>${kpiMonthLabel(m.month)} (${m.row_count} строк)</option>`).join('');
 }
 
+const KPI_MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function kpiMonthGen(monthDate) {
+  const [y, mo] = monthDate.split('-');
+  return `${KPI_MONTHS_GEN[+mo - 1]} ${y}`;
+}
+
 function kpiMonthLabel(monthDate) {
   const [y, mo] = monthDate.split('-');
   return `${MONTHS_NOM[+mo - 1]} ${y}`;
@@ -6146,14 +6247,32 @@ async function loadKpiSettings() {
   (data || []).forEach(r => { kpiMgr.settings[r.metric_key] = r.config; });
 }
 
+/* Версии схем KPI. Нет таблицы (не прогнан supabase_kpi.sql) — работаем на встроенной схеме. */
+async function loadKpiSchemes() {
+  const { data, error } = await sb.from('kpi_schemes').select('effective_from, config').order('effective_from');
+  if (error) {
+    console.warn('kpi_schemes:', error.message);
+    kpiMgr.schemes = [];
+    kpiMgr.schemesMissing = true;
+    return;
+  }
+  kpiMgr.schemesMissing = false;
+  kpiMgr.schemes = data || [];
+}
+
 /* Постранично вытянуть ВСЕ строки месяца (PostgREST режет ответ на 1000). */
 async function fetchAllKpiRows(month) {
   const CHUNK = 1000;
-  const cols = 'employee, action_type, subgroup, is_corp, is_overdue, price';
+  // group_name появилась с октября 2026; без колонки в базе — читаем как раньше
+  let cols = 'employee, action_type, subgroup, group_name, is_corp, is_overdue, price';
   const out = [];
   for (let from = 0; ; from += CHUNK) {
-    const { data, error } = await sb.from('kpi_rows').select(cols)
+    let { data, error } = await sb.from('kpi_rows').select(cols)
       .eq('month', month).range(from, from + CHUNK - 1);
+    if (error && from === 0 && /group_name/.test(error.message)) {
+      cols = 'employee, action_type, subgroup, is_corp, is_overdue, price';
+      ({ data, error } = await sb.from('kpi_rows').select(cols).eq('month', month).range(from, from + CHUNK - 1));
+    }
     if (error) throw error;
     if (!data || !data.length) break;
     out.push(...data);
@@ -6206,16 +6325,19 @@ async function loadManagerKpi() {
     scoreEl.style.display = 'none';
     planCard.style.display = 'none';
     document.getElementById('kpi-mgr-cards').innerHTML = '';
+    kpiOpenSchemeEditor(null);
     return;
   }
   try {
     const [rows, planRes] = await Promise.all([
       fetchAllKpiRows(kpiMgr.month),
       sb.from('kpi_plan').select('employee, plan, fix').eq('month', kpiMgr.month),
+      loadKpiIssueChecks(kpiMgr.month),
     ]);
     if (planRes.error) throw planRes.error;
     kpiMgr.rows = rows;
     kpiMgr.plan = planRes.data || [];
+    kpiOpenSchemeEditor(kpiMgr.month);
 
     emptyEl.style.display = kpiMgr.rows.length ? 'none' : '';
     scoreEl.style.display = kpiMgr.rows.length ? '' : 'none';
@@ -6617,7 +6739,7 @@ async function loadWeeklyKpi() {
   const sel = document.getElementById('meth-kpi7-month');
   if (!sb) { emptyEl.style.display = ''; scoreEl.style.display = 'none'; cardsEl.innerHTML = ''; return; }
   try {
-    await Promise.all([loadKpiMonths(), loadKpiSettings()]);
+    await Promise.all([loadKpiMonths(), loadKpiSettings(), loadKpiSchemes()]);
     if (!kpiMgr.months.length) {
       sel.innerHTML = '<option value="">Нет отчётов</option>';
       emptyEl.style.display = ''; scoreEl.style.display = 'none'; cardsEl.innerHTML = '';
@@ -6642,6 +6764,7 @@ async function renderWeeklyKpiMonth() {
     const [rows, planRes] = await Promise.all([
       fetchAllKpiRows(kpiMgr.month),
       sb.from('kpi_plan').select('employee, plan, fix').eq('month', kpiMgr.month),
+      loadKpiIssueChecks(kpiMgr.month),
     ]);
     if (planRes.error) throw planRes.error;
     kpiMgr.rows = rows;
@@ -6658,7 +6781,9 @@ async function renderWeeklyKpiMonth() {
 
 /* ─── Рендер карточек показателей и итога ──────────────────────────────── */
 function renderKpiCards(prefix = 'kpi-mgr') {
-  const metrics = kpiMetrics();
+  const scheme = kpiSchemeFor(kpiMgr.month);
+  const cfg = scheme.config;
+  const metrics = kpiMetrics().filter(m => (+m.maxPts) > 0);   // вес 0 = показатель выключен в этом месяце
   let total = 0;
   const cards = metrics.map(m => {
     const res = kpiComputeMetric(m);
@@ -6667,7 +6792,7 @@ function renderKpiCards(prefix = 'kpi-mgr') {
     const color = ratio >= 0.9 ? 'var(--xf-green,#39bb3b)' : ratio >= 0.5 ? 'var(--warn-text)' : 'var(--xf-red,#e5484d)';
     const detail = m.plan
       ? `${res.den ? `${res.num} из ${res.den} не выполнили` : 'план не задан'}`
-      : `${res.num} / ${res.den}${res.empty ? ' · нет данных' : ''}`;
+      : `${res.num} / ${res.den}${res.empty ? ' · нет данных' : ''}${res.source === 'issue_checks' ? ' · из выгрузки проверок' : ''}`;
     return `<div class="kpi-card" title="${esc(m.desc)}">
       <div class="kpi-label">${m.order}. ${esc(m.title)}</div>
       <div class="kpi-value" style="color:${color}">${res.pts}<span style="font-size:14px;color:var(--text-muted);font-weight:500"> / ${m.maxPts}</span></div>
@@ -6677,16 +6802,28 @@ function renderKpiCards(prefix = 'kpi-mgr') {
   }).join('');
   document.getElementById(prefix + '-cards').innerHTML = cards;
 
-  // Итог
+  // Итог: максимум и порог — из схемы месяца
+  const max = kpiSchemeMax(cfg);
+  const thr = +cfg.threshold || 0;
   document.getElementById(prefix + '-total').textContent = total;
-  const pass = total >= KPI_PREMIUM_THRESHOLD;
+  document.getElementById(prefix + '-max').textContent = `/ ${max}`;
+  document.getElementById(prefix + '-max-label').textContent = max;
+  document.getElementById(prefix + '-thr-label').textContent = `порог премии — ${thr}`;
+  const thrEl = document.getElementById(prefix + '-thr');
+  thrEl.style.left = (max ? Math.min(100, thr / max * 100) : 0) + '%';
+  thrEl.title = `Порог премии — ${thr} баллов`;
+  document.getElementById(prefix + '-scheme').textContent = scheme.legacy
+    ? `Старая схема (до ${kpiMonthGen(KPI_SCHEME_START)})`
+    : `Схема с ${kpiMonthGen(scheme.from)}`;
+  const pass = total >= thr;
   const bar = document.getElementById(prefix + '-bar');
-  bar.style.width = Math.min(100, total / KPI_MAX_SCORE * 100) + '%';
+  bar.style.width = (max ? Math.min(100, total / max * 100) : 0) + '%';
   bar.style.background = pass ? 'var(--green-500)' : 'var(--warn)';
+  const premium = cfg.pointRub ? `<div style="font-size:13px;font-weight:600;margin-top:6px">Премия: ${fmt.money(pass ? total * cfg.pointRub : 0)}</div>` : '';
   const badge = document.getElementById(prefix + '-badge');
-  badge.innerHTML = pass
-    ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--green-tint);color:var(--xf-green,#39bb3b);font-weight:600;font-size:13px">✓ Порог премии пройден</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">+${total - KPI_PREMIUM_THRESHOLD} сверх порога</div>`
-    : `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--warn-tint);color:var(--warn-text);font-weight:600;font-size:13px">Ниже порога премии</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">не хватает ${KPI_PREMIUM_THRESHOLD - total} баллов</div>`;
+  badge.innerHTML = (pass
+    ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--green-tint);color:var(--xf-green,#39bb3b);font-weight:600;font-size:13px">✓ Порог премии пройден</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">+${total - thr} сверх порога</div>`
+    : `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--warn-tint);color:var(--warn-text);font-weight:600;font-size:13px">Ниже порога премии</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">не хватает ${thr - total} баллов</div>`) + premium;
 }
 
 /* ─── Личный план сотрудников (метрика 6) ──────────────────────────────── */
@@ -6779,70 +6916,183 @@ function toggleKpiSettings() {
   document.getElementById('kpi-settings-chevron').style.transform = open ? 'rotate(180deg)' : '';
 }
 
-function renderKpiSettings() {
-  const metrics = kpiMetrics();
-  const body = document.getElementById('kpi-settings-body');
-  body.innerHTML = metrics.map(m => {
-    const scaleRows = m.scale.map(([max, pts]) =>
-      `<div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">не более</span>
-        <input class="settings-input kpi-set-scale" data-k="${m.key}" data-i="max" type="number" step="0.1" value="${max}" style="width:80px;text-align:right">
-        <span style="font-size:12px;color:var(--text-muted)">% →</span>
-        <input class="settings-input kpi-set-scale" data-k="${m.key}" data-i="pts" type="number" value="${pts}" style="width:70px;text-align:right">
-        <span style="font-size:12px;color:var(--text-muted)">баллов</span>
-      </div>`).join('');
-    const typesField = m.plan ? '' :
-      `<div style="margin-top:10px">
-        <div class="settings-label">Действия — числитель (через ;)</div>
-        <input class="settings-input kpi-set-field" data-k="${m.key}" data-f="numTypes" value="${esc((m.numTypes||[]).join('; '))}" style="width:100%">
-        <div class="settings-label" style="margin-top:8px">Действия — знаменатель (через ;)</div>
-        <input class="settings-input kpi-set-field" data-k="${m.key}" data-f="denTypes" value="${esc((m.denTypes||[]).join('; '))}" style="width:100%">
-        <div class="settings-label" style="margin-top:8px">Подгруппа — числитель (пусто = любая)</div>
-        <input class="settings-input kpi-set-field" data-k="${m.key}" data-f="numSub" value="${esc((m.numSub!==undefined?m.numSub:m.subgroup)||'')}" style="width:100%">
-        <div class="settings-label" style="margin-top:8px">Подгруппа — знаменатель (пусто = любая)</div>
-        <input class="settings-input kpi-set-field" data-k="${m.key}" data-f="denSub" value="${esc((m.denSub!==undefined?m.denSub:m.subgroup)||'')}" style="width:100%">
-      </div>`;
-    return `<div style="border:1px solid var(--border,rgba(128,128,128,.2));border-radius:10px;padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <div style="font-weight:600">${m.order}. ${esc(m.title)} <span style="color:var(--text-muted);font-weight:400;font-size:12px">макс ${m.maxPts}</span></div>
-          <div style="font-size:12px;color:var(--text-muted)">${esc(m.desc)}</div>
-        </div>
-        <button class="btn btn-primary" onclick="saveKpiMetric('${m.key}')">Сохранить</button>
-      </div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;align-items:flex-start">
-        <div style="display:flex;flex-direction:column;gap:6px">${scaleRows}</div>
-        <div style="flex:1;min-width:240px">${typesField}</div>
-      </div>
-    </div>`;
-  }).join('');
+/* Редактор схемы: месяц → черновик схемы (копия действующей) → сохранение
+   версии с этого месяца. Старые месяцы (до KPI_SCHEME_START) — только просмотр. */
+function kpiOpenSchemeEditor(month) {
+  if (!month || month < KPI_SCHEME_START) {
+    // для старого месяца показываем его схему только на чтение; без месяца — текущий
+    month = month || (new Date().toISOString().slice(0, 7) + '-01');
+  }
+  kpiMgr.schemeMonth = month;
+  kpiMgr.draft = month < KPI_SCHEME_START ? null : JSON.parse(JSON.stringify(kpiSchemeFor(month).config));
+  renderKpiSettings();
 }
 
-async function saveKpiMetric(key) {
-  const def = DEFAULT_KPI_METRICS.find(m => m.key === key);
-  if (!def) return;
-  // шкала
-  const maxs = [...document.querySelectorAll(`.kpi-set-scale[data-k="${key}"][data-i="max"]`)].map(i => parseFloat(i.value) || 0);
-  const ptss = [...document.querySelectorAll(`.kpi-set-scale[data-k="${key}"][data-i="pts"]`)].map(i => parseFloat(i.value) || 0);
-  const scale = maxs.map((mx, i) => [mx, ptss[i]]);
-  const config = { scale };
-  if (!def.plan) {
-    const fld = f => { const el = document.querySelector(`.kpi-set-field[data-k="${key}"][data-f="${f}"]`); return el ? el.value : ''; };
-    const list = s => s.split(';').map(x => x.trim()).filter(Boolean);
-    config.numTypes = list(fld('numTypes'));
-    config.denTypes = list(fld('denTypes'));
-    config.numSub = fld('numSub').trim() || null;
-    config.denSub = fld('denSub').trim() || null;
+function kpiSchemeMonthChange(val) {
+  if (!val) return;
+  kpiOpenSchemeEditor(val + '-01');
+}
+
+function renderKpiSettings() {
+  const body = document.getElementById('kpi-settings-body');
+  const month = kpiMgr.schemeMonth;
+  if (!month) { body.innerHTML = ''; return; }
+  const scheme = kpiSchemeFor(month);
+  const exact = !scheme.legacy && scheme.stored && scheme.from === month;
+  const monthPicker = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="settings-label" style="margin:0">Месяц</span>
+      <input class="settings-input" type="month" min="${KPI_SCHEME_START.slice(0, 7)}" value="${month.slice(0, 7)}" onchange="kpiSchemeMonthChange(this.value)" style="width:170px">
+      <span style="font-size:12px;color:var(--text-muted)">${scheme.legacy
+        ? `Старая схема — действовала до ${kpiMonthGen(KPI_SCHEME_START)}, не редактируется`
+        : `Действует схема с ${kpiMonthGen(scheme.from)}${scheme.stored ? '' : ' (встроенная)'}`}</span>
+    </div>`;
+  const missing = kpiMgr.schemesMissing
+    ? `<div style="font-size:12px;color:var(--xf-red,#e5484d);margin-bottom:12px">Таблица kpi_schemes не найдена — прогоните supabase_kpi.sql, иначе изменения не сохранятся.</div>` : '';
+
+  if (scheme.legacy) {
+    // только просмотр: веса и шкалы, по которым считались прошлые месяцы
+    const rows = scheme.config.metrics.map((m, i) => `<tr>
+        <td>${i + 1}. ${esc(m.title)}</td>
+        <td class="num">${m.maxPts}</td>
+        <td>${m.scale.map(([mx, p]) => `≤${mx}% → ${p}`).join(' · ')}</td>
+      </tr>`).join('');
+    body.innerHTML = monthPicker + `<div style="overflow-x:auto"><table class="data-table">
+        <thead><tr><th>Показатель</th><th class="num">Вес</th><th>Шкала</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+    return;
+  }
+
+  const d = kpiMgr.draft;
+  const cards = d.metrics.map((m, i) => {
+    const steps = m.scale.map(([mx, pts], j) =>
+      `<div style="display:flex;gap:4px;align-items:center;padding:4px 4px 4px 10px;border-radius:10px;background:var(--bg-hover,rgba(128,128,128,.08))">
+        <span style="font-size:12px;color:var(--text-muted)">≤</span>
+        <input class="settings-input" type="number" step="0.1" min="0" value="${mx}" oninput="kpiDraftStep(${i},${j},0,this.value)" style="width:64px;text-align:right;padding:4px 6px">
+        <span style="font-size:12px;color:var(--text-muted)">% →</span>
+        <input class="settings-input" type="number" step="1" min="0" value="${pts}" oninput="kpiDraftStep(${i},${j},1,this.value)" style="width:54px;text-align:right;padding:4px 6px">
+        <button class="btn btn-ghost" title="Убрать ступень" onclick="kpiDraftRemoveStep(${i},${j})" style="padding:0 6px">✕</button>
+      </div>`).join('');
+    const field = (f, label, val) => `<div class="settings-label" style="margin-top:8px">${label}</div>
+        <input class="settings-input" value="${esc(val || '')}" oninput="kpiDraftField(${i},'${f}',this.value)" style="width:100%">`;
+    const filters = m.plan ? '' : `<details style="margin-top:10px"><summary style="cursor:pointer;font-size:12px;color:var(--text-muted)">Правила отбора</summary>
+        ${field('numTypes', 'Действия — числитель (через ;)', (m.numTypes || []).join('; '))}
+        ${field('denTypes', 'Действия — знаменатель (через ;)', (m.denTypes || []).join('; '))}
+        ${field('numSub', 'Подгруппа — числитель (пусто = любая)', m.numSub)}
+        ${field('denSub', 'Подгруппа — знаменатель (пусто = любая)', m.denSub)}
+        ${field('numGroup', 'Группа — числитель (пусто = любая)', m.numGroup)}
+        ${field('denGroup', 'Группа — знаменатель (пусто = любая)', m.denGroup)}
+      </details>`;
+    const off = !(+m.maxPts > 0);
+    return `<div style="border:1px solid var(--border,rgba(128,128,128,.2));border-radius:10px;padding:14px;margin-bottom:12px${off ? ';opacity:.6' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="min-width:200px;flex:1">
+          <div style="font-weight:600">${i + 1}. ${esc(m.title)}${off ? ' <span style="font-weight:400;font-size:12px;color:var(--text-muted)">· не учитывается</span>' : ''}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${esc(m.desc || '')}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px">
+          <span class="settings-label" style="margin:0">Вес</span>
+          <input class="settings-input" type="number" step="1" min="0" value="${m.maxPts}" onchange="kpiDraftWeight(${i},this.value)" style="width:72px;text-align:right" title="При смене веса баллы ступеней пересчитываются пропорционально">
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center">${steps}
+        <button class="btn btn-ghost" onclick="kpiDraftAddStep(${i})" style="font-size:12px">＋ ступень</button>
+      </div>
+      ${filters}
+    </div>`;
+  }).join('');
+
+  body.innerHTML = monthPicker + missing + `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px">
+      <label><div class="settings-label">Порог премии, баллов</div>
+        <input class="settings-input" type="number" min="0" value="${d.threshold}" oninput="kpiDraftTop('threshold',this.value)" style="width:110px;text-align:right"></label>
+      <label><div class="settings-label">₽ за балл</div>
+        <input class="settings-input" type="number" min="0" value="${d.pointRub || ''}" oninput="kpiDraftTop('pointRub',this.value)" style="width:110px;text-align:right"></label>
+      <div id="kpi-draft-sum" style="font-size:13px;padding-bottom:8px"></div>
+    </div>
+    ${cards}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveKpiScheme()">Сохранить с ${kpiMonthGen(month)}</button>
+      ${exact ? `<button class="btn btn-ghost" onclick="deleteKpiScheme()" style="color:var(--xf-red,#e5484d)">Удалить версию ${kpiMonthGen(month)}</button>` : ''}
+      <span style="font-size:12px;color:var(--text-muted)">Применится к ${kpiMonthLabel(month).toLowerCase()} и следующим месяцам, пока не задана новая версия. Предыдущие месяцы не меняются.</span>
+    </div>`;
+  kpiDraftSum();
+}
+
+/* Сумма весов черновика (максимум баллов) */
+function kpiDraftSum() {
+  const el = document.getElementById('kpi-draft-sum');
+  if (!el || !kpiMgr.draft) return;
+  const sum = kpiSchemeMax(kpiMgr.draft);
+  el.innerHTML = `Сумма весов: <b>${sum}</b>${sum !== 130 ? ' <span style="color:var(--warn-text)">· было 130</span>' : ''}`;
+}
+
+function kpiDraftTop(f, v) { kpiMgr.draft[f] = parseFloat(v) || 0; }
+
+function kpiDraftStep(i, j, k, v) {
+  kpiMgr.draft.metrics[i].scale[j][k] = parseFloat(v) || 0;
+}
+
+/* Новый вес: баллы ступеней пропорционально старым (или 100/80/60/40/20 %, если вес был 0) */
+function kpiDraftWeight(i, v) {
+  const m = kpiMgr.draft.metrics[i];
+  const w = Math.max(0, Math.round(parseFloat(v) || 0));
+  const old = +m.maxPts || 0;
+  m.scale = m.scale.map(([mx, p], j) => [mx, old ? Math.round(p * w / old) : Math.round(w * Math.max(0, 1 - j * 0.2))]);
+  m.maxPts = w;
+  renderKpiSettings();
+}
+
+function kpiDraftAddStep(i) {
+  const sc = kpiMgr.draft.metrics[i].scale;
+  const last = sc[sc.length - 1] || [0, kpiMgr.draft.metrics[i].maxPts];
+  sc.push([last[0] + 5, Math.max(0, last[1] - 1)]);
+  renderKpiSettings();
+}
+
+function kpiDraftRemoveStep(i, j) {
+  kpiMgr.draft.metrics[i].scale.splice(j, 1);
+  renderKpiSettings();
+}
+
+function kpiDraftField(i, f, v) {
+  const m = kpiMgr.draft.metrics[i];
+  if (f === 'numTypes' || f === 'denTypes') m[f] = v.split(';').map(x => x.trim()).filter(Boolean);
+  else m[f] = v.trim() || null;
+}
+
+async function saveKpiScheme() {
+  const month = kpiMgr.schemeMonth;
+  if (!month || month < KPI_SCHEME_START || !kpiMgr.draft) return;
+  const config = JSON.parse(JSON.stringify(kpiMgr.draft));
+  for (const m of config.metrics) {
+    m.scale = m.scale.filter(([mx]) => Number.isFinite(mx)).sort((a, b) => a[0] - b[0]);
+    const top = Math.max(0, ...m.scale.map(s => s[1]));
+    if (top > m.maxPts) { showToast(`«${m.title}»: баллы ступени (${top}) больше веса (${m.maxPts})`, 'error'); return; }
   }
   try {
-    const { error } = await sb.from('kpi_settings').upsert({ metric_key: key, config, updated_at: new Date().toISOString() }, { onConflict: 'metric_key' });
+    const { error } = await sb.from('kpi_schemes').upsert({ effective_from: month, config, updated_at: new Date().toISOString() }, { onConflict: 'effective_from' });
     if (error) throw error;
-    kpiMgr.settings[key] = config;
-    showToast(`Настройки «${def.title}» сохранены`, 'success');
-    renderKpiSettings();
+    await loadKpiSchemes();
+    showToast(`Схема KPI сохранена с ${kpiMonthGen(month)}`, 'success');
+    kpiOpenSchemeEditor(month);
     if (kpiMgr.rows.length) renderKpiCards();
   } catch (e) {
-    showToast('Ошибка сохранения: ' + e.message, 'error');
+    showToast('Ошибка сохранения схемы: ' + e.message + (/kpi_schemes/.test(e.message) ? ' — прогоните supabase_kpi.sql' : ''), 'error');
+  }
+}
+
+async function deleteKpiScheme() {
+  const month = kpiMgr.schemeMonth;
+  if (!month || !confirm(`Удалить версию схемы с ${kpiMonthGen(month)}? Месяцы с ${kpiMonthGen(month)} будут считаться по предыдущей версии.`)) return;
+  try {
+    const { error } = await sb.from('kpi_schemes').delete().eq('effective_from', month);
+    if (error) throw error;
+    await loadKpiSchemes();
+    showToast('Версия схемы удалена', 'success');
+    kpiOpenSchemeEditor(month);
+    if (kpiMgr.rows.length) renderKpiCards();
+  } catch (e) {
+    showToast('Ошибка удаления: ' + e.message, 'error');
   }
 }
 
@@ -6909,7 +7159,7 @@ async function doKpiUpload() {
   } catch (e) {
     status.textContent = 'Ошибка: ' + e.message;
     fill.style.width = '0'; btn.disabled = false;
-    showToast('Ошибка загрузки KPI: ' + e.message + (/relation .* does not exist/i.test(e.message) ? ' — прогоните supabase_kpi.sql' : ''), 'error');
+    showToast('Ошибка загрузки KPI: ' + e.message + (/relation .* does not exist|group_name/i.test(e.message) ? ' — прогоните supabase_kpi.sql' : ''), 'error');
   }
 }
 
