@@ -4317,9 +4317,9 @@ const METH_SLIDES = [
   { n: 4, title: 'Разрез по выплатам' },
   { n: 5, title: 'Разрез по вендорам' },
   { n: 6, title: 'Ненормированные работы' },
-  { n: 7, title: 'KPI руководителя' },
   { n: 8, title: 'Дни просадки' },
   { n: 9, title: 'Проверка перед выдачей' },
+  { n: 7, title: 'KPI руководителя' },           // финальный слайд
 ];
 let methSlide = 0;
 try { methSlide = Math.min(METH_SLIDES.length - 1, Math.max(0, +localStorage.getItem('xfix_meth_slide') || 0)); } catch (e) {}
