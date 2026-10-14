@@ -312,6 +312,64 @@ body.presentation #page-methodology .section-header button { display: none; }
 .present-exit { position: fixed; top: 16px; right: 16px; z-index: 200; }
 body:not(.presentation) .present-exit { display: none; }
 
+/* Еженедельный отчёт — слайды: ←/→ листают, внизу точки и прогресс */
+.slide-eyebrow { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .09em; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+#meth-stage { min-height: 50vh; padding-bottom: 8px; }
+#meth-stage.slide-in-next { animation: slide-in-next var(--dur-base) var(--ease-out); }
+#meth-stage.slide-in-prev { animation: slide-in-prev var(--dur-base) var(--ease-out); }
+@keyframes slide-in-next { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-prev { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.slide-nav {
+  position: sticky; bottom: 12px; z-index: 15;
+  width: max-content; max-width: 100%; margin: 20px auto 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px 12px; border-radius: var(--radius-pill);
+  background: var(--glass-strong); box-shadow: var(--shadow-glass);
+  -webkit-backdrop-filter: var(--blur-glass); backdrop-filter: var(--blur-glass);
+}
+.slide-nav-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none; flex-shrink: 0;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; color: var(--ink-soft);
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.slide-nav-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--ink); }
+.slide-nav-btn:disabled { opacity: .3; cursor: default; }
+.slide-nav-btn:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; }
+.slide-dots { display: flex; align-items: center; gap: 6px; }
+.slide-dot {
+  width: 8px; height: 8px; padding: 0; border: none; border-radius: var(--radius-pill); cursor: pointer;
+  background: var(--ink-muted); opacity: .3;
+  transition: width var(--dur-base) var(--ease-out), opacity var(--dur-fast), background var(--dur-fast);
+}
+.slide-dot:hover { opacity: .6; }
+.slide-dot.active { width: 26px; opacity: 1; background: var(--green-500); }
+.slide-dot:focus-visible { outline: 2px solid var(--green-500); outline-offset: 3px; }
+.slide-count { font-size: 12px; font-weight: 600; color: var(--ink-muted); min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+.slide-progress { position: absolute; left: 22px; right: 22px; bottom: 5px; height: 3px; border-radius: 2px; background: var(--hairline); overflow: hidden; }
+.slide-progress > div { height: 100%; width: 0; border-radius: 2px; background: var(--green-500); transition: width var(--dur-base) var(--ease-out); }
+.slide-hint { font-size: 11px; color: var(--ink-muted); text-align: center; margin-top: 8px; }
+/* sticky, а не fixed: у .page после анимации остаётся transform, fixed привязался бы к ней */
+body.presentation .slide-nav { bottom: 20px; }
+body.presentation .slide-hint { display: none; }
+
+/* Слайд 1: плитки в один ряд, три графика в ряд, выводы списком */
+.kpi-grid.compact { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi-grid.compact .kpi-card { padding: 16px 18px; }
+.kpi-grid.compact .kpi-label { font-size: 11px; letter-spacing: .07em; margin-bottom: 8px; }
+.kpi-grid.compact .kpi-value { font-size: 26px; }
+.kpi-grid.compact .kpi-value.kpi-text { font-size: 16px; }
+#meth-s1 .chart-wrap { height: 230px; }
+.charts-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.meth-insights { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px 24px; }
+.meth-insights li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
+.meth-insights li .ico { flex-shrink: 0; margin-top: 2px; color: var(--green-text); }
+.meth-insights li.warn .ico { color: var(--danger); }
+.meth-insights b { color: var(--ink); font-weight: 600; }
+.meth-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 4px; background: var(--bg-hover); border-radius: var(--radius-md); }
+.meth-seg button { padding: 0 12px; min-height: 32px; cursor: pointer; }
+@media (max-width: 1200px) { .charts-grid.cols-3 { grid-template-columns: 1fr 1fr; } }
+
 .report-select {
   height: 40px;
   background: var(--glass-strong);
@@ -893,7 +951,9 @@ body:not(.presentation) .present-exit { display: none; }
   .sidebar { margin: 8px 0; }
   .topbar { top: 8px; }
   .content { padding-top: calc(var(--topbar-h) + 20px); }
-  .charts-grid { grid-template-columns: 1fr; }
+  .charts-grid, .charts-grid.cols-3 { grid-template-columns: 1fr; }
+  .slide-dot { width: 6px; height: 6px; }
+  .slide-dot.active { width: 18px; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1400,7 +1460,7 @@ body:not(.presentation) .present-exit { display: none; }
       <!-- ─ Еженедельный отчет (методика 1-6) ─────────────────────────── -->
       <div class="page" id="page-methodology">
         <div class="section-header">
-          <div><div class="section-title">Еженедельный отчет</div><div class="section-sub" id="meth-members-sub">Единица анализа — карточка сервиса</div></div>
+          <div><div class="slide-eyebrow" id="meth-slide-eyebrow">Еженедельный отчет · 1 / 7</div><div class="section-title" id="meth-slide-title">Обработка и действия</div><div class="section-sub" id="meth-members-sub">Единица анализа — карточка сервиса</div></div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-ghost" onclick="openWeeklyMembers()" title="Кого показывать в отчёте: отдел по умолчанию + подключавшиеся из других отделов">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1412,17 +1472,18 @@ body:not(.presentation) .present-exit { display: none; }
             </button>
           </div>
         </div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="tabs" id="meth-tabs" style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost meth-tab active" data-n="1" onclick="switchMethTab(1,this)">1. Обработка</button>
-            <button class="btn btn-ghost meth-tab" data-n="2" onclick="switchMethTab(2,this)">2. Разрез по сотрудникам</button>
-            <button class="btn btn-ghost meth-tab" data-n="3" onclick="switchMethTab(3,this)">3. Разрез по целевым действиям</button>
-            <button class="btn btn-ghost meth-tab" data-n="4" onclick="switchMethTab(4,this)">4. Разрез по выплатам</button>
-            <button class="btn btn-ghost meth-tab" data-n="5" onclick="switchMethTab(5,this)">5. Разрез по вендорам</button>
-            <button class="btn btn-ghost meth-tab" data-n="6" onclick="switchMethTab(6,this)">6. Ненормированные работы</button>
-            <button class="btn btn-ghost meth-tab" data-n="7" onclick="switchMethTab(7,this)">7. KPI руководителя</button>
-            <button class="btn btn-ghost meth-tab" data-n="8" onclick="switchMethTab(8,this)">8. Дни просадки</button>
-            <button class="btn btn-ghost meth-tab" data-n="9" onclick="switchMethTab(9,this)">9. Проверка перед выдачей</button>
+        <div id="meth-stage">
+        <!-- Слайд 1: обработка, устройства по сотрудникам, действия — на одном экране -->
+        <div id="meth-s1" style="display:none">
+          <div class="kpi-grid compact" id="meth-s1-kpis"></div>
+          <div class="card" id="meth-s1-insights-card" style="margin-bottom:20px">
+            <div class="card-title">Выводы</div>
+            <ul class="meth-insights" id="meth-s1-insights"></ul>
+          </div>
+          <div class="charts-grid cols-3">
+            <div class="card"><div class="card-title">Устройства по вендорам</div><div class="chart-wrap"><canvas id="meth-s1-vendor"></canvas></div></div>
+            <div class="card"><div class="card-title">Устройства по сотрудникам</div><div class="chart-wrap"><canvas id="meth-s1-emp"></canvas></div></div>
+            <div class="card"><div class="card-title">Действия по типам</div><div class="chart-wrap"><canvas id="meth-s1-types"></canvas></div></div>
           </div>
         </div>
         <div class="card" id="meth-empty" style="display:none;margin-bottom:16px">
@@ -1432,16 +1493,36 @@ body:not(.presentation) .present-exit { display: none; }
             <div class="empty-state-sub" id="meth-empty-sub" style="color:var(--text-muted);font-size:13px;margin-top:6px"></div>
           </div>
         </div>
-        <div class="kpi-grid" id="meth-kpis"></div>
+        <div class="kpi-grid compact" id="meth-kpis"></div>
         <div class="charts-grid" id="meth-charts-grid" style="margin-top:16px">
           <div class="card">
             <div class="card-title" id="meth-chart-title">Обработано по вендору</div>
             <div class="chart-wrap"><canvas id="meth-chart"></canvas></div>
           </div>
+          <div class="card" id="meth-pay-chart-card" style="display:none">
+            <div class="card-title" style="margin-bottom:4px">Заработок по месяцам</div>
+            <div class="section-sub" id="meth-pay-chart-sub" style="margin-bottom:8px">Клик по имени в легенде скрывает линию</div>
+            <div class="chart-wrap" style="height:236px"><canvas id="meth-pay-chart"></canvas></div>
+          </div>
+        </div>
+        <!-- Слайд «Выплаты»: средний заработок и помесячная динамика -->
+        <div id="meth-pay" style="display:none">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:4px">Средний заработок в месяц</div>
+            <div class="section-sub" id="meth-pay-avg-sub" style="margin-bottom:12px"></div>
+            <div style="overflow-x:auto"><table class="data-table" id="meth-pay-avg"></table></div>
+          </div>
         </div>
         <div class="card" id="meth-table-card" style="margin-top:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
-            <div class="card-title" id="meth-table-title" style="margin:0">Обработано по вендору</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <div class="card-title" id="meth-table-title" style="margin:0">Обработано по вендору</div>
+              <div class="meth-seg period-seg" id="meth-table-src" style="display:none;margin:0">
+                <button data-n="1" class="active" onclick="switchMethTableSrc(1)">Вендоры</button>
+                <button data-n="2" onclick="switchMethTableSrc(2)">Сотрудники</button>
+                <button data-n="3" onclick="switchMethTableSrc(3)">Действия</button>
+              </div>
+            </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <select class="settings-input" id="meth-group" style="max-width:220px" onchange="filterMethTable()">
                 <option value="">Без группировки</option>
@@ -1510,6 +1591,16 @@ body:not(.presentation) .present-exit { display: none; }
           </div>
           <div id="meth-checks-body"></div>
         </div>
+        </div><!-- /meth-stage -->
+
+        <nav class="slide-nav" aria-label="Слайды отчёта">
+          <button class="slide-nav-btn" id="meth-prev" onclick="methStep(-1)" title="Назад (←)" aria-label="Предыдущий слайд"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+          <div class="slide-dots" id="meth-dots"></div>
+          <span class="slide-count" id="meth-count">1 / 7</span>
+          <button class="slide-nav-btn" id="meth-next" onclick="methStep(1)" title="Вперёд (→)" aria-label="Следующий слайд"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+          <div class="slide-progress"><div id="meth-progress"></div></div>
+        </nav>
+        <div class="slide-hint">← → листать слайды · Esc — выйти из презентации</div>
       </div>
 
 
@@ -4215,40 +4306,100 @@ const METH_REPORTS = {
        chart: rows => methBarChart(rows, 'employee', 'total_price', 'Выплата, ₽') },
 };
 let methCurrentTab = 1;
+let methTableTab = 1;          // чей набор колонок в таблице (на слайде 1 — переключатель 1/2/3)
 let methCurrentRows = [];
 let methSortKey = null;
 let methSortDir = 1;
-function switchMethTab(n, el) {
+/* Слайды отчёта. n — номер прежней вкладки: по нему выбирается загрузчик.
+   Слайд 1 сводит прежние вкладки 1–3 (обработка, сотрудники, действия). */
+const METH_SLIDES = [
+  { n: 1, title: 'Обработка и действия' },
+  { n: 4, title: 'Разрез по выплатам' },
+  { n: 5, title: 'Разрез по вендорам' },
+  { n: 6, title: 'Ненормированные работы' },
+  { n: 7, title: 'KPI руководителя' },
+  { n: 8, title: 'Дни просадки' },
+  { n: 9, title: 'Проверка перед выдачей' },
+];
+let methSlide = 0;
+try { methSlide = Math.min(METH_SLIDES.length - 1, Math.max(0, +localStorage.getItem('xfix_meth_slide') || 0)); } catch (e) {}
+
+function renderMethNav() {
+  const total = METH_SLIDES.length;
+  document.getElementById('meth-dots').innerHTML = METH_SLIDES.map((sl, i) =>
+    `<button class="slide-dot${i === methSlide ? ' active' : ''}" onclick="goMethSlide(${i})" title="${i + 1}. ${sl.title}" aria-label="Слайд ${i + 1}: ${sl.title}"${i === methSlide ? ' aria-current="step"' : ''}></button>`).join('');
+  document.getElementById('meth-count').textContent = `${methSlide + 1} / ${total}`;
+  document.getElementById('meth-progress').style.width = `${(methSlide + 1) / total * 100}%`;
+  document.getElementById('meth-prev').disabled = methSlide === 0;
+  document.getElementById('meth-next').disabled = methSlide === total - 1;
+  document.getElementById('meth-slide-eyebrow').textContent = `Еженедельный отчет · ${methSlide + 1} / ${total}`;
+  document.getElementById('meth-slide-title').textContent = METH_SLIDES[methSlide].title;
+}
+function goMethSlide(i) {
+  i = Math.max(0, Math.min(METH_SLIDES.length - 1, i));
+  const dir = i > methSlide ? 'next' : 'prev';
+  const changed = i !== methSlide;
+  methSlide = i;
+  try { localStorage.setItem('xfix_meth_slide', String(i)); } catch (e) {}
+  renderMethNav();
+  const stage = document.getElementById('meth-stage');
+  if (changed) {
+    stage.classList.remove('slide-in-next', 'slide-in-prev');
+    void stage.offsetWidth;                       // перезапуск анимации
+    stage.classList.add('slide-in-' + dir);
+    const content = document.querySelector('.content');
+    if (content) content.scrollTop = 0;
+  }
+  switchMethTab(METH_SLIDES[i].n);
+}
+function methStep(d) { goMethSlide(methSlide + d); }
+
+/* ←/→ (и PageUp/PageDown, Home/End) листают слайды, пока открыт отчёт */
+document.addEventListener('keydown', e => {
+  if (STATE.currentPage !== 'methodology' || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (document.querySelector('.modal-overlay.open')) return;
+  const t = e.target;
+  if (t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) return;
+  const map = { ArrowRight: 1, PageDown: 1, ArrowLeft: -1, PageUp: -1 };
+  if (e.key in map) { e.preventDefault(); methStep(map[e.key]); }
+  else if (e.key === 'Home') { e.preventDefault(); goMethSlide(0); }
+  else if (e.key === 'End') { e.preventDefault(); goMethSlide(METH_SLIDES.length - 1); }
+});
+
+function switchMethTab(n) {
   methCurrentTab = n;
-  document.querySelectorAll('.meth-tab').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  // Вкладки 7 (KPI руководителя), 8 (Дни просадки) и 9 (Проверка перед выдачей) — свои блоки, не таблично-RPC-отчёт
+  // Слайды 7 (KPI руководителя), 8 (Дни просадки) и 9 (Проверка перед выдачей) — свои блоки, не таблично-RPC-отчёт
   const kpi7 = n === 7;
   const downtime = n === 8;
   const checks = n === 9;
+  const own = kpi7 || downtime || checks;
   document.getElementById('meth-kpi7').style.display = kpi7 ? '' : 'none';
   document.getElementById('meth-downtime').style.display = downtime ? '' : 'none';
   document.getElementById('meth-checks').style.display = checks ? '' : 'none';
+  document.getElementById('meth-s1').style.display = 'none';
+  document.getElementById('meth-pay').style.display = 'none';
+  document.getElementById('meth-pay-chart-card').style.display = 'none';
+  document.getElementById('meth-table-src').style.display = n === 1 ? '' : 'none';
   ['meth-empty', 'meth-kpis', 'meth-charts-grid', 'meth-table-card'].forEach(id => {
     const e = document.getElementById(id);
-    if (e) e.style.display = (kpi7 || downtime || checks) ? 'none' : '';
+    if (e) e.style.display = own ? 'none' : '';
   });
   if (kpi7) { loadWeeklyKpi(); return; }
   if (downtime) { loadMethDowntime(); return; }
   if (checks) { loadMethChecks(); return; }
-  document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
-  document.getElementById('meth-chart-title').textContent = METH_REPORTS[n].title;
-  document.getElementById('meth-search').value = '';
+  if (!STATE.currentReportId) return;
   methSortKey = null;
   methSortDir = 1;
+  document.getElementById('meth-search').value = '';
+  if (n === 1) { loadMethSlide1(); return; }
+  methTableTab = n;
+  document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
+  document.getElementById('meth-chart-title').textContent = METH_REPORTS[n].title;
   loadMethTable(n);
 }
 async function loadMethodology() {
-  if (methCurrentTab === 7) { loadWeeklyKpi(); return; }
-  if (methCurrentTab === 8) { loadMethDowntime(); return; }
-  if (methCurrentTab === 9) { loadMethChecks(); return; }
-  if (!STATE.currentReportId) return;
-  loadMethTable(methCurrentTab);
+  renderMethNav();
+  switchMethTab(METH_SLIDES[methSlide].n);
 }
 function renderMethThead(cols) {
   const thead = document.getElementById('meth-thead');
@@ -4313,7 +4464,7 @@ function populateMethGroupSelect(meta, rows) {
   sel.value = groupable.some(([key]) => key === cur) ? cur : '';
 }
 function filterMethTable() {
-  const meta = METH_REPORTS[methCurrentTab];
+  const meta = METH_REPORTS[methTableTab];
   const q = document.getElementById('meth-search').value.trim().toLowerCase();
   let rows = q ? methCurrentRows.filter(r => meta.cols.some(([key]) => String(r[key] ?? '').toLowerCase().includes(q))) : methCurrentRows;
   const groupKey = document.getElementById('meth-group').value;
@@ -4326,9 +4477,13 @@ function currentReportLabel() {
   return STATE.period.label || '—';
 }
 function setMethEmptyVisible(on) {
+  const s1 = methCurrentTab === 1;
   document.getElementById('meth-empty').style.display = on ? '' : 'none';
-  document.getElementById('meth-kpis').style.display = on ? 'none' : '';
-  document.getElementById('meth-charts-grid').style.display = on ? 'none' : '';
+  document.getElementById('meth-kpis').style.display = on || s1 ? 'none' : '';
+  document.getElementById('meth-charts-grid').style.display = on || s1 ? 'none' : '';
+  document.getElementById('meth-s1').style.display = !on && s1 ? '' : 'none';
+  document.getElementById('meth-pay').style.display = !on && methCurrentTab === 4 ? '' : 'none';
+  document.getElementById('meth-pay-chart-card').style.display = !on && methCurrentTab === 4 ? '' : 'none';
   document.getElementById('meth-table-card').style.display = on ? 'none' : '';
 }
 function showMethEmpty(meta) {
@@ -4457,6 +4612,7 @@ async function toggleWeeklyMember(input) {
 }
 
 async function loadMethTable(n) {
+  const seq = ++methSeq;
   const meta = METH_REPORTS[n];
   const thead = document.getElementById('meth-thead');
   const tbody = document.getElementById('meth-tbody');
@@ -4471,6 +4627,7 @@ async function loadMethTable(n) {
     const extra = meta.serverFilter && members ? { p_employees: [...members] } : {};
     const onlyMembers = list => (!members || meta.serverFilter) ? (list || []) : (list || []).filter(r => members.has(r.employee));
     const rows = await db(meta.rpc, { p_report_id: STATE.currentReportId, ...extra });
+    if (seq !== methSeq) return;               // пока грузили, слайд уже перелистнули
     methCurrentRows = onlyMembers(rows);
     document.getElementById('meth-group').value = '';
     if (!methCurrentRows.length) {
@@ -4483,16 +4640,272 @@ async function loadMethTable(n) {
       try { prevRows = onlyMembers(await rpcWithRetry(meta.rpc + '_p', { p_period: STATE.period.prevKey, ...extra })); }
       catch(e) { prevRows = []; }
     }
+    if (seq !== methSeq) return;
     kpis.innerHTML = meta.kpis(methCurrentRows, prevRows).join('');
     fitKpiText(kpis);
     mkChart('meth-chart', meta.chart(methCurrentRows));
     populateMethGroupSelect(meta, methCurrentRows);
     filterMethTable();
+    if (n === 4) loadMethPay(members, seq);
   } catch(e) {
     setMethEmptyVisible(false);
     tbody.innerHTML = `<tr><td colspan="${meta.cols.length}" style="text-align:center;color:var(--xf-red);padding:40px">${e.message}</td></tr>`;
     console.error('methodology', e);
   }
+}
+
+/* ─── Слайд 1: обработка + устройства по сотрудникам + действия ─────────── */
+let methSeq = 0;               // номер загрузки: устаревший ответ не перерисовывает другой слайд
+let methS1Data = null;         // {1: вендоры, 2: устройства по сотрудникам, 3: действия}
+const fnum1 = v => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(+v || 0);
+const pctOf = (a, b) => b ? Math.round(a * 100 / b) : 0;
+const sumBy = (rows, f) => rows.reduce((s, r) => s + (+r[f] || 0), 0);
+
+async function loadMethSlide1() {
+  const seq = ++methSeq;
+  setMethEmptyVisible(false);
+  document.getElementById('meth-s1-kpis').innerHTML = '';
+  document.getElementById('meth-s1-insights').innerHTML = '<li style="color:var(--ink-muted)">Загрузка…</li>';
+  document.getElementById('meth-tbody').innerHTML = '<tr><td style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>';
+  try {
+    const members = await weeklyReportEmployees();
+    const only = list => !members ? (list || []) : (list || []).filter(r => members.has(r.employee));
+    const ext = members ? { p_employees: [...members] } : {};
+    const rid = STATE.currentReportId;
+    const prevKey = STATE.period.prevKey;
+    const prev = (fn, extra = {}) => prevKey
+      ? rpcWithRetry(fn + '_p', { p_period: prevKey, ...extra }).catch(() => [])
+      : Promise.resolve([]);
+    const [v, d, a, pv, pd, pa] = await Promise.all([
+      db('report_vendor_processed', { p_report_id: rid, ...ext }),
+      db('report_employee_devices', { p_report_id: rid }),
+      db('report_employee_actions', { p_report_id: rid }),
+      prev('report_vendor_processed', ext), prev('report_employee_devices'), prev('report_employee_actions'),
+    ]);
+    if (seq !== methSeq) return;
+    const rows = { 1: v || [], 2: only(d), 3: only(a) };
+    const prevRows = { 1: pv || [], 2: only(pd), 3: only(pa) };
+    if (!rows[1].length && !rows[2].length && !rows[3].length) {
+      methS1Data = null;
+      showMethEmpty({ title: 'Обработка и действия' });
+      return;
+    }
+    methS1Data = rows;
+    renderMethSlide1(rows, prevRows);
+    switchMethTableSrc([1, 2, 3].includes(methTableTab) ? methTableTab : 1);
+  } catch (e) {
+    if (seq !== methSeq) return;
+    document.getElementById('meth-s1-insights').innerHTML = `<li class="warn">${ico('alert')}<span>${e.message}</span></li>`;
+    document.getElementById('meth-tbody').innerHTML = '';
+    console.error('meth slide 1', e);
+  }
+}
+
+function renderMethSlide1(rows, prevRows) {
+  const devices = sumBy(rows[1], 'devices');
+  const actions = sumBy(rows[3], 'cnt');
+  const prevDevices = sumBy(prevRows[1], 'devices');
+  const prevActions = sumBy(prevRows[3], 'cnt');
+  const byVendor = methAggSum(rows[1], 'vendor', 'devices');
+  const byEmp = methAggSum(rows[2], 'employee', 'devices');
+  const byEmpAct = methAggSum(rows[3], 'employee', 'cnt');
+  const byType = methAggSum(rows[3], 'action_type', 'cnt');
+  const empCount = new Set([...byEmp.map(e => e[0]), ...byEmpAct.map(e => e[0])]).size;
+  const perDevice = devices ? actions / devices : 0;
+  const prevPerDevice = prevDevices ? prevActions / prevDevices : 0;
+
+  // Плитки
+  const tiles = [methKpi('Всего устройств', fmt.num(devices), null, null, methDeltaFor(rows[1], prevRows[1], 'devices'))];
+  byVendor.slice(0, 3).forEach(([vendor, n], i) => tiles.push(methKpi(vendor, fmt.num(n), `${pctOf(n, devices)}% устройств`, PALETTE[i % PALETTE.length],
+    methDeltaForGroup(rows[1], prevRows[1], 'vendor', vendor, 'devices'))));
+  tiles.push(methKpi('Всего действий', fmt.num(actions), null, null, methDeltaFor(rows[3], prevRows[3], 'cnt')));
+  tiles.push(methKpi('Действий на устройство', fnum1(perDevice), null, null,
+    prevPerDevice ? fmt.delta((perDevice - prevPerDevice) / prevPerDevice * 100) : ''));
+  tiles.push(methKpi('Сотрудников', fmt.num(empCount)));
+  tiles.push(methKpi('Частый тип', byType[0] ? byType[0][0] : '—', byType[0] ? `${fmt.num(byType[0][1])} · ${pctOf(byType[0][1], actions)}% действий` : ''));
+  const kpis = document.getElementById('meth-s1-kpis');
+  kpis.innerHTML = tiles.join('');
+  fitKpiText(kpis);
+
+  // Выводы
+  const li = (icon, html, warn) => `<li${warn ? ' class="warn"' : ''}>${ico(icon)}<span>${html}</span></li>`;
+  const out = [];
+  if (byVendor[0]) {
+    let t = `Больше всего устройств — <b>${byVendor[0][0]}</b>: ${pctOf(byVendor[0][1], devices)}% (${fmt.num(byVendor[0][1])} из ${fmt.num(devices)})`;
+    if (byVendor[1] && byVendor[1][1]) t += `, в ${fnum1(byVendor[0][1] / byVendor[1][1])} раза больше, чем ${byVendor[1][0]}`;
+    out.push(li('chart', t + '.'));
+  }
+  if (prevDevices) {
+    const ch = (devices - prevDevices) / prevDevices * 100;
+    out.push(li(ch >= 0 ? 'trendUp' : 'trendDown',
+      `Устройств на <b>${fnum1(Math.abs(ch))}%</b> ${ch >= 0 ? 'больше' : 'меньше'}, чем в прошлом периоде (${fmt.num(devices)} против ${fmt.num(prevDevices)}).`));
+  }
+  if (byType[0]) {
+    let t = `Частое действие — <b>${byType[0][0]}</b>: ${fmt.num(byType[0][1])} (${pctOf(byType[0][1], actions)}% всех действий)`;
+    if (byType[1]) t += `, следом ${byType[1][0]} — ${fmt.num(byType[1][1])}`;
+    out.push(li('repeat', t + '.'));
+  }
+  if (devices) {
+    let t = `На устройство приходится <b>${fnum1(perDevice)}</b> действия`;
+    if (prevPerDevice) t += ` (было ${fnum1(prevPerDevice)})`;
+    out.push(li('clipboard', t + '.'));
+  }
+  if (byEmp[0]) {
+    const empTotal = sumBy(rows[2], 'devices');
+    out.push(li('users', `Больше всех устройств у <b>${byEmp[0][0]}</b>: ${fmt.num(byEmp[0][1])} (${pctOf(byEmp[0][1], empTotal)}% отдела).`));
+    const avg = empTotal / byEmp.length;
+    const above = byEmp.filter(e => e[1] > avg).length;
+    out.push(li('users', `В среднем <b>${fnum1(avg)}</b> устройств на сотрудника; выше среднего — ${above} из ${byEmp.length}.`));
+  }
+  if (byEmpAct[0] && byEmpAct[0][0] !== (byEmp[0] || [])[0]) {
+    out.push(li('users', `Больше всех действий у <b>${byEmpAct[0][0]}</b>: ${fmt.num(byEmpAct[0][1])}.`));
+  }
+  if (prevRows[2].length) {
+    const prevMap = new Map(methAggSum(prevRows[2], 'employee', 'devices'));
+    const diffs = byEmp.map(([emp, n]) => [emp, n - (prevMap.get(emp) || 0)]).sort((x, y) => y[1] - x[1]);
+    const up = diffs[0], down = diffs[diffs.length - 1];
+    const parts = [];
+    if (up && up[1] > 0) parts.push(`сильнее всех прибавил <b>${up[0]}</b> (+${fmt.num(up[1])})`);
+    if (down && down[1] < 0) parts.push(`просел <b>${down[0]}</b> (−${fmt.num(-down[1])})`);
+    if (parts.length) out.push(li('trendUp', 'К прошлому периоду: ' + parts.join(', ') + ' устройств.'));
+  }
+  if (prevRows[3].length) {
+    const prevMap = new Map(methAggSum(prevRows[3], 'action_type', 'cnt'));
+    const grow = byType.map(([t, n]) => [t, n - (prevMap.get(t) || 0), prevMap.get(t) || 0]).sort((x, y) => y[1] - x[1])[0];
+    if (grow && grow[1] > 0) out.push(li('trendUp', `Заметнее всего выросло «${grow[0]}»: +${fmt.num(grow[1])}${grow[2] ? ` (+${fnum1(grow[1] / grow[2] * 100)}%)` : ''}.`));
+  }
+  document.getElementById('meth-s1-insights').innerHTML = out.join('') || '<li style="color:var(--ink-muted)">Недостаточно данных для выводов</li>';
+
+  // Графики
+  mkChart('meth-s1-vendor', methDoughnutChart(rows[1], 'vendor', 'devices'));
+  mkChart('meth-s1-emp', methBarChart(rows[2], 'employee', 'devices', 'Устройств'));
+  mkChart('meth-s1-types', methBarChart(rows[3], 'action_type', 'cnt', 'Действий'));
+}
+
+/* Таблица слайда 1: какой из трёх прежних разрезов показывать */
+function switchMethTableSrc(n) {
+  methTableTab = n;
+  document.querySelectorAll('#meth-table-src button').forEach(b => b.classList.toggle('active', +b.dataset.n === n));
+  document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
+  methCurrentRows = (methS1Data && methS1Data[n]) || [];
+  methSortKey = null;
+  methSortDir = 1;
+  document.getElementById('meth-group').value = '';
+  populateMethGroupSelect(METH_REPORTS[n], methCurrentRows);
+  filterMethTable();
+}
+
+/* ─── Слайд «Выплаты»: средний заработок в месяц и помесячная динамика ──────
+   Полные месяцы — все до текущего календарного; «3 мес.» — три последних полных.
+   Среднее сотрудника — по месяцам, где он что-то заработал (не размывается до найма). */
+const MONTHS_SHORT = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+const monthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+const monthLabel = m => `${MONTHS_SHORT[+m.slice(5, 7) - 1]} ${m.slice(2, 4)}`;
+
+async function loadMethPay(members, seq) {
+  const table = document.getElementById('meth-pay-avg');
+  const sub = document.getElementById('meth-pay-avg-sub');
+  table.innerHTML = '<tbody><tr><td style="text-align:center;color:var(--text-muted);padding:30px">Загрузка…</td></tr></tbody>';
+  sub.textContent = '';
+  destroyChart('meth-pay-chart');
+  let rows;
+  try {
+    rows = await rpcWithRetry('get_employee_monthly_earnings', { p_employees: members ? [...members] : null }, { retries: 1 });
+  } catch (e) {
+    if (seq !== methSeq) return;
+    const missing = /could not find|does not exist|schema cache/i.test(e.message);
+    table.innerHTML = `<tbody><tr><td style="color:var(--xf-red);padding:20px">${missing ? 'Нет функции get_employee_monthly_earnings — прогоните supabase_functions.sql' : e.message}</td></tr></tbody>`;
+    console.error('monthly earnings', e);
+    return;
+  }
+  if (seq !== methSeq) return;
+  rows = rows || [];
+
+  const now = new Date();
+  const cur = monthKey(now);
+  const last3 = [1, 2, 3].map(k => monthKey(new Date(now.getFullYear(), now.getMonth() - k, 1)));
+  const months = [...new Set(rows.map(r => String(r.month).slice(0, 10)))].sort();
+  const byEmp = new Map();                       // сотрудник → Map(месяц → заработок)
+  rows.forEach(r => {
+    const m = String(r.month).slice(0, 10);
+    if (!byEmp.has(r.employee)) byEmp.set(r.employee, new Map());
+    byEmp.get(r.employee).set(m, (byEmp.get(r.employee).get(m) || 0) + (+r.earned || 0));
+  });
+  const avgOver = (mm, keys) => {
+    const vals = keys.map(k => mm.get(k) || 0).filter(v => v > 0);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  };
+  const fullMonths = months.filter(m => m < cur);
+  const periodByEmp = new Map(methAggSum(methCurrentRows, 'employee', 'total_price'));
+  const stats = [...byEmp].map(([emp, mm]) => ({
+    emp,
+    period: periodByEmp.get(emp) || 0,
+    all: avgOver(mm, fullMonths),
+    m3: avgOver(mm, last3),
+    total: [...mm.values()].reduce((a, b) => a + b, 0),
+  })).filter(s => s.all != null || s.m3 != null || s.period);
+  const mean = arr => { const v = arr.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const avgAll = mean(stats.map(s => s.all));
+  const avg3 = mean(stats.map(s => s.m3));
+
+  // Плитки — к плиткам выплат за период
+  const kpis = document.getElementById('meth-kpis');
+  kpis.insertAdjacentHTML('beforeend',
+    methKpi('Ср. в месяц · всё время', avgAll != null ? fmt.money(avgAll) : '—', `на сотрудника · ${fullMonths.length} мес.`) +
+    methKpi('Ср. в месяц · 3 мес.', avg3 != null ? fmt.money(avg3) : '—',
+      `${monthLabel(last3[2])} – ${monthLabel(last3[0])}`, null,
+      avgAll && avg3 != null ? fmt.delta((avg3 - avgAll) / avgAll * 100) : ''));
+
+  // Таблица средних
+  sub.textContent = `Полные месяцы; «3 мес.» — ${monthLabel(last3[2])} – ${monthLabel(last3[0])}. Учитываются месяцы с заработком.`;
+  stats.sort((x, y) => (y.m3 ?? -1) - (x.m3 ?? -1) || (y.all ?? -1) - (x.all ?? -1));
+  table.innerHTML = `<thead><tr><th>Сотрудник</th><th class="num">За период</th><th class="num">Ср. · всё</th><th class="num">Ср. · 3 мес.</th></tr></thead><tbody>` +
+    (stats.length ? stats.map(s => `<tr>
+      <td>${s.emp}</td>
+      <td class="num">${fmt.money(s.period)}</td>
+      <td class="num">${s.all != null ? fmt.money(s.all) : '—'}</td>
+      <td class="num">${s.m3 != null ? fmt.money(s.m3) : '—'}${s.m3 != null && s.all ? fmt.delta((s.m3 - s.all) / s.all * 100).replace('class=', 'style="margin:0 0 0 8px" class=') : ''}</td>
+    </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:30px">Нет данных</td></tr>') + '</tbody>';
+
+  // Помесячная динамика: линия на сотрудника + среднее по отделу пунктиром
+  const emps = [...stats].sort((x, y) => y.total - x.total).map(s => s.emp);
+  if (!months.length) {
+    document.getElementById('meth-pay-chart-sub').textContent = 'Помесячных данных пока нет';
+    return;
+  }
+  const labels = months.map(m => monthLabel(m) + (m === cur ? '*' : ''));
+  document.getElementById('meth-pay-chart-sub').textContent =
+    (months.includes(cur) ? '* текущий месяц неполный. ' : '') + 'Клик по имени в легенде скрывает линию';
+  // отрезок к неполному текущему месяцу — пунктиром, чтобы «провал» не читался как падение
+  const partialIdx = months.indexOf(cur);
+  const segment = { borderDash: c => c.p1DataIndex === partialIdx ? [4, 4] : undefined };
+  const datasets = emps.map((emp, i) => ({
+    label: emp,
+    data: months.map(m => byEmp.get(emp)?.get(m) ?? null),
+    borderColor: PALETTE[i % PALETTE.length],
+    backgroundColor: PALETTE[i % PALETTE.length] + '22',
+    tension: .25, spanGaps: false, pointRadius: 3, segment,
+  }));
+  datasets.push({
+    label: 'Среднее по отделу', _ref: true,
+    data: months.map(m => mean(emps.map(e => byEmp.get(e)?.get(m) || null))),
+    borderColor: CC.ref, borderDash: [6, 4], borderWidth: 2, pointRadius: 0, tension: .25,
+  });
+  mkChart('meth-pay-chart', {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: { filter: i => i.parsed.y != null, callbacks: { label: c => `${c.dataset.label}: ${fmt.money(c.parsed.y)}` },
+                   itemSort: (x, y) => (y.parsed.y || 0) - (x.parsed.y || 0) },
+      },
+      scales: { y: { beginAtZero: true, grid: { color: CC.grid }, ticks: { callback: v => fmt.money(v) } },
+                x: { grid: { display: false } } },
+    },
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

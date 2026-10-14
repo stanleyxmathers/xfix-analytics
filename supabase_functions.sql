@@ -730,6 +730,24 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   GROUP BY employee, action_type ORDER BY employee, 3 DESC;
 $$;
 
+-- Заработок сотрудников по месяцам за всю историю (слайд «Выплаты»: средние и динамика).
+-- p_employees — состав еженедельного отчёта (могут быть и люди других отделов);
+-- NULL — «мой отдел» (dept_actions).
+CREATE OR REPLACE FUNCTION get_employee_monthly_earnings(p_employees TEXT[] DEFAULT NULL)
+RETURNS TABLE(employee TEXT, month DATE, earned NUMERIC, days BIGINT)
+LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT a.employee::text, date_trunc('month', a.action_date)::date, SUM(a.price), COUNT(DISTINCT a.action_date)
+  FROM actions a
+  WHERE p_employees IS NOT NULL AND a.employee = ANY(p_employees) AND a.action_date IS NOT NULL
+  GROUP BY 1, 2
+  UNION ALL
+  SELECT a.employee::text, date_trunc('month', a.action_date)::date, SUM(a.price), COUNT(DISTINCT a.action_date)
+  FROM dept_actions a
+  WHERE p_employees IS NULL AND a.employee IS NOT NULL AND a.action_date IS NOT NULL
+  GROUP BY 1, 2
+  ORDER BY 2, 1;
+$$;
+
 -- Отчёт 5: распределение выплат по вендорам
 CREATE OR REPLACE FUNCTION report_vendor_payouts(p_report_id INT)
 RETURNS TABLE(vendor TEXT, employee TEXT, action_type TEXT, devices BIGINT, total_price NUMERIC)
