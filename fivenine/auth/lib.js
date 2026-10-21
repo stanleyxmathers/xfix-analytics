@@ -103,16 +103,30 @@ function allowedTools(user) {
 // Путь, не принадлежащий ни одному инструменту, доступен только администратору.
 const PUBLIC_FOR_USERS = ['/', '/index.html'];
 const PUBLIC_PREFIXES = ['/profile/'];
-function canAccess(user, uri) {
+// Инструмент с полным адресом (https://xfix.fivenine.space/roadmap/) совпадает только на своём хосте,
+// с путём (/dashboard/) — по пути. Возвращает длину совпавшего пути, чтобы выбрать самый точный.
+function matchTool(t, host, p) {
+  if (!t.url) return -1;
+  if (/^https?:\/\//.test(t.url)) {
+    let u;
+    try { u = new URL(t.url); } catch { return -1; }
+    return u.host === host && p.startsWith(u.pathname) ? u.pathname.length : -1;
+  }
+  return p.startsWith(t.url) ? t.url.length : -1;
+}
+
+function canAccess(user, uri, host) {
   let p;
   try { p = decodeURIComponent(String(uri || '/').split('?')[0]); } catch { return false; }
   if (p.includes('..')) return false;
   if (PUBLIC_FOR_USERS.includes(p) || PUBLIC_PREFIXES.some((x) => p.startsWith(x))) return true;
   if (isAdmin(user)) return true;
+  const h = String(host || '').toLowerCase();
   const tool = loadTools()
-    .filter((t) => t.url && p.startsWith(t.url))
-    .sort((a, b) => b.url.length - a.url.length)[0];
-  return !!tool && (user.access || []).includes(tool.id);
+    .map((t) => ({ t, len: matchTool(t, h, p) }))
+    .filter((x) => x.len >= 0)
+    .sort((a, b) => b.len - a.len)[0];
+  return !!tool && (user.access || []).includes(tool.t.id);
 }
 
 // ─── Профиль ─────────────────────────────────────────────────────────────────

@@ -190,7 +190,7 @@ async function handle(req, res) {
   if (url.pathname === '/check') {
     const s = currentSession(req);
     if (!s) return send(res, 401, '');
-    if (!lib.canAccess(s.user, req.headers['x-original-uri'])) return send(res, 403, '');
+    if (!lib.canAccess(s.user, req.headers['x-original-uri'], req.headers['x-original-host'])) return send(res, 403, '');
     return send(res, 204, '', { 'X-Auth-User': s.login });
   }
 
