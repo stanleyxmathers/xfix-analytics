@@ -9,8 +9,9 @@ ssh "$SERVER" 'mkdir -p /opt/fivenine/auth /var/www/tools/_assets /etc/fivenine'
 scp -q "$DIR/auth/lib.js" "$DIR/auth/server.js" "$DIR/auth/cli.js" "$SERVER:/opt/fivenine/auth/"
 scp -q "$DIR/auth/fivenine-auth.service" "$SERVER:/etc/systemd/system/fivenine-auth.service"
 scp -q "$DIR/site/index.html" "$SERVER:/var/www/tools/index.html"
-ssh "$SERVER" 'mkdir -p /var/www/tools/profile'
+ssh "$SERVER" 'mkdir -p /var/www/tools/profile /var/www/tools/invites'
 scp -q "$DIR/site/profile/index.html" "$SERVER:/var/www/tools/profile/index.html"
+scp -q "$DIR/site/invites/index.html" "$SERVER:/var/www/tools/invites/index.html"
 scp -q "$DIR/site/_assets/"* "$SERVER:/var/www/tools/_assets/"
 scp -q "$DIR/nginx/fivenine.conf" "$SERVER:/etc/nginx/sites-available/fivenine"
 scp -q "$DIR/tools.example.json" "$SERVER:/tmp/fivenine-tools.example.json"

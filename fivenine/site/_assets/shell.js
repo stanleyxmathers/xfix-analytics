@@ -10,7 +10,9 @@
     doc: '<path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h6M9 16h6"/>',
     wallet: '<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-    bolt: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+    bolt:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
     heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     bot: '<path d="M12 4v3M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3zM9.5 13v1M14.5 13v1"/>',
     tool: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
@@ -110,7 +112,7 @@
     const name = me ? me.name : '';
     el.innerHTML = `
       <a class="brand" href="/" aria-label="fivenine.space — главная">${MARK}<span class="wordmark"><b>fivenine</b><i>.</i><span>space</span></span></a>
-      <nav class="nav" aria-label="Разделы">${navLink('/', 'home', 'Главная')}${groups}</nav>
+      <nav class="nav" aria-label="Разделы">${navLink('/', 'home', 'Главная')}${groups}${me && me.admin ? `<div class="label">Управление</div>${navLink('/invites/', 'mail', 'Приглашения')}` : ''}</nav>
       <div class="side-foot">
         <div class="status">
           <span class="dots${me ? '' : ' loading'}">${DOTS}</span>

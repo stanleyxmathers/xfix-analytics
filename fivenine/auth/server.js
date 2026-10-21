@@ -3,6 +3,8 @@
 //   GET  /login   — страница входа
 //   POST /login   — проверка логина и пароля, выдача cookie
 //   POST /logout  — выход
+//   GET  /invite?t=… — регистрация по приглашению; POST /invite — создание учётки
+//   GET/POST /api/invites, POST /api/invites/revoke — приглашения (только администратор)
 //   GET  /api/me  — текущий пользователь, его настройки и доступные инструменты
 //   POST /api/profile  — имя и настройки панели
 //   POST /api/password — смена пароля
@@ -180,8 +182,53 @@ function loginPage({ next = '/', error = '', login = '' } = {}) {
 </body></html>`;
 }
 
-const HTML = { 'Content-Type': 'text/html; charset=utf-8' };
+// ─── Регистрация по приглашению ──────────────────────────────────────────────
+// Та же карточка, что у входа. Закреплённый в приглашении логин показываем, но не даём менять.
+function invitePage({ token = '', invite = null, error = '', login = '', name = '' } = {}) {
+  const body = !invite
+    ? `<div class="head">
+        <div class="brand">${MARK(38)}<span class="wordmark"><b>fivenine</b><i>.</i><span>space</span></span></div>
+        <h1>Приглашение недействительно</h1>
+      </div>
+      <p class="muted">Ссылка устарела или по ней уже зарегистрировались. Попросите новую у того, кто её прислал.</p>
+      <a class="btn" href="/login">Войти</a>`
+    : `<div class="head">
+        <div class="brand">${MARK(38)}<span class="wordmark"><b>fivenine</b><i>.</i><span>space</span></span></div>
+        <h1>Регистрация</h1>
+        <p class="muted">Придумайте пароль — с ним вы будете входить в инструменты.</p>
+      </div>
+      ${error ? `<div class="alert" role="alert">${esc(error)}</div>` : ''}
+      <form method="post" action="/invite" autocomplete="on">
+        <input type="hidden" name="t" value="${esc(token)}">
+        <div class="field">
+          <label for="login">Логин</label>
+          ${invite.login
+            ? `<input class="input" id="login" name="login" autocomplete="username" value="${esc(invite.login)}" readonly>`
+            : `<input class="input" id="login" name="login" autocomplete="username" autocapitalize="none" spellcheck="false" required
+                pattern="[a-z0-9._\\-]{2,32}" title="2–32 символа: латиница в нижнем регистре, цифры, . _ -" value="${esc(login)}" autofocus>`}
+        </div>
+        <div class="field">
+          <label for="name">Имя</label>
+          <input class="input" id="name" name="name" maxlength="40" autocomplete="name" required value="${esc(name || invite.name || '')}">
+        </div>
+        <div class="field">
+          <label for="password">Пароль</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required ${invite.login ? 'autofocus' : ''}>
+        </div>
+        <div class="field">
+          <label for="repeat">Повторите пароль</label>
+          <input class="input" id="repeat" name="repeat" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+        <button class="btn" type="submit">Зарегистрироваться</button>
+      </form>`;
+  return loginPage().replace(/<section class="card glass">[\s\S]*<\/section>/, `<section class="card glass">${body}
+    <div class="foot">
+      <span class="dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+    </div>
+  </section>`).replace('<title>Вход · fivenine.space</title>', '<title>Регистрация · fivenine.space</title>');
+}
 
+const HTML = { 'Content-Type': 'text/html; charset=utf-8' };
 // ─── Маршруты ────────────────────────────────────────────────────────────────
 async function handle(req, res) {
   const url = new URL(req.url, 'http://localhost');
@@ -191,7 +238,8 @@ async function handle(req, res) {
     const s = currentSession(req);
     if (!s) return send(res, 401, '');
     if (!lib.canAccess(s.user, req.headers['x-original-uri'], req.headers['x-original-host'])) return send(res, 403, '');
-    return send(res, 204, '', { 'X-Auth-User': s.login });
+    // Имя — для инструментов, которые заводят учётку при первом заходе; в заголовке только ASCII.
+    return send(res, 204, '', { 'X-Auth-User': s.login, 'X-Auth-Name': encodeURIComponent(s.user.name || s.login) });
   }
 
   if (url.pathname === '/login' && req.method === 'GET') {
@@ -220,6 +268,65 @@ async function handle(req, res) {
     console.log(`login ok user=${login} ip=${ip}`);
     const { token, maxAge } = lib.createSession(login, user);
     return send(res, 303, '', { Location: next, 'Set-Cookie': cookieHeader(req, token, maxAge) });
+  }
+
+  if (url.pathname === '/invite' && req.method === 'GET') {
+    const token = url.searchParams.get('t') || '';
+    const invite = lib.findInvite(token);
+    return send(res, invite ? 200 : 404, invitePage({ token, invite }), { ...HTML, 'Referrer-Policy': 'no-referrer' });
+  }
+
+  if (url.pathname === '/invite' && req.method === 'POST') {
+    let form;
+    try { form = new URLSearchParams(await readBody(req)); } catch { return send(res, 413, ''); }
+    const token = form.get('t') || '';
+    const login = (form.get('login') || '').trim().toLowerCase();
+    const name = form.get('name') || '';
+    const password = form.get('password') || '';
+    // Перебор токенов ограничен тем же счётчиком, что и вход.
+    if (tooManyFails(ip)) return send(res, 429, invitePage({ error: 'Слишком много попыток. Попробуйте через 15 минут.' }), HTML);
+    const invite = lib.findInvite(token);
+    if (!invite) { noteFail(ip); return send(res, 404, invitePage(), HTML); }
+    const again = (error) => send(res, 400, invitePage({ token, invite, error, login, name }), HTML);
+    if (password !== (form.get('repeat') || '')) return again('Пароли не совпадают');
+    let result;
+    try { result = lib.useInvite(token, { login, name, password }); } catch (e) { return again(e.message); }
+    console.log(`invite used user=${result.login} by=${invite.by} ip=${ip}`);
+    const { token: session, maxAge } = lib.createSession(result.login, result.user);
+    const { next } = lib.inviteTarget(result.user.access);
+    return send(res, 303, '', { Location: safeNext(next), 'Set-Cookie': cookieHeader(req, session, maxAge) });
+  }
+
+  if (url.pathname.startsWith('/api/invites')) {
+    const s = currentSession(req);
+    if (!s) return json(res, 401, {});
+    if (!lib.isAdmin(s.user)) return json(res, 403, { error: 'Только для администратора' });
+    if (url.pathname === '/api/invites' && req.method === 'GET') {
+      return json(res, 200, { invites: lib.listInvites(), tools: lib.loadTools().map(({ id, title, group, icon }) => ({ id, title, group, icon })) });
+    }
+    if (url.pathname === '/api/invites' && req.method === 'POST') {
+      const body = await readJsonBody(req, res);
+      if (!body) return;
+      const login = typeof body.login === 'string' && body.login.trim() ? body.login.trim().toLowerCase() : null;
+      const access = Array.isArray(body.access) ? body.access.filter((a) => typeof a === 'string') : [];
+      // Пригласить сразу администратором можно только из консоли сервера.
+      if (access.includes('*')) return json(res, 400, { error: 'Полный доступ выдаётся только с сервера' });
+      try {
+        const { token, invite } = lib.createInvite({ login, name: lib.cleanName(body.name), access, days: body.days, by: s.login });
+        console.log(`invite created id=${invite.id} by=${s.login} login=${login || '-'} access=${access.join(',')}`);
+        return json(res, 200, { invite, url: `${lib.inviteTarget(access).base}/invite?t=${token}` });
+      } catch (e) {
+        return json(res, 400, { error: e.message });
+      }
+    }
+    if (url.pathname === '/api/invites/revoke' && req.method === 'POST') {
+      const body = await readJsonBody(req, res);
+      if (!body) return;
+      if (!lib.revokeInvite(String(body.id || ''))) return json(res, 404, { error: 'Приглашение не найдено' });
+      console.log(`invite revoked id=${body.id} by=${s.login}`);
+      return json(res, 200, { invites: lib.listInvites() });
+    }
+    return json(res, 404, { error: 'not found' });
   }
 
   if (url.pathname === '/logout' && req.method === 'POST') {

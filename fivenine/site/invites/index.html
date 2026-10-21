@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Приглашения · fivenine.space</title>
+<link rel="icon" href="/_assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300..700&family=Onest:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/500.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/golos-ui@4.5.3/600.css">
+<link rel="stylesheet" href="/_assets/fivenine.css">
+<script src="/_assets/theme.js"></script>
+<style>
+  .content { max-width: 760px; }
+  .panels { display: grid; gap: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .full { grid-column: 1 / -1; }
+  .hint { font-size: 13px; color: var(--ink-muted); }
+  .error-text { font-size: 13px; color: var(--danger); font-weight: 500; }
+  .checks { display: grid; gap: 2px; }
+  .check { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer; }
+  .check:hover { background: var(--row-hover); }
+  .check input { width: 18px; height: 18px; accent-color: var(--sat); }
+  .check .tile-icon { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; color: var(--accent-text); background: var(--sat-tint); }
+  .check .row-sub { margin-left: auto; }
+  select.input { appearance: none; cursor: pointer; }
+  .link-box { display: flex; gap: 8px; align-items: center; padding: 6px 6px 6px 14px; border-radius: var(--radius-md); background: var(--sat-tint); box-shadow: inset 0 0 0 1px var(--sat-edge); }
+  .link-box code { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent-text); }
+  .result { display: grid; gap: 8px; }
+  .result[hidden] { display: none; }
+  .inv { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hairline); }
+  .inv:first-child { border-top: 0; }
+  .inv .row-text { flex: 1; }
+  .pill.used { background: var(--hairline); color: var(--ink-muted); }
+  .pill.expired { background: var(--danger-tint); color: var(--danger); }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .panel { padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar glass" id="sidebar"></aside>
+
+  <main class="content">
+    <div class="head">
+      <div>
+        <h1>Приглашения</h1>
+        <p>Ссылка, по которой человек сам заведёт учётку и пароль</p>
+      </div>
+    </div>
+
+    <div class="panels">
+      <section class="panel glass" aria-labelledby="new-title">
+        <div class="panel-head"><h2 id="new-title">Новое приглашение</h2><p>Ссылка одноразовая. Пароль человек придумает сам — вы его не увидите.</p></div>
+        <form id="invite-form" class="form-grid" novalidate>
+          <div class="field">
+            <label for="login">Логин</label>
+            <input class="input" id="login" autocapitalize="none" spellcheck="false" placeholder="Пусть выберет сам" maxlength="32">
+          </div>
+          <div class="field">
+            <label for="name">Имя</label>
+            <input class="input" id="name" maxlength="40" placeholder="Можно не заполнять">
+          </div>
+          <div class="field full">
+            <span class="label" style="padding: 4px 0 2px">Доступ</span>
+            <div class="checks" id="tools"></div>
+          </div>
+          <div class="field">
+            <label for="days">Ссылка действует</label>
+            <select class="input" id="days">
+              <option value="1">1 день</option>
+              <option value="3">3 дня</option>
+              <option value="7" selected>7 дней</option>
+              <option value="30">30 дней</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Создать ссылку</button>
+            <span class="error-text" id="form-error" role="alert"></span>
+          </div>
+        </form>
+        <div class="result" id="result" hidden>
+          <span class="label">Ссылка — отправьте её человеку</span>
+          <div class="link-box"><code id="link"></code><button class="btn btn-ghost btn-icon" id="copy" type="button" title="Скопировать" aria-label="Скопировать ссылку"></button></div>
+          <span class="hint">Больше она нигде не покажется — сохраните или отправьте сейчас.</span>
+        </div>
+      </section>
+
+      <section class="panel glass" aria-labelledby="list-title">
+        <div class="panel-head"><h2 id="list-title">Выданные</h2><p>Использованные и просроченные хранятся месяц</p></div>
+        <div id="list"><p class="hint">Загружаем…</p></div>
+      </section>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/_assets/shell.js"></script>
+<script>
+const { svg, esc } = FN;
+let tools = [];
+
+let toastTimer;
+function toast(text, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+const STATUS = { active: ['Ждёт', ''], used: ['Использовано', 'used'], expired: ['Просрочено', 'expired'] };
+const date = (iso) => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+const toolTitle = (id) => (tools.find((t) => t.id === id) || { title: id }).title;
+
+function renderList(invites) {
+  const root = document.getElementById('list');
+  if (!invites.length) { root.innerHTML = '<p class="hint">Приглашений пока нет.</p>'; return; }
+  root.innerHTML = invites.map((i) => {
+    const [label, cls] = STATUS[i.status];
+    const who = i.usedBy || i.login || 'логин на выбор';
+    const when = i.status === 'used' ? `зарегистрировался ${date(i.usedAt)}` : i.status === 'active' ? `до ${date(i.exp)}` : `истекло ${date(i.exp)}`;
+    return `<div class="inv">
+      <span class="row-text"><span class="row-title">${esc(who)}${i.name ? ` · ${esc(i.name)}` : ''}</span>
+        <span class="row-sub">${esc(i.access.map(toolTitle).join(', ') || 'только главная')} · ${when}</span></span>
+      <span class="pill ${cls}">${label}</span>
+      ${i.status === 'active' ? `<button class="btn btn-ghost" type="button" data-revoke="${esc(i.id)}">Отозвать</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function load() {
+  const r = await fetch('/api/invites', { credentials: 'same-origin' });
+  if (r.status === 401) { location.href = '/login?next=/invites/'; return; }
+  const data = await r.json();
+  if (!r.ok) { document.getElementById('list').innerHTML = `<p class="error-text">${esc(data.error || 'Не удалось загрузить')}</p>`; return; }
+  tools = data.tools;
+  document.getElementById('tools').innerHTML = tools.map((t) => `
+    <label class="check"><input type="checkbox" value="${esc(t.id)}">
+      <span class="tile-icon">${svg(t.icon, 18)}</span><span class="row-title">${esc(t.title)}</span><span class="row-sub">${esc(t.group || '')}</span></label>`).join('');
+  renderList(data.invites);
+}
+
+document.getElementById('invite-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('form-error');
+  errEl.textContent = '';
+  const login = document.getElementById('login').value.trim().toLowerCase();
+  const access = [...document.querySelectorAll('#tools input:checked')].map((x) => x.value);
+  if (login && !/^[a-z0-9._-]{2,32}$/.test(login)) { errEl.textContent = 'Логин: 2–32 символа, латиница в нижнем регистре, цифры, . _ -'; return; }
+  if (!access.length) { errEl.textContent = 'Отметьте хотя бы один инструмент'; return; }
+  try {
+    const data = await FN.api('/api/invites', { login, name: document.getElementById('name').value.trim(), access, days: +document.getElementById('days').value });
+    document.getElementById('link').textContent = data.url;
+    document.getElementById('result').hidden = false;
+    e.target.reset();
+    load();
+  } catch (err) {
+    if (err.message !== 'auth') errEl.textContent = err.message;
+  }
+});
+
+document.getElementById('copy').innerHTML = svg('copy', 18);
+document.getElementById('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('link').textContent); toast('Ссылка скопирована'); }
+  catch { toast('Не удалось скопировать — выделите ссылку вручную', true); }
+});
+
+document.getElementById('list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-revoke]');
+  if (!btn) return;
+  try {
+    const data = await FN.api('/api/invites/revoke', { id: btn.dataset.revoke });
+    renderList(data.invites);
+    toast('Приглашение отозвано');
+  } catch (err) {
+    if (err.message !== 'auth') toast(err.message, true);
+  }
+});
+
+FN.ready.then(load);
+</script>
+</body>
+</html>

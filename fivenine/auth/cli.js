@@ -6,6 +6,8 @@
 //   fivenine user del <login>
 //   fivenine user list
 //   fivenine tools
+//   fivenine invite [login] [--name "Имя"] [--access id1,id2] [--days 7]  — ссылка-приглашение
+//   fivenine invite list | fivenine invite del <id>
 'use strict';
 const readline = require('readline');
 const lib = require('./lib');
@@ -54,6 +56,28 @@ async function main() {
 
   if (scope === 'tools') {
     for (const t of lib.loadTools()) console.log(`${t.id.padEnd(20)} ${t.url.padEnd(20)} ${t.title}`);
+    return;
+  }
+  if (scope === 'invite') {
+    const rest = args.slice(1);
+    if (rest[0] === 'list') {
+      for (const i of lib.listInvites()) {
+        console.log(`${i.id}  ${i.status.padEnd(8)} ${(i.login || '(любой)').padEnd(16)} ${i.access.join(',').padEnd(24)} до ${i.exp.slice(0, 10)}${i.usedBy ? `  → ${i.usedBy}` : ''}`);
+      }
+      return;
+    }
+    if (rest[0] === 'del') {
+      if (!lib.revokeInvite(rest[1] || '')) fail('Нет такого приглашения. Список: fivenine invite list');
+      console.log('Приглашение отозвано');
+      return;
+    }
+    const name = opt(rest, '--name') || null;
+    const access = parseAccess(opt(rest, '--access') || '');
+    const days = opt(rest, '--days');
+    const login = rest[0] || null;
+    checkToolIds(access);
+    const { token } = lib.createInvite({ login, name, access, days, by: 'cli' });
+    console.log(`${lib.inviteTarget(access).base}/invite?t=${token}`);
     return;
   }
   if (scope !== 'user') fail('Использование: fivenine user add|passwd|access|del|list … | fivenine tools');

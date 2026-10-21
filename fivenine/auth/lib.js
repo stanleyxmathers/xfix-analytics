@@ -8,6 +8,7 @@ const DATA_DIR = process.env.FIVENINE_DATA || '/etc/fivenine';
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const TOOLS_FILE = path.join(DATA_DIR, 'tools.json');
 const SECRET_FILE = path.join(DATA_DIR, 'secret');
+const INVITES_FILE = path.join(DATA_DIR, 'invites.json');
 
 const SESSION_DAYS = 30;
 
@@ -162,9 +163,100 @@ function updateUser(login, change) {
   return users[login];
 }
 
+// ─── Приглашения ─────────────────────────────────────────────────────────────
+// Ссылка с токеном, по которой человек сам заводит учётку и пароль. В файле лежит
+// только хэш токена: утёкший invites.json не даёт зарегистрироваться.
+// Приглашение одноразовое; логин в нём можно закрепить или оставить на выбор.
+const LOGIN_RE = /^[a-z0-9._-]{2,32}$/;
+const validLogin = (login) => typeof login === 'string' && LOGIN_RE.test(login);
+const INVITE_DAYS = 7;
+
+const tokenHash = (token) => crypto.createHash('sha256').update(String(token)).digest('hex');
+const loadInvites = () => readJson(INVITES_FILE, {});
+const saveInvites = (invites) => writeJson(INVITES_FILE, invites);
+
+function inviteView(hash, inv) {
+  const now = Date.now();
+  const status = inv.usedAt ? 'used' : inv.exp <= now ? 'expired' : 'active';
+  return { id: hash.slice(0, 12), login: inv.login, name: inv.name, access: inv.access, by: inv.by,
+    createdAt: inv.createdAt, exp: new Date(inv.exp).toISOString(), status, usedBy: inv.usedBy || null, usedAt: inv.usedAt || null };
+}
+
+function createInvite({ login = null, name = null, access = [], days = INVITE_DAYS, by }) {
+  if (login !== null && !validLogin(login)) throw new Error('Логин: 2–32 символа, латиница в нижнем регистре, цифры, . _ -');
+  if (login && loadUsers()[login]) throw new Error(`Пользователь ${login} уже есть`);
+  const known = new Set(loadTools().map((t) => t.id));
+  const bad = access.filter((a) => a !== '*' && !known.has(a));
+  if (bad.length) throw new Error(`Нет таких инструментов: ${bad.join(', ')}`);
+  const d = Math.min(Math.max(Math.round(+days) || INVITE_DAYS, 1), 30);
+  const token = crypto.randomBytes(24).toString('base64url');
+  const hash = tokenHash(token);
+  const inv = { login, name, access: [...new Set(access)], by, createdAt: new Date().toISOString(), exp: Date.now() + d * 864e5 };
+  const invites = JSON.parse(JSON.stringify(loadInvites()));
+  // Старые использованные и просроченные — только для истории; держим месяц.
+  for (const [h, i] of Object.entries(invites)) if (i.exp < Date.now() - 30 * 864e5) delete invites[h];
+  invites[hash] = inv;
+  saveInvites(invites);
+  return { token, invite: inviteView(hash, inv) };
+}
+
+// Действующее приглашение по токену из ссылки или null.
+function findInvite(token) {
+  if (!token || typeof token !== 'string' || token.length > 100) return null;
+  const hash = tokenHash(token);
+  const inv = loadInvites()[hash];
+  if (!inv || inv.usedAt || inv.exp <= Date.now()) return null;
+  return { hash, ...inv };
+}
+
+// Регистрация по приглашению: учётка и отметка «использовано» — одной проверкой.
+function useInvite(token, { login, name, password }) {
+  const inv = findInvite(token);
+  if (!inv) throw new Error('Приглашение недействительно или устарело');
+  const finalLogin = inv.login || login;
+  if (!validLogin(finalLogin)) throw new Error('Логин: 2–32 символа, латиница в нижнем регистре, цифры, . _ -');
+  const users = JSON.parse(JSON.stringify(loadUsers()));
+  if (users[finalLogin]) throw new Error('Такой логин уже занят');
+  if (typeof password !== 'string' || password.length < 8 || password.length > 200) throw new Error('Пароль: не короче 8 символов');
+  users[finalLogin] = { name: cleanName(name) || inv.name || finalLogin, ...hashPassword(password), access: inv.access };
+  saveUsers(users);
+  const invites = JSON.parse(JSON.stringify(loadInvites()));
+  Object.assign(invites[inv.hash], { usedAt: new Date().toISOString(), usedBy: finalLogin });
+  saveInvites(invites);
+  return { login: finalLogin, user: users[finalLogin], invite: inv };
+}
+
+function listInvites() {
+  return Object.entries(loadInvites()).map(([h, i]) => inviteView(h, i))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+function revokeInvite(id) {
+  const invites = JSON.parse(JSON.stringify(loadInvites()));
+  const hash = Object.keys(invites).find((h) => h.slice(0, 12) === id);
+  if (!hash) return false;
+  delete invites[hash];
+  saveInvites(invites);
+  return true;
+}
+
+// Куда ведёт ссылка: если все инструменты приглашения на одном поддомене
+// (xfix.fivenine.space), регистрация там же — сессия сразу действует в инструменте.
+// Возвращает адрес страницы приглашения и путь, куда отправить после регистрации.
+function inviteTarget(access) {
+  const tools = loadTools().filter((t) => access.includes(t.id));
+  const urls = tools.map((t) => { try { return new URL(t.url); } catch { return null; } });
+  const hosts = new Set(urls.map((u) => u && u.host));
+  if (urls.length && hosts.size === 1 && urls[0]) {
+    return { base: urls[0].origin, next: urls.length === 1 ? urls[0].pathname : '/' };
+  }
+  return { base: 'https://fivenine.space', next: '/' };
+}
+
 module.exports = {
+  validLogin, createInvite, findInvite, useInvite, listInvites, revokeInvite, inviteTarget,
   cleanPrefs, cleanName, updateUser,
-  DATA_DIR, USERS_FILE, TOOLS_FILE, SECRET_FILE,
+  DATA_DIR, USERS_FILE, TOOLS_FILE, SECRET_FILE, INVITES_FILE,
   loadUsers, saveUsers, loadTools,
   hashPassword, verifyPassword,
   createSession, readSession,
