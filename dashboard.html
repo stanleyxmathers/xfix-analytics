@@ -598,6 +598,11 @@ body.presentation .slide-hint { display: none; }
 .insight-msg  { font-size: 14px; color: var(--ink); }
 .insight-meta { font-size: 13px; color: var(--ink-muted); margin-top: 2px; }
 
+/* Планирование: панель параметров */
+.plan-controls { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+.plan-controls > label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-muted); min-width: 140px; }
+.plan-controls > label .settings-input { min-height: 40px; padding: 8px 12px; }
+
 /* Section headers */
 .section-header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -995,6 +1000,10 @@ body.presentation .slide-hint { display: none; }
         <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2" height="4"/><rect x="4.5" y="7" width="2" height="7"/><rect x="8" y="4" width="2" height="10"/><rect x="11.5" y="6" width="2" height="8"/></svg>
         <span class="nav-label">Отдел диагностики</span>
         <span class="nav-badge" id="anomaly-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-page="planning" onclick="showPage('planning',this)" title="Планирование">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2"/></svg>
+        <span class="nav-label">Планирование</span>
       </div>
 
       <div class="nav-section">Управление</div>
@@ -1456,6 +1465,144 @@ body.presentation .slide-hint { display: none; }
       </div>
 
       </div><!-- /page-diagnostics -->
+
+      <!-- ─ Планирование ─────────────────────────────────────────────────── -->
+      <div class="page" id="page-planning">
+        <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div class="tabs" style="display:inline-flex;width:auto;margin-bottom:0;flex-wrap:wrap">
+            <button class="tab active plan-tab" data-plan="week" onclick="switchPlanTab('week',this)">Проверка недели</button>
+            <button class="tab plan-tab" data-plan="people" onclick="switchPlanTab('people',this)">Сотрудники</button>
+            <button class="tab plan-tab" data-plan="norms" onclick="switchPlanTab('norms',this)">Нормы устройств</button>
+            <button class="tab plan-tab" data-plan="intake" onclick="switchPlanTab('intake',this)">Поступление</button>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)">Статистика за
+            <select class="settings-input" id="plan-weeks" style="width:auto;min-height:36px;padding:6px 10px" onchange="reloadPlanning()">
+              <option value="4">4 недели</option>
+              <option value="8">8 недель</option>
+              <option value="12" selected>12 недель</option>
+              <option value="26">полгода</option>
+            </select>
+          </label>
+        </div>
+        <div class="section-sub" id="plan-range-note" style="margin:-6px 0 14px"></div>
+
+        <!-- Проверка недели -->
+        <div class="plan-view" id="plan-week">
+          <div class="section-header">
+            <div><div class="section-title">Сработает ли график</div><div class="section-sub">Ожидаемые поставки + обычный поток по статистике против смен из графика. Нагрузка — по среднему времени отдела на каждый тип устройства</div></div>
+          </div>
+          <div class="card plan-controls">
+            <label>Неделя с<input type="date" class="settings-input" id="pw-start" onchange="loadPlanWeek()"></label>
+            <label title="Устройств, которые на начало недели ещё ждут базовой диагностики">Хвост на начало, устр.<input type="number" min="0" step="1" class="settings-input" id="pw-backlog" value="0" onchange="renderPlanWeek()"></label>
+            <label title="Доля смены, которая уходит на нормированную работу с устройствами. По умолчанию — факт отдела за период статистики">Загрузка смены, %<input type="number" min="30" max="100" step="1" class="settings-input" id="pw-util" onchange="renderPlanWeek()"></label>
+            <label title="Устройство, принятое в день D, должно пройти базовую диагностику не позже D + срок">Срок, дней<input type="number" min="0" max="5" step="1" class="settings-input" id="pw-sla" value="1" onchange="renderPlanWeek()"></label>
+            <label>Ожидаемые поставки
+              <select class="settings-input" id="pw-mode" onchange="renderPlanWeek()">
+                <option value="replace">Список вместо прогноза в дни поставок</option>
+                <option value="add">Список сверх обычного потока</option>
+                <option value="only">Только список, без прогноза</option>
+              </select>
+            </label>
+          </div>
+          <div class="card plan-controls" style="margin-top:12px">
+            <div style="font-size:13px;color:var(--ink-muted);flex:1;min-width:240px" id="pw-supply-info">Список ожидаемых устройств не загружен — неделя считается по статистике</div>
+            <button class="btn btn-ghost" onclick="downloadSupplyTemplate()" title="Пустой шаблон Excel: дата, устройство, количество, накладная, комментарий">Шаблон</button>
+            <label class="btn btn-ghost" style="cursor:pointer" title="Excel: колонки «дата», «устройство» (модель или группа), необязательно «количество», «накладная», «комментарий». Даты из файла заменяют ранее загруженные">
+              <input type="file" id="pw-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importSupplyFile(this)">
+              Загрузить ожидаемые поставки
+            </label>
+            <button class="btn btn-ghost" onclick="clearWeekSupply()" title="Удалить ожидаемые поставки этой недели">Очистить</button>
+          </div>
+          <div class="kpi-grid" id="pw-kpi" style="margin-top:16px"></div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Нагрузка и ёмкость смен по дням</div>
+            <div class="chart-wrap"><canvas id="pw-chart"></canvas></div>
+          </div>
+          <div class="card" id="pw-advice" style="margin-bottom:16px;display:none"></div>
+          <div class="card" style="overflow-x:auto">
+            <table class="data-table" style="min-width:880px">
+              <thead><tr>
+                <th>День</th><th class="num">Устройств</th><th>Откуда</th><th class="num">Нагрузка, ч</th>
+                <th>В смене</th><th class="num">Ёмкость, ч</th><th class="num">Хвост, устр.</th><th>Статус</th>
+              </tr></thead>
+              <tbody id="pw-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card" id="pw-supply-card" style="margin-top:16px;overflow-x:auto;display:none">
+            <div class="card-title">Ожидаемые устройства недели</div>
+            <table class="data-table">
+              <thead><tr><th>Дата</th><th>Как в файле</th><th>Группа</th><th class="num">Кол-во</th><th>Накладная</th><th>Комментарий</th></tr></thead>
+              <tbody id="pw-supply-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Сотрудники -->
+        <div class="plan-view" id="plan-people" style="display:none">
+          <div class="section-header">
+            <div><div class="section-title">Продуктивность сотрудников</div><div class="section-sub">Условные часы — устройства, пересчитанные по среднему времени отдела на такое действие с таким устройством: сравнимы между людьми независимо от состава техники</div></div>
+            <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center;white-space:nowrap"><input type="checkbox" id="plan-all-emps" onchange="renderPlanPeople()"> все, кто делал действия отдела</label>
+          </div>
+          <div class="kpi-grid" id="pp-kpi"></div>
+          <div class="card" style="overflow-x:auto;margin-bottom:16px">
+            <table class="data-table" style="min-width:1100px">
+              <thead><tr>
+                <th>Сотрудник</th><th class="num">Смен</th><th class="num" title="Разных устройств с действиями отдела за смену">Устр. / смена</th>
+                <th class="num">₽ / смена</th><th class="num" title="Условные часы работы за смену">Усл. ч / смена</th>
+                <th class="num" title="Условные часы ÷ длина смены (по графику, без графика — от первого до последнего действия)">Загрузка</th>
+                <th class="num" title="Время отдела на те же устройства ÷ время сотрудника. Больше 1 — быстрее отдела">Скорость</th>
+                <th class="num" title="Перерывы больше 40 мин между действиями, ч за смену">Простой, ч</th>
+                <th class="num" title="Работа после конца смены по графику, ч за смену">После смены, ч</th>
+                <th class="num" title="Смены по графику без единого действия">Пустых смен</th>
+                <th class="num" title="Доля обращений с расширенной диагностикой / из них найдена неисправность">РТ / находки</th>
+                <th class="num" title="Базовая диагностика не позже следующего дня после приёма">Базовая ≤ 1 дн.</th>
+                <th class="num">Повторов</th>
+              </tr></thead>
+              <tbody id="pp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">Условные часы за смену по неделям</div>
+            <div class="chart-wrap"><canvas id="pp-chart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Нормы -->
+        <div class="plan-view" id="plan-norms" style="display:none">
+          <div class="section-header">
+            <div><div class="section-title">Время на устройство</div><div class="section-sub">Минуты диагноста на обращение: обработка, базовая, РТ, услуги. Время действия — интервал от предыдущего действия сотрудника, перерывы больше 40 мин не считаются. Медиана — типичное обращение, среднее — для расчёта нагрузки</div></div>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="chart-wrap"><canvas id="pn-chart"></canvas></div>
+          </div>
+          <div class="card" style="overflow-x:auto">
+            <table class="data-table" id="pn-table"><thead id="pn-thead"></thead><tbody id="pn-tbody"></tbody></table>
+            <div class="section-sub" style="margin-top:12px">Личные нормы: зелёным — быстрее отдела на 20% и больше, красным — медленнее на 20% и больше. Группы, где меньше 15 обращений, в расчёте нагрузки берут среднее по вендору.</div>
+          </div>
+        </div>
+
+        <!-- Поступление -->
+        <div class="plan-view" id="plan-intake" style="display:none">
+          <div class="section-header">
+            <div><div class="section-title">Поступление техники</div><div class="section-sub">Устройства по дате и времени приёма в ремонт (только те, по которым отдел делал действия). Последние 3 дня периода в средние не входят — они ещё не обработаны</div></div>
+          </div>
+          <div class="kpi-grid" id="pi-kpi"></div>
+          <div class="charts-grid">
+            <div class="card"><div class="card-title">В среднем по дням недели</div><div class="chart-wrap"><canvas id="pi-dow"></canvas></div></div>
+            <div class="card"><div class="card-title">По часу приёма, доля</div><div class="chart-wrap"><canvas id="pi-hour"></canvas></div></div>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Принято по дням</div>
+            <div class="chart-wrap"><canvas id="pi-daily"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Через сколько дней после приёма</div>
+            <table class="data-table"><thead><tr><th>Этап</th><th class="num">В день приёма</th><th class="num">+1 день</th><th class="num">+2 дня</th><th class="num">+3–6 дней</th><th class="num">7 и больше</th></tr></thead>
+              <tbody id="pi-lag"></tbody></table>
+          </div>
+        </div>
+      </div><!-- /page-planning -->
+
 
       <!-- ─ Еженедельный отчет (методика 1-6) ─────────────────────────── -->
       <div class="page" id="page-methodology">
@@ -2845,6 +2992,7 @@ const PAGE_TITLES = {
   overruns:  'Перерасходы <span>— причины и таблица</span>',
   methodology: 'Еженедельный отчет <span>— в разрезах</span>',
   diagnostics: 'Отдел диагностики <span>— сотрудники, аномалии, нагрузка</span>',
+  planning:  'Планирование <span>— нагрузка, нормы, график</span>',
   upload:    'Загрузка данных <span>— импорт отчётов</span>',
   report:    'Менеджерский отчёт <span>— печать в PDF</span>',
   settings:  'Настройки',
@@ -2897,6 +3045,7 @@ function showPage(id, el) {
 function loadPageData(id) {
   const rid = STATE.currentReportId;
   if (id === 'diagnostics') { loadDiagTab(STATE.diagTab || 'employees'); return; }
+  if (id === 'planning') { loadPlanning(); return; }
   if (!rid && id !== 'overview' && id !== 'settings' && id !== 'upload') return;
 
   // settings and upload are always fresh; everything else is cached per report
@@ -2954,6 +3103,7 @@ function loadDiagTab(tab) {
 function refreshPage() {
   const id = STATE.currentPage || 'overview';
   const rid = STATE.currentReportId;
+  if (id === 'planning') { reloadPlanning(); return; }
   if (id === 'diagnostics') {
     STATE.loaded.delete(`diag-${STATE.diagTab}:${rid}`);
   } else if (id === 'overview') {
@@ -7905,6 +8055,655 @@ function showToast(msg, type = 'success') {
   t.innerHTML = `<span class="toast-icon">${type==='success'?'✓':'✕'}</span>${msg}`;
   document.getElementById('toast-container').appendChild(t);
   setTimeout(() => t.remove(), 4000);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ПЛАНИРОВАНИЕ — нормы времени по устройствам, поступление техники,
+   продуктивность сотрудников и проверка недели: хватит ли смен из графика
+   на ожидаемые поставки + обычный поток. Свой слой по диапазону дат
+   (supabase_planning.sql), не привязан к выбранному отчёту-неделе.
+   ══════════════════════════════════════════════════════════════════════════ */
+const PLAN_CAP = 40;             // интервал между действиями > 40 мин — перерыв или простой
+const PLAN_MIN_CORE = 30;        // сотрудник отдела — от 30 действий отдела за период
+const PLAN_MIN_SHARE = 0.1;      // и не меньше 10% от самого загруженного (помощь со стороны не в счёт)
+const PLAN_SMALL_GROUP = 15;     // в группе меньше обращений — норма по вендору
+const PLAN_SHIFT_MIN = 540;      // смена без времени в графике — 9 ч
+const PLAN_DOW = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+const planState = {
+  tab: 'week', loaded: false, loading: null, from: null, to: null,
+  norms: [], prod: [], quality: [], intake: [], lag: [],
+  model: null, week: null, extraEmps: new Set(),
+};
+
+function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function planAddDays(iso, n) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return planIso(d); }
+function planDow(iso) { return (new Date(iso + 'T00:00:00').getDay() + 6) % 7; }
+function planMonday(iso) { return planAddDays(iso, -planDow(iso)); }
+function planDay(iso) { return `${PLAN_DOW[planDow(iso)]} ${iso.slice(8, 10)}.${iso.slice(5, 7)}`; }
+function planMin(t) { if (!t) return null; const [h, m] = String(t).split(':').map(Number); return h * 60 + m; }
+function planR1(x) { return Math.round(x * 10) / 10; }
+function planShort(name) { const p = String(name).split(/\s+/); return p.length > 1 ? `${p[0]} ${p[1][0]}.` : name; }
+function planPct(x) { return x == null || !isFinite(x) ? '—' : Math.round(x * 100) + '%'; }
+
+function switchPlanTab(tab, el) {
+  planState.tab = tab;
+  document.querySelectorAll('.plan-tab').forEach(b => b.classList.toggle('active', b === el || b.dataset.plan === tab));
+  document.querySelectorAll('.plan-view').forEach(v => v.style.display = 'none');
+  document.getElementById('plan-' + tab).style.display = '';
+  loadPlanning();
+}
+
+function reloadPlanning() {
+  planState.loaded = false;
+  planState.loading = null;
+  planState.week = null;
+  loadPlanning();
+}
+
+async function loadPlanning() {
+  const note = document.getElementById('plan-range-note');
+  if (!sb) { note.textContent = 'Supabase не настроен — заполните Настройки → Подключение'; return; }
+  if (!planState.loaded) {
+    note.textContent = 'Загрузка статистики…';
+    skelKpi('pw-kpi', 4); skelKpi('pp-kpi', 4); skelKpi('pi-kpi', 4);
+    if (!planState.loading) planState.loading = fetchPlanning();
+    try {
+      await planState.loading;
+    } catch (e) {
+      console.error('loadPlanning:', e);
+      planState.loading = null;
+      note.innerHTML = `<span style="color:var(--xf-red)">Ошибка: ${esc(e.message)}${/get_device_norms|plan_actions|get_intake|get_employee_productivity/i.test(e.message) ? ' — прогоните supabase_planning.sql' : ''}</span>`;
+      return;
+    }
+  }
+  const m = planState.model;
+  note.textContent = `Статистика: ${planDay(m.dataFrom)} — ${planDay(m.dataTo)} · ${m.mainEmps.length} сотр. отдела · ${fmtNum(m.totalServices)} обращений с измеренным временем`;
+  if (planState.tab === 'week') { if (!planState.week) await loadPlanWeek(); else renderPlanWeek(); }
+  if (planState.tab === 'people') renderPlanPeople();
+  if (planState.tab === 'norms') renderPlanNorms();
+  if (planState.tab === 'intake') renderPlanIntake();
+}
+
+async function fetchPlanning() {
+  const weeks = +document.getElementById('plan-weeks').value;
+  const today = planIso(new Date());
+  // конец периода — последняя загруженная неделя, а не сегодня: иначе свежие дни без данных занижают средние
+  const latest = (STATE.reports || []).map(r => String(r.report_week).slice(0, 10)).sort().pop();
+  let to = latest ? planAddDays(latest, 6) : today;
+  if (to > today) to = today;
+  const from = planAddDays(to, -weeks * 7 + 1);
+  const p = { p_from: from, p_to: to };
+  const [norms, prod, quality, intake, lag] = await Promise.all([
+    rpcWithRetry('get_device_norms', { ...p, p_cap: PLAN_CAP }),
+    rpcWithRetry('get_employee_productivity', { ...p, p_cap: PLAN_CAP }),
+    rpcWithRetry('get_employee_quality', p),
+    rpcWithRetry('get_intake', p),
+    rpcWithRetry('get_intake_lag', p),
+    ensureEmployeeList(),
+  ]);
+  Object.assign(planState, { from, to, norms: norms || [], prod: prod || [], quality: quality || [], intake: intake || [], lag: lag || [] });
+  planState.model = buildPlanModel();
+  planState.loaded = true;
+}
+
+/* Модель из статистики: нормы, скорость сотрудников, загрузка смены, профиль поступления */
+function buildPlanModel() {
+  const { norms, prod, intake } = planState;
+  // нормы отдела по группам; для малых групп — среднее по вендору
+  const dept = norms.filter(r => r.employee == null);
+  const vend = new Map();
+  dept.forEach(r => {
+    const v = vend.get(r.vendor) || { n: 0, sum: 0 };
+    v.n += +r.services; v.sum += +r.services * +r.avg_min;
+    vend.set(r.vendor, v);
+  });
+  const totalServices = dept.reduce((s, r) => s + +r.services, 0);
+  const overallAvg = totalServices ? dept.reduce((s, r) => s + +r.services * +r.avg_min, 0) / totalServices : 20;
+  const groups = new Map(dept.map(r => [r.group_name, r]));
+  const normFor = group => {
+    const g = groups.get(group);
+    if (g && +g.services >= PLAN_SMALL_GROUP) return +g.avg_min;
+    const v = g && vend.get(g.vendor);
+    return v && v.n ? v.sum / v.n : overallAvg;
+  };
+
+  // сотрудники отдела: от PLAN_MIN_CORE действий за период, не уволенные
+  const byEmp = new Map();
+  prod.forEach(r => {
+    const e = byEmp.get(r.employee) || { employee: r.employee, days: [], core: 0 };
+    e.days.push(r); e.core += +r.n_core;
+    byEmp.set(r.employee, e);
+  });
+  const topCore = Math.max(0, ...[...byEmp.values()].map(e => e.core));
+  const mainEmps = [...byEmp.values()]
+    .filter(e => e.core >= Math.max(PLAN_MIN_CORE, topCore * PLAN_MIN_SHARE) && !_inactiveEmps.has(e.employee))
+    .sort((a, b) => b.core - a.core).map(e => e.employee);
+  // границы фактических данных: период статистики может начинаться раньше первой загрузки
+  const worked = prod.filter(r => +r.n_actions > 0).map(r => r.work_date).sort();
+  const dataFrom = worked.length && worked[0] > planState.from ? worked[0] : planState.from;
+  const dataTo = worked.length && worked[worked.length - 1] < planState.to ? worked[worked.length - 1] : planState.to;
+
+  // скорость: время отдела на те же устройства ÷ время сотрудника (медианы, взвешенно по числу обращений)
+  const speed = new Map();
+  const personal = norms.filter(r => r.employee != null);
+  [...byEmp.keys()].forEach(emp => {
+    let own = 0, ref = 0;
+    personal.filter(r => r.employee === emp).forEach(r => {
+      const g = groups.get(r.group_name);
+      if (!g || +r.services < 3) return;
+      own += +r.services * +r.med_min; ref += +r.services * +g.med_min;
+    });
+    speed.set(emp, own > 0 && ref > 0 ? ref / own : null);
+  });
+  // в ёмкости смены скорость ограничена: на малой выборке медианы шумные
+  const capSpeed = emp => Math.max(0.5, Math.min(1.5, speed.get(emp) || 1));
+
+  // смены: длина по графику, без графика — от первого до последнего действия
+  const dayStats = r => {
+    const s = planMin(r.shift_start), e = planMin(r.shift_end);
+    const f = planMin(r.first_time), l = planMin(r.last_time);
+    const sched = s != null && e != null && e > s;
+    const len = sched ? e - s : (f != null && l != null ? l - f : 0);
+    return {
+      len, sched, worked: +r.n_actions > 0,
+      after: sched && l != null && l > e ? l - e : 0,
+      empty: sched && +r.n_actions === 0,
+    };
+  };
+  let normSum = 0, lenSum = 0;
+  mainEmps.forEach(emp => byEmp.get(emp).days.forEach(r => {
+    const d = dayStats(r);
+    if (d.worked && d.len >= 120) { normSum += +r.norm_min; lenSum += d.len; }
+  }));
+  const util = lenSum ? normSum / lenSum : 0.6;
+
+  // поступление: среднее по дню недели; последние 3 дня данных ещё не обработаны
+  const intakeTo = planAddDays(dataTo, -3);
+  const dowCount = Array(7).fill(0);
+  for (let d = dataFrom; d <= intakeTo; d = planAddDays(d, 1)) dowCount[planDow(d)]++;
+  const dowGroups = Array.from({ length: 7 }, () => new Map());
+  const daily = new Map(), hourly = Array(24).fill(0);
+  intake.forEach(r => {
+    const date = String(r.acc_date).slice(0, 10);
+    daily.set(date, (daily.get(date) || 0) + +r.devices);
+    if (date > intakeTo || date < dataFrom) return;
+    hourly[+r.acc_hour] += +r.devices;
+    const m = dowGroups[planDow(date)];
+    m.set(r.group_name, (m.get(r.group_name) || 0) + +r.devices);
+  });
+  const dowAvg = dowGroups.map((m, i) => {
+    const per = new Map([...m].map(([g, n]) => [g, dowCount[i] ? n / dowCount[i] : 0]));
+    const devices = [...per.values()].reduce((s, n) => s + n, 0);
+    const minutes = [...per].reduce((s, [g, n]) => s + n * normFor(g), 0);
+    return { per, devices, minutes };
+  });
+
+  return { groups, normFor, overallAvg, totalServices, byEmp, mainEmps, speed, capSpeed, dayStats, util, dowAvg, dowCount, daily, hourly, intakeTo, dataFrom, dataTo };
+}
+
+/* ─── Проверка недели ──────────────────────────────────────────────────── */
+async function loadPlanWeek() {
+  const input = document.getElementById('pw-start');
+  if (!input.value) input.value = planMonday(planIso(new Date()));
+  const start = planMonday(input.value);
+  input.value = start;
+  const end = planAddDays(start, 6);
+  const util = document.getElementById('pw-util');
+  if (!util.value) util.value = Math.round(planState.model.util * 100);
+  document.getElementById('pw-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка графика…</td></tr>';
+  try {
+    const months = [...new Set([start.slice(0, 7), end.slice(0, 7)])];
+    const [supply, ...scheds] = await Promise.all([
+      rpcWithRetry('get_expected_supply', { p_from: start, p_to: end }),
+      ...months.map(m => rpcWithRetry('get_work_schedule', { p_month: `${m}-01` })),
+    ]);
+    const sched = scheds.flat().filter(r => r.work_date >= start && r.work_date <= end);
+    planState.week = { start, end, sched, supply: supply || [] };
+    renderPlanWeek();
+  } catch (e) {
+    console.error('loadPlanWeek:', e);
+    document.getElementById('pw-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--xf-red);padding:40px">Ошибка: ${esc(e.message)}${/expected_supply/i.test(e.message) ? ' — прогоните supabase_planning.sql' : ''}</td></tr>`;
+  }
+}
+
+/* Дни недели: поступление (список и/или прогноз) и люди в смене с ёмкостью в минутах */
+function buildWeekDays() {
+  const m = planState.model, w = planState.week;
+  const mode = document.getElementById('pw-mode').value;
+  const util = Math.max(0.3, Math.min(1, (+document.getElementById('pw-util').value || 60) / 100));
+  const counted = new Set([...m.mainEmps, ...planState.extraEmps]);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const date = planAddDays(w.start, i);
+    const list = w.supply.filter(r => r.expected_date === date);
+    const listDev = list.reduce((s, r) => s + +r.qty, 0);
+    const listMin = list.reduce((s, r) => s + +r.qty * m.normFor(r.group_name), 0);
+    const f = m.dowAvg[planDow(date)];
+    const useForecast = mode === 'add' || (mode === 'replace' && !list.length);
+    const devices = listDev + (useForecast ? f.devices : 0);
+    const demand = listMin + (useForecast ? f.minutes : 0);
+    const source = list.length ? (useForecast ? 'список + статистика' : 'список') : (useForecast ? 'статистика' : '—');
+    const people = [], skipped = [];
+    w.sched.filter(r => r.work_date === date).forEach(r => {
+      const s = planMin(r.shift_start), e = planMin(r.shift_end);
+      const len = s != null && e != null && e > s ? e - s : PLAN_SHIFT_MIN;
+      if (!counted.has(r.employee)) { skipped.push(r.employee); return; }
+      const sp = m.capSpeed(r.employee);
+      people.push({ employee: r.employee, start: r.shift_start, end: r.shift_end, cap: len * util * sp });
+    });
+    days.push({ date, devices, demand, source, list, people, skipped });
+  }
+  return { days, util };
+}
+
+/* Очередь день за днём: поступившее + хвост − ёмкость смен, старое первым.
+   Срыв срока — после дня j остались устройства, принятые не позже j − срок. */
+function simulateWeek(days, extra, sla, backlogDev, util) {
+  const m = planState.model;
+  const queue = backlogDev > 0 ? [{ day: -1, min: backlogDev * m.overallAvg, dev: backlogDev }] : [];
+  return days.map((d, i) => {
+    if (d.demand > 0) queue.push({ day: i, min: d.demand, dev: d.devices });
+    const add = extra.filter(x => x.idx === i);
+    const cap = d.people.reduce((s, p) => s + p.cap, 0)
+      + add.reduce((s, x) => s + PLAN_SHIFT_MIN * util * m.capSpeed(x.employee), 0);
+    const pending = queue.reduce((s, q) => s + q.min, 0);
+    let c = cap;
+    while (c > 0.01 && queue.length) {
+      const q = queue[0], use = Math.min(c, q.min);
+      q.dev -= q.dev * use / q.min; q.min -= use; c -= use;
+      if (q.min <= 0.01) queue.shift();
+    }
+    const left = queue.reduce((s, q) => s + q.min, 0);
+    const leftDev = queue.reduce((s, q) => s + q.dev, 0);
+    const late = queue.filter(q => i - q.day >= sla);
+    const lateMin = late.reduce((s, q) => s + q.min, 0);
+    const status = lateMin > 1 ? 'late' : (cap > 0 ? pending > cap * 0.9 : pending > 1) ? 'tight' : 'ok';
+    return { cap, pending, left, leftDev, lateMin, lateDev: late.reduce((s, q) => s + q.dev, 0), status, add };
+  });
+}
+
+/* Кого вызвать: пока есть срыв срока — добавляем смену в день, где ещё можно успеть,
+   сотруднику отдела, который в этот день не в графике и у которого меньше смен за неделю */
+function adviseWeek(days, sla, backlog, util) {
+  const m = planState.model, extra = [];
+  const shiftsOf = emp => days.filter(d => d.people.some(p => p.employee === emp)).length + extra.filter(x => x.employee === emp).length;
+  const onDay = (emp, i) => days[i].people.some(p => p.employee === emp) || extra.some(x => x.idx === i && x.employee === emp);
+  for (let k = 0; k < 10; k++) {
+    const sim = simulateWeek(days, extra, sla, backlog, util);
+    const lateIdx = sim.findIndex(s => s.status === 'late');
+    if (lateIdx < 0) return { extra, sim, ok: true };
+    let pick = null;
+    for (let i = lateIdx; i >= Math.max(0, lateIdx - sla) && !pick; i--) {
+      const free = m.mainEmps.filter(emp => !onDay(emp, i)).sort((a, b) => shiftsOf(a) - shiftsOf(b));
+      if (free.length) pick = { idx: i, employee: free[0] };
+    }
+    if (!pick) return { extra, sim, ok: false };
+    extra.push(pick);
+  }
+  const sim = simulateWeek(days, extra, sla, backlog, util);
+  return { extra, sim, ok: !sim.some(s => s.status === 'late') };
+}
+
+function renderPlanWeek() {
+  if (!planState.week) return;
+  const w = planState.week, m = planState.model;
+  const sla = Math.max(0, +document.getElementById('pw-sla').value || 0);
+  const backlog = Math.max(0, +document.getElementById('pw-backlog').value || 0);
+  const { days, util } = buildWeekDays();
+  const sim = simulateWeek(days, [], sla, backlog, util);
+  const adv = adviseWeek(days, sla, backlog, util);
+
+  const totDev = days.reduce((s, d) => s + d.devices, 0);
+  const totDemand = days.reduce((s, d) => s + d.demand, 0) + backlog * m.overallAvg;
+  const totCap = sim.reduce((s, x) => s + x.cap, 0);
+  const lateDays = sim.filter(s => s.status === 'late').length;
+  const end = sim[sim.length - 1];
+  document.getElementById('pw-kpi').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Ждём устройств</div><div class="kpi-value">${Math.round(totDev)}</div><div class="kpi-delta neutral">${w.supply.length ? `в списке ${w.supply.reduce((s, r) => s + +r.qty, 0)}` : 'только статистика'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Нагрузка / ёмкость</div><div class="kpi-value ${totDemand > totCap ? 'danger' : ''}">${Math.round(totDemand / 60)} / ${Math.round(totCap / 60)} ч</div><div class="kpi-delta neutral">загрузка смены ${Math.round(util * 100)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Дней со срывом срока</div><div class="kpi-value ${lateDays ? 'danger' : 'accent'}">${lateDays}</div><div class="kpi-delta neutral">срок ${sla} дн. после приёма</div></div>
+    <div class="kpi-card"><div class="kpi-label">Хвост на конец недели</div><div class="kpi-value">${Math.round(end.leftDev)} устр.</div><div class="kpi-delta neutral">${planR1(end.left / 60)} ч работы</div></div>`;
+
+  const badge = s => s === 'late' ? '<span class="zone-badge zone-critical">срыв срока</span>'
+    : s === 'tight' ? '<span class="zone-badge zone-elevated">впритык</span>' : '<span class="zone-badge zone-normal">успеваем</span>';
+  document.getElementById('pw-tbody').innerHTML = days.map((d, i) => {
+    const s = sim[i];
+    const ppl = d.people.length
+      ? d.people.map(p => `${esc(planShort(p.employee))}${p.start ? ` <span style="color:var(--ink-muted)">${hhmm(p.start)}–${hhmm(p.end)}</span>` : ''}`).join('<br>')
+      : '<span style="color:var(--xf-red)">никого</span>';
+    const skip = d.skipped.length ? `<br><span style="font-size:12px;color:var(--ink-muted)" title="Мало действий отдела за период — в ёмкость не входят">+ ${d.skipped.map(n => esc(planShort(n))).join(', ')} (не учтены)</span>` : '';
+    return `<tr>
+      <td>${planDay(d.date)}</td>
+      <td class="num">${Math.round(d.devices)}</td>
+      <td>${d.source}</td>
+      <td class="num">${planR1(d.demand / 60)}</td>
+      <td>${ppl}${skip}</td>
+      <td class="num">${planR1(s.cap / 60)}</td>
+      <td class="num">${Math.round(s.leftDev)}</td>
+      <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}</td>
+    </tr>`;
+  }).join('');
+
+  // вывод: справляется ли график и кого вызвать
+  const box = document.getElementById('pw-advice');
+  const toggleBtn = (n, verb) => `<button class="btn btn-ghost" style="min-height:28px;padding:2px 10px;font-size:12px" data-emp="${esc(n)}" onclick="togglePlanExtra(this.dataset.emp)">${verb} ${esc(planShort(n))}</button>`;
+  const skippedAll = [...new Set(days.flatMap(d => d.skipped))];
+  const skippedHtml = skippedAll.length
+    ? `<div style="font-size:13px;color:var(--ink-muted);margin-top:10px">В графике есть сотрудники с малым числом действий отдела за период — в ёмкость не входят: ${skippedAll.map(n => toggleBtn(n, 'учесть')).join(' ')}</div>`
+    : '';
+  const extraOn = [...planState.extraEmps];
+  const extraHtml = extraOn.length
+    ? `<div style="font-size:13px;color:var(--ink-muted);margin-top:10px">Учтены вручную (скорость как у отдела): ${extraOn.map(n => toggleBtn(n, 'убрать')).join(' ')}</div>`
+    : '';
+  let html;
+  if (lateDays === 0) {
+    html = `<div class="card-title" style="margin-bottom:6px">График справляется</div><div style="font-size:14px;color:var(--ink-soft)">При загрузке смены ${Math.round(util * 100)}% всё поступившее проходит базовую в срок.${sim.some(s => s.status === 'tight') ? ' Есть дни впритык — непредвиденная поставка или отсутствие сотрудника даст хвост.' : ''}</div>`;
+  } else if (adv.extra.length) {
+    const list = [...adv.extra].sort((a, b) => a.idx - b.idx)
+      .map(x => `<li>${planDay(days[x.idx].date)} — вызвать в смену: <b>${esc(x.employee)}</b> (${PLAN_SHIFT_MIN / 60} ч)</li>`).join('');
+    html = `<div class="card-title" style="margin-bottom:6px">График не справляется — ${adv.ok ? 'хватит дополнительных смен' : 'дополнительных смен не хватает'}</div>
+      <ul style="margin:6px 0 0 18px;font-size:14px;line-height:1.7">${list}</ul>
+      ${adv.ok ? '' : '<div style="font-size:14px;color:var(--danger);margin-top:8px">Даже с вызовами срок срывается: свободных сотрудников в нужные дни нет. Нужен человек со стороны или перенос части поставки.</div>'}`;
+  } else {
+    html = '<div class="card-title" style="margin-bottom:6px">График не справляется</div><div style="font-size:14px;color:var(--danger)">Свободных сотрудников в нужные дни нет — нужен человек со стороны или перенос части поставки.</div>';
+  }
+  box.innerHTML = html + skippedHtml + extraHtml;
+  box.style.display = '';
+
+  mkChart('pw-chart', {
+    type: 'bar',
+    data: {
+      labels: days.map(d => planDay(d.date)),
+      datasets: [
+        { label: 'Нагрузка дня, ч', data: days.map(d => planR1(d.demand / 60)), backgroundColor: 'rgba(107,147,196,.75)' },
+        { label: 'Ёмкость смен, ч', data: sim.map(s => planR1(s.cap / 60)), backgroundColor: 'rgba(77,179,132,.7)' },
+        { label: 'Хвост на конец дня, ч', data: sim.map(s => planR1(s.left / 60)), type: 'line', borderColor: '#C96A5E', backgroundColor: '#C96A5E', tension: .3 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, beginAtZero: true } },
+    },
+  });
+
+  // ожидаемые поставки недели
+  const info = document.getElementById('pw-supply-info');
+  const card = document.getElementById('pw-supply-card');
+  if (w.supply.length) {
+    const unk = w.supply.filter(r => !r.group_name || !m.groups.has(r.group_name));
+    info.innerHTML = `Ожидаемых устройств в списке: <b>${w.supply.reduce((s, r) => s + +r.qty, 0)}</b> (${w.supply.length} строк)${unk.length ? ` · без нормы: ${unk.length} строк — считаются по среднему отдела (${planR1(m.overallAvg)} мин)` : ''}`;
+    document.getElementById('pw-supply-tbody').innerHTML = w.supply.map(r => `<tr>
+      <td>${planDay(r.expected_date)}</td><td>${esc(r.raw_name || '')}</td>
+      <td>${r.group_name ? esc(r.group_name) : '<span style="color:var(--warn-text)">не распознано</span>'}</td>
+      <td class="num">${r.qty}</td><td>${esc(r.waybill || '')}</td><td>${esc(r.note || '')}</td></tr>`).join('');
+    card.style.display = '';
+  } else {
+    info.textContent = 'Список ожидаемых устройств на эту неделю не загружен — неделя считается по статистике поступления';
+    card.style.display = 'none';
+  }
+}
+
+function togglePlanExtra(name) {
+  if (planState.extraEmps.has(name)) planState.extraEmps.delete(name); else planState.extraEmps.add(name);
+  renderPlanWeek();
+}
+
+/* ─── Импорт ожидаемых поставок (Excel) ────────────────────────────────── */
+const SUPPLY_HEADERS = {
+  date:    ['дата', 'date', 'поставк', 'ожида', 'прибыт', 'день'],
+  device:  ['устройств', 'модель', 'группа', 'товар', 'наименование', 'device', 'техник', 'изделие'],
+  qty:     ['кол', 'qty', 'шт'],
+  waybill: ['накладн', 'трек', 'track', 'номер заказа', 'сдэк'],
+  note:    ['коммент', 'партн', 'примеч', 'note'],
+};
+/* Группа устройства по названию из файла: сначала точное имя группы из статистики,
+   затем ключевые слова */
+const SUPPLY_KEYWORDS = [
+  [/станц|алиса|station/i, 'Яндекс.Станция'], [/яндекс.*тв|yandex.*tv|телевиз/i, 'Яндекс ТВ'],
+  [/macbook|макбук/i, 'MacBook'], [/ipad|айпад/i, 'iPad'], [/iphone|айфон/i, 'iPhone'],
+  [/airpods|эйрподс/i, 'AirPods'], [/watch|часы/i, 'Apple Watch'], [/pencil|стилус/i, 'Apple Pencil'],
+];
+function matchSupplyGroup(raw) {
+  const s = String(raw || '').toLowerCase().replace(/ё/g, 'е');
+  if (!s) return null;
+  const known = [...planState.model.groups.keys()].filter(Boolean).sort((a, b) => b.length - a.length);
+  const exact = known.find(g => s.includes(g.toLowerCase().replace(/ё/g, 'е')));
+  if (exact) return exact;
+  const kw = SUPPLY_KEYWORDS.find(([re]) => re.test(s));
+  return kw ? kw[1] : null;
+}
+function parseSupplyGrid(grid) {
+  const find = (hdr, keys, skip) => hdr.findIndex((c, i) => !skip.includes(i) && c && keys.some(k => c.includes(k)));
+  for (let h = 0; h < Math.min(grid.length, 15); h++) {
+    const hdr = (grid[h] || []).map(c => normHeader(c));
+    const col = {};
+    // устройство ищем первым: «Дата поставки» не должна стать колонкой устройства и наоборот
+    for (const k of ['device', 'date', 'qty', 'waybill', 'note']) col[k] = find(hdr, SUPPLY_HEADERS[k], Object.values(col));
+    if (col.date < 0 || col.device < 0) continue;
+    const rows = [];
+    for (let i = h + 1; i < grid.length; i++) {
+      const r = grid[i] || [];
+      const date = xlsxDateToISO(r[col.date]);
+      const raw = String(r[col.device] ?? '').trim();
+      if (!date || !raw) continue;
+      const qty = col.qty >= 0 ? parseInt(String(r[col.qty]).replace(/\D/g, ''), 10) : 1;
+      rows.push({
+        expected_date: date, raw_name: raw, group_name: matchSupplyGroup(raw),
+        qty: Number.isFinite(qty) ? qty : 1,
+        waybill: col.waybill >= 0 ? String(r[col.waybill] ?? '').trim() : '',
+        note: col.note >= 0 ? String(r[col.note] ?? '').trim() : '',
+      });
+    }
+    return rows;
+  }
+  throw new Error('Не найдены колонки «дата» и «устройство» — скачайте шаблон');
+}
+async function importSupplyFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file || !planState.loaded) return;
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
+    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+    const rows = parseSupplyGrid(grid);
+    if (!rows.length) throw new Error('В файле нет строк с датой и устройством');
+    const dates = rows.map(r => r.expected_date).sort();
+    const n = await rpcWithRetry('import_expected_supply', { p_rows: rows, p_from: dates[0], p_to: dates[dates.length - 1] });
+    const unk = rows.filter(r => !r.group_name).length;
+    showToast(`Загружено строк: ${n}${unk ? `, не распознано устройств: ${unk}` : ''}`);
+    // открыть неделю первой поставки из файла
+    document.getElementById('pw-start').value = planMonday(dates[0]);
+    await loadPlanWeek();
+  } catch (e) {
+    console.error('importSupplyFile:', e);
+    showToast('Ошибка импорта: ' + e.message, 'error');
+  }
+}
+async function clearWeekSupply() {
+  const w = planState.week;
+  if (!w || !w.supply.length) return;
+  if (!confirm(`Удалить ожидаемые поставки ${planDay(w.start)} — ${planDay(w.end)}?`)) return;
+  try {
+    await rpcWithRetry('import_expected_supply', { p_rows: [], p_from: w.start, p_to: w.end });
+    await loadPlanWeek();
+  } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
+}
+function downloadSupplyTemplate() {
+  const start = planState.week ? planState.week.start : planMonday(planIso(new Date()));
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['Дата поставки', 'Устройство', 'Количество', 'Накладная', 'Комментарий'],
+    [planAddDays(start, 1).split('-').reverse().join('.'), 'Яндекс Станция Мини', 20, '', 'партнёр'],
+    [planAddDays(start, 3).split('-').reverse().join('.'), 'iPhone 15', 5, '', ''],
+  ]);
+  ws['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 16 }, { wch: 24 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Поставки');
+  XLSX.writeFile(wb, 'Ожидаемые_поставки_шаблон.xlsx');
+}
+
+/* ─── Сотрудники ───────────────────────────────────────────────────────── */
+function renderPlanPeople() {
+  const m = planState.model;
+  if (!m) return;
+  const all = document.getElementById('plan-all-emps').checked;
+  const emps = all ? [...m.byEmp.values()].sort((a, b) => b.core - a.core).map(e => e.employee) : m.mainEmps;
+  const qual = new Map(planState.quality.map(q => [q.employee, q]));
+  const rows = emps.map(emp => {
+    const e = m.byEmp.get(emp);
+    let shifts = 0, dev = 0, rub = 0, norm = 0, len = 0, idle = 0, after = 0, empty = 0;
+    e.days.forEach(r => {
+      const d = m.dayStats(r);
+      if (d.empty) empty++;
+      if (!d.worked) return;
+      shifts++; dev += +r.devices; rub += +r.rub; idle += +r.idle_min; after += d.after;
+      norm += +r.norm_min;
+      if (d.len >= 120) len += d.len;
+    });
+    return { emp, shifts, dev, rub, norm, len, idle, after, empty, q: qual.get(emp) || {}, speed: m.speed.get(emp) };
+  });
+  const main = rows.filter(r => m.mainEmps.includes(r.emp));
+  const sum = (arr, k) => arr.reduce((s, r) => s + r[k], 0);
+  const sh = sum(main, 'shifts') || 1;
+  document.getElementById('pp-kpi').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Устройств за смену</div><div class="kpi-value">${planR1(sum(main, 'dev') / sh)}</div><div class="kpi-delta neutral">в среднем по отделу</div></div>
+    <div class="kpi-card"><div class="kpi-label">Условных часов за смену</div><div class="kpi-value">${planR1(sum(main, 'norm') / 60 / sh)}</div><div class="kpi-delta neutral">загрузка ${planPct(m.util)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Простой за смену</div><div class="kpi-value">${planR1(sum(main, 'idle') / 60 / sh)} ч</div><div class="kpi-delta neutral">перерывы больше ${PLAN_CAP} мин</div></div>
+    <div class="kpi-card"><div class="kpi-label">После смены</div><div class="kpi-value">${planR1(sum(main, 'after') / 60 / sh)} ч</div><div class="kpi-delta neutral">в среднем за смену</div></div>`;
+  const spd = s => s == null ? '—' : `<span style="color:${s >= 1.15 ? 'var(--green-text)' : s <= 0.87 ? 'var(--danger)' : 'inherit'}">${s.toFixed(2)}</span>`;
+  document.getElementById('pp-tbody').innerHTML = rows.length ? rows.map(r => {
+    const s = r.shifts || 1, q = r.q;
+    return `<tr>
+      <td>${esc(r.emp)}</td>
+      <td class="num">${r.shifts}</td>
+      <td class="num">${planR1(r.dev / s)}</td>
+      <td class="num">${fmtNum(Math.round(r.rub / s))}</td>
+      <td class="num">${planR1(r.norm / 60 / s)}</td>
+      <td class="num">${r.len ? planPct(r.norm / r.len) : '—'}</td>
+      <td class="num">${spd(r.speed)}</td>
+      <td class="num">${planR1(r.idle / 60 / s)}</td>
+      <td class="num">${planR1(r.after / 60 / s)}</td>
+      <td class="num">${r.empty || '—'}</td>
+      <td class="num">${q.base ? planPct(+q.rt / +q.base) : '—'} / ${q.rt ? planPct(+q.rt_found / +q.rt) : '—'}</td>
+      <td class="num">${q.base_with_acc ? planPct(+q.base_in_1d / +q.base_with_acc) : '—'}</td>
+      <td class="num">${q.base_repeat ?? '—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных за период</td></tr>';
+
+  // динамика: условные часы за смену по неделям
+  const weeks = [];
+  for (let d = planMonday(m.dataFrom); d <= m.dataTo; d = planAddDays(d, 7)) weeks.push(d);
+  mkChart('pp-chart', {
+    type: 'line',
+    data: {
+      labels: weeks.map(d => `${d.slice(8, 10)}.${d.slice(5, 7)}`),
+      datasets: m.mainEmps.map((emp, i) => ({
+        label: planShort(emp),
+        data: weeks.map(wk => {
+          const end = planAddDays(wk, 6);
+          const days = m.byEmp.get(emp).days.filter(r => r.work_date >= wk && r.work_date <= end && +r.n_actions > 0);
+          return days.length ? planR1(days.reduce((s, r) => s + +r.norm_min, 0) / 60 / days.length) : null;
+        }),
+        borderColor: PALETTE[i % PALETTE.length], backgroundColor: PALETTE[i % PALETTE.length], tension: .3, spanGaps: true,
+      })),
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, beginAtZero: true } } },
+  });
+}
+
+/* ─── Нормы устройств ──────────────────────────────────────────────────── */
+function renderPlanNorms() {
+  const m = planState.model;
+  if (!m) return;
+  const dept = planState.norms.filter(r => r.employee == null);
+  const emps = m.mainEmps;
+  const pers = new Map(planState.norms.filter(r => r.employee != null).map(r => [`${r.employee}|${r.group_name}`, r]));
+  document.getElementById('pn-thead').innerHTML = `<tr><th>Устройство</th><th class="num">Обращений</th><th class="num">Медиана, мин</th><th class="num">Среднее, мин</th><th class="num">С РТ</th>${emps.map(e => `<th class="num" title="${esc(e)}">${esc(planShort(e))}</th>`).join('')}</tr>`;
+  document.getElementById('pn-tbody').innerHTML = dept.length ? dept.map(g => {
+    const small = +g.services < PLAN_SMALL_GROUP;
+    return `<tr${small ? ' style="opacity:.6"' : ''}>
+      <td>${esc(g.group_name || '—')} <span style="color:var(--ink-muted);font-size:12px">${esc(g.vendor || '')}</span></td>
+      <td class="num">${g.services}</td>
+      <td class="num"><b>${planR1(+g.med_min)}</b></td>
+      <td class="num">${planR1(+g.avg_min)}</td>
+      <td class="num">${planPct(+g.rt_share)}</td>
+      ${emps.map(e => {
+        const p = pers.get(`${e}|${g.group_name}`);
+        if (!p || +p.services < 3) return '<td class="num" style="color:var(--ink-muted)">—</td>';
+        const ratio = +p.med_min / +g.med_min;
+        const color = ratio <= 0.8 ? 'var(--green-text)' : ratio >= 1.2 ? 'var(--danger)' : 'inherit';
+        return `<td class="num" style="color:${color}" title="${p.services} обращений">${planR1(+p.med_min)}</td>`;
+      }).join('')}
+    </tr>`;
+  }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных за период</td></tr>';
+  const big = dept.filter(g => +g.services >= PLAN_SMALL_GROUP);
+  mkChart('pn-chart', {
+    type: 'bar',
+    data: {
+      labels: big.map(g => g.group_name),
+      datasets: [{ label: 'Медиана, мин на обращение', data: big.map(g => +g.med_min), backgroundColor: big.map(g => g.vendor === 'Яндекс' ? 'rgba(209,160,78,.75)' : 'rgba(107,147,196,.75)') }],
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: CC.grid }, beginAtZero: true }, y: { grid: { display: false } } } },
+  });
+}
+
+/* ─── Поступление ──────────────────────────────────────────────────────── */
+function renderPlanIntake() {
+  const m = planState.model;
+  if (!m) return;
+  const nDays = m.dowCount.reduce((s, n) => s + n, 0) || 1;
+  const avgDay = m.dowAvg.reduce((s, d, i) => s + d.devices * m.dowCount[i], 0) / nDays;
+  const avgMin = m.dowAvg.reduce((s, d, i) => s + d.minutes * m.dowCount[i], 0) / nDays;
+  const peak = m.dowAvg.map((d, i) => [i, d.devices]).sort((a, b) => b[1] - a[1]);
+  const lagShare = st => {
+    const r = planState.lag.filter(x => x.stage === st);
+    const t = r.reduce((s, x) => s + +x.services, 0) || 1;
+    return test => r.filter(x => test(+x.lag_days)).reduce((s, x) => s + +x.services, 0) / t;
+  };
+  const base = lagShare('base'), first = lagShare('first');
+  const hourTot = m.hourly.reduce((s, n) => s + n, 0) || 1;
+  const peakHour = m.hourly.map((n, h) => [h, n]).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('pi-kpi').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Принимаем в день</div><div class="kpi-value">${planR1(avgDay)}</div><div class="kpi-delta neutral">устройств в среднем</div></div>
+    <div class="kpi-card"><div class="kpi-label">Дни поставок</div><div class="kpi-value kpi-text">${PLAN_DOW[peak[0][0]]}, ${PLAN_DOW[peak[1][0]]}</div><div class="kpi-delta neutral">${Math.round(peak[0][1])} и ${Math.round(peak[1][1])} устр. в день</div></div>
+    <div class="kpi-card"><div class="kpi-label">Работы в день</div><div class="kpi-value">${planR1(avgMin / 60)} ч</div><div class="kpi-delta neutral">по нормам устройств</div></div>
+    <div class="kpi-card"><div class="kpi-label">Базовая не позже +1 дня</div><div class="kpi-value">${planPct(base(d => d <= 1))}</div><div class="kpi-delta neutral">пик приёма ${peakHour && peakHour[1] ? peakHour[0] + ':00' : '—'}</div></div>`;
+
+  // по дням недели — топ групп стопкой
+  const tot = new Map();
+  m.dowAvg.forEach(d => d.per.forEach((n, g) => tot.set(g, (tot.get(g) || 0) + n)));
+  const top = [...tot].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([g]) => g);
+  mkChart('pi-dow', {
+    type: 'bar',
+    data: {
+      labels: PLAN_DOW,
+      datasets: [...top, 'Другое'].map((g, i) => ({
+        label: g,
+        data: m.dowAvg.map(d => planR1(g === 'Другое' ? [...d.per].filter(([k]) => !top.includes(k)).reduce((s, [, n]) => s + n, 0) : (d.per.get(g) || 0))),
+        backgroundColor: PALETTE[i % PALETTE.length],
+      })),
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: CC.grid } } } },
+  });
+  const hours = [];
+  for (let h = 8; h <= 21; h++) hours.push(h);
+  mkChart('pi-hour', {
+    type: 'bar',
+    data: { labels: hours.map(h => `${h}:00`), datasets: [{ label: 'Доля приёма', data: hours.map(h => Math.round(m.hourly[h] / hourTot * 100)), backgroundColor: 'rgba(107,147,196,.75)' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y}%` } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, ticks: { callback: v => v + '%' } } } },
+  });
+  const dates = [];
+  for (let d = m.dataFrom; d <= m.dataTo; d = planAddDays(d, 1)) dates.push(d);
+  mkChart('pi-daily', {
+    type: 'bar',
+    data: {
+      labels: dates.map(d => `${d.slice(8, 10)}.${d.slice(5, 7)}`),
+      datasets: [{ label: 'Принято устройств', data: dates.map(d => m.daily.get(d) || 0),
+        backgroundColor: dates.map(d => d > m.intakeTo ? 'rgba(150,150,150,.4)' : 'rgba(77,179,132,.7)') }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } }, y: { grid: { color: CC.grid } } } },
+  });
+  const row = (name, f) => `<tr><td>${name}</td>${[d => d === 0, d => d === 1, d => d === 2, d => d >= 3 && d <= 6, d => d >= 7].map(t => `<td class="num">${planPct(f(t))}</td>`).join('')}</tr>`;
+  document.getElementById('pi-lag').innerHTML = row('Первое действие отдела', first) + row('Базовая диагностика', base);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
