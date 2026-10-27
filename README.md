@@ -52,6 +52,7 @@ dashboard.html <──supabase-js RPC──────────────�
 5. supabase_issue_checks.sql, supabase_kpi.sql, supabase_duty.sql, supabase_schedule.sql
 6. supabase_unified_upload.sql  # импорт общего отчёта (зависит от п.2 и п.5)
 7. supabase_planning.sql        # страница «Планирование» (зависит от п.2 и supabase_schedule.sql)
+8. supabase_api_shifts.sql      # API смен для внешних сервисов (зависит от supabase_schedule.sql)
 ```
 
 Грузится один общий отчёт (все сотрудники, все типы действий, колонки «Маркер корп»,
