@@ -1513,6 +1513,22 @@ body.presentation .slide-hint { display: none; }
             </label>
             <button class="btn btn-ghost" onclick="clearWeekSupply()" title="Удалить ожидаемые поставки этой недели">Очистить</button>
           </div>
+          <div class="card plan-controls" style="margin-top:12px">
+            <div style="font-size:13px;color:var(--ink-muted);flex:1;min-width:240px" id="pw-queue-info">Техника в работе не загружена</div>
+            <label title="Когда сделана выгрузка: от этого момента отсчитывается остаток времени в статусе">Выгрузка на<input type="datetime-local" class="settings-input" id="pw-snap" onchange="onQueueSnapChange()" disabled></label>
+            <label class="btn btn-ghost" style="cursor:pointer" title="Excel: дата время получения, наименование техники, остаток времени до истечения срока в статусе. Заменяет «Хвост на начало»">
+              <input type="file" id="pw-queue-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importQueueFile(this)">
+              Загрузить технику в работе
+            </label>
+            <button class="btn btn-ghost" onclick="clearQueue()" title="Убрать технику в работе из расчёта">Очистить</button>
+          </div>
+          <div class="card" id="pw-queue-card" style="margin-top:12px;overflow-x:auto;display:none">
+            <div class="card-title">Техника в работе по типам</div>
+            <table class="data-table">
+              <thead><tr><th>Группа</th><th class="num">Устройств</th><th class="num">Мин. на устройство</th><th class="num" title="Остаток времени в статусе у самого срочного устройства группы на момент выгрузки">Ближайший срок, ч от выгрузки</th></tr></thead>
+              <tbody id="pw-queue-tbody"></tbody>
+            </table>
+          </div>
           <div class="kpi-grid" id="pw-kpi" style="margin-top:16px"></div>
           <div class="card" style="margin-bottom:16px">
             <div class="card-title">Нагрузка и ёмкость смен по дням</div>
@@ -8072,7 +8088,7 @@ const PLAN_DOW = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 const planState = {
   tab: 'week', loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
-  model: null, week: null, extraEmps: new Set(),
+  model: null, week: null, extraEmps: new Set(), queue: null,
 };
 
 function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -8245,6 +8261,7 @@ function buildPlanModel() {
 async function loadPlanWeek() {
   const input = document.getElementById('pw-start');
   if (!input.value) input.value = planMonday(planIso(new Date()));
+  if (planState.queue === null) planState.queue = loadQueueLocal();
   const start = planMonday(input.value);
   input.value = start;
   const end = planAddDays(start, 6);
@@ -8266,108 +8283,182 @@ async function loadPlanWeek() {
   }
 }
 
+/* Момент выгрузки очереди относительно недели: индекс дня и минута дня.
+   До него дни прошли; в день выгрузки считаем только остаток смен и приход после этого часа. */
+function planSnapPos(weekStart) {
+  const q = planState.queue;
+  if (!q || !q.items.length || !q.snap) return { idx: 0, min: 0 };
+  const date = q.snap.slice(0, 10);
+  const idx = Math.round((new Date(date + 'T00:00:00') - new Date(weekStart + 'T00:00:00')) / 864e5);
+  return idx < 0 ? { idx: 0, min: 0 } : { idx, min: planMin(q.snap.slice(11, 16)) || 0 };
+}
+
 /* Дни недели: поступление (список и/или прогноз) и люди в смене с ёмкостью в минутах */
 function buildWeekDays() {
   const m = planState.model, w = planState.week;
   const mode = document.getElementById('pw-mode').value;
   const util = Math.max(0.3, Math.min(1, (+document.getElementById('pw-util').value || 60) / 100));
+  const sla = Math.max(0, +document.getElementById('pw-sla').value || 0);
   const counted = new Set([...m.mainEmps, ...planState.extraEmps]);
+  const snap = planSnapPos(w.start);
+  const hourTot = m.hourly.reduce((a, n) => a + n, 0) || 1;
   const days = [];
   for (let i = 0; i < 7; i++) {
     const date = planAddDays(w.start, i);
+    const past = i < snap.idx;
+    // в день выгрузки: доля прихода после часа выгрузки (по часовому профилю) и остаток смен
+    const cut = i === snap.idx ? snap.min : 0;
+    const restShare = cut ? m.hourly.reduce((a, n, h) => a + (h * 60 + 30 >= cut ? n : 0), 0) / hourTot : 1;
     const list = w.supply.filter(r => r.expected_date === date);
-    const listDev = list.reduce((s, r) => s + +r.qty, 0);
-    const listMin = list.reduce((s, r) => s + +r.qty * m.normFor(r.group_name), 0);
+    const listDev = list.reduce((a, r) => a + +r.qty, 0);
+    const listMin = list.reduce((a, r) => a + +r.qty * m.normFor(r.group_name), 0);
     const f = m.dowAvg[planDow(date)];
     const useForecast = mode === 'add' || (mode === 'replace' && !list.length);
-    const devices = listDev + (useForecast ? f.devices : 0);
-    const demand = listMin + (useForecast ? f.minutes : 0);
-    const source = list.length ? (useForecast ? 'список + статистика' : 'список') : (useForecast ? 'статистика' : '—');
+    const share = past ? 0 : restShare;
+    const devices = (listDev + (useForecast ? f.devices : 0)) * share;
+    const demand = (listMin + (useForecast ? f.minutes : 0)) * share;
+    const source = past ? 'прошло' : (list.length ? (useForecast ? 'список + статистика' : 'список') : (useForecast ? 'статистика' : '—'))
+      + (cut && !past ? ` (после ${String(Math.floor(cut / 60)).padStart(2, '0')}:${String(cut % 60).padStart(2, '0')})` : '');
     const people = [], skipped = [];
     w.sched.filter(r => r.work_date === date).forEach(r => {
-      const s = planMin(r.shift_start), e = planMin(r.shift_end);
-      const len = s != null && e != null && e > s ? e - s : PLAN_SHIFT_MIN;
+      const st = planMin(r.shift_start), en = planMin(r.shift_end);
+      const sStart = st != null && en != null && en > st ? st : 600, sEnd = st != null && en != null && en > st ? en : 600 + PLAN_SHIFT_MIN;
+      const len = past ? 0 : Math.max(0, sEnd - Math.max(sStart, cut));
       if (!counted.has(r.employee)) { skipped.push(r.employee); return; }
-      const sp = m.capSpeed(r.employee);
-      people.push({ employee: r.employee, start: r.shift_start, end: r.shift_end, cap: len * util * sp });
+      people.push({ employee: r.employee, start: r.shift_start, end: r.shift_end, cap: len * util * m.capSpeed(r.employee) });
     });
-    days.push({ date, devices, demand, source, list, people, skipped });
+    // сколько даст вызванный сотрудник: 9 ч, в день выгрузки — до 21:00
+    const extraMin = past ? 0 : Math.min(PLAN_SHIFT_MIN, Math.max(0, 21 * 60 - cut));
+    days.push({ date, past, devices, demand, due: i + sla, source, list, people, skipped, extraMin });
   }
-  return { days, util };
+  return { days, util, sla, snap };
 }
 
-/* Очередь день за днём: поступившее + хвост − ёмкость смен, старое первым.
-   Срыв срока — после дня j остались устройства, принятые не позже j − срок. */
-function simulateWeek(days, extra, sla, backlogDev, util) {
+/* Очередь на начало: техника в работе (свой срок у каждого устройства) или хвост числом */
+function buildInitialQueue(days, sla, backlogDev) {
+  const m = planState.model, q = planState.queue;
+  if (q && q.items.length) {
+    const start = new Date(planState.week.start + 'T00:00:00');
+    const snapT = new Date(q.snap);
+    const byDue = new Map();
+    q.items.forEach(it => {
+      // срок устройства: выгрузка + остаток времени в статусе; без остатка — приём + срок отдела
+      const dueT = it.leftH != null ? new Date(snapT.getTime() + it.leftH * 36e5)
+        : new Date(new Date(String(it.acc || q.snap).slice(0, 10) + 'T00:00:00').getTime() + sla * 864e5);
+      const due = Math.floor((dueT - start) / 864e5);
+      const b = byDue.get(due) || { day: -1, due, min: 0, dev: 0 };
+      b.min += m.normFor(it.group); b.dev += 1;
+      byDue.set(due, b);
+    });
+    return [...byDue.values()];
+  }
+  return backlogDev > 0 ? [{ day: -1, due: sla - 1, min: backlogDev * m.overallAvg, dev: backlogDev }] : [];
+}
+
+/* Очередь день за днём: поступившее + хвост − ёмкость смен, первым — что раньше истекает.
+   Срыв срока — после дня остались устройства, чей срок этот день или раньше. */
+function simulateWeek(days, extra, util, initQueue) {
   const m = planState.model;
-  const queue = backlogDev > 0 ? [{ day: -1, min: backlogDev * m.overallAvg, dev: backlogDev }] : [];
+  const queue = initQueue.map(q => ({ ...q }));
   return days.map((d, i) => {
-    if (d.demand > 0) queue.push({ day: i, min: d.demand, dev: d.devices });
+    if (d.demand > 0) queue.push({ day: i, due: d.due, min: d.demand, dev: d.devices });
+    queue.sort((a, b) => a.due - b.due || a.day - b.day);
     const add = extra.filter(x => x.idx === i);
-    const cap = d.people.reduce((s, p) => s + p.cap, 0)
-      + add.reduce((s, x) => s + PLAN_SHIFT_MIN * util * m.capSpeed(x.employee), 0);
-    const pending = queue.reduce((s, q) => s + q.min, 0);
+    const cap = d.people.reduce((a, p) => a + p.cap, 0)
+      + add.reduce((a, x) => a + d.extraMin * util * m.capSpeed(x.employee), 0);
+    const pending = queue.reduce((a, q) => a + q.min, 0);
     let c = cap;
     while (c > 0.01 && queue.length) {
       const q = queue[0], use = Math.min(c, q.min);
       q.dev -= q.dev * use / q.min; q.min -= use; c -= use;
       if (q.min <= 0.01) queue.shift();
     }
-    const left = queue.reduce((s, q) => s + q.min, 0);
-    const leftDev = queue.reduce((s, q) => s + q.dev, 0);
-    const late = queue.filter(q => i - q.day >= sla);
-    const lateMin = late.reduce((s, q) => s + q.min, 0);
-    const status = lateMin > 1 ? 'late' : (cap > 0 ? pending > cap * 0.9 : pending > 1) ? 'tight' : 'ok';
-    return { cap, pending, left, leftDev, lateMin, lateDev: late.reduce((s, q) => s + q.dev, 0), status, add };
+    const left = queue.reduce((a, q) => a + q.min, 0);
+    const leftDev = queue.reduce((a, q) => a + q.dev, 0);
+    const late = queue.filter(q => q.due <= i);
+    const lateMin = late.reduce((a, q) => a + q.min, 0);
+    const status = d.past ? 'past' : lateMin > 1 ? 'late' : (cap > 0 ? pending > cap * 0.9 : pending > 1) ? 'tight' : 'ok';
+    return { cap, pending, left, leftDev, lateMin, lateDev: late.reduce((a, q) => a + q.dev, 0), status, add };
   });
+}
+
+/* День выгрузки по часам: у техники в работе срок в статусе истекает в конкретное время.
+   Разбираем по ближайшему сроку; устройство не успеваем, если к его сроку суммарная
+   работа по нему и более срочным больше, чем смены дадут с момента выгрузки. */
+function intradayCheck(days, snap, util) {
+  const q = planState.queue, m = planState.model, d = days[snap.idx];
+  if (!q || !q.items.length || !d) return null;
+  const offset = (new Date(q.snap) - new Date(d.date + 'T00:00:00')) / 6e4;
+  const items = q.items.filter(it => it.leftH != null)
+    .map(it => ({ it, t: offset + it.leftH * 60 }))
+    .filter(x => x.t < 24 * 60).sort((a, b) => a.t - b.t);
+  if (!items.length) return null;
+  const capUntil = t => d.people.reduce((a, p) => {
+    const st = planMin(p.start) ?? 600, en = planMin(p.end) ?? 600 + PLAN_SHIFT_MIN;
+    return a + Math.max(0, Math.min(en, t) - Math.max(st, snap.min)) * util * m.capSpeed(p.employee);
+  }, 0);
+  let need = 0;
+  const late = [];
+  items.forEach(x => { need += m.normFor(x.it.group); if (need > capUntil(x.t) + 1) late.push(x); });
+  const hm = t => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.round(t % 60)).padStart(2, '0')}`;
+  return { n: items.length, late: late.length, first: late.length ? hm(late[0].t) : null, last: hm(items[items.length - 1].t), idx: snap.idx };
 }
 
 /* Кого вызвать: пока есть срыв срока — добавляем смену в день, где ещё можно успеть,
    сотруднику отдела, который в этот день не в графике и у которого меньше смен за неделю */
-function adviseWeek(days, sla, backlog, util) {
+function adviseWeek(days, sla, util, initQueue) {
   const m = planState.model, extra = [];
+  const first = Math.max(0, days.findIndex(d => !d.past));
   const shiftsOf = emp => days.filter(d => d.people.some(p => p.employee === emp)).length + extra.filter(x => x.employee === emp).length;
   const onDay = (emp, i) => days[i].people.some(p => p.employee === emp) || extra.some(x => x.idx === i && x.employee === emp);
   for (let k = 0; k < 10; k++) {
-    const sim = simulateWeek(days, extra, sla, backlog, util);
-    const lateIdx = sim.findIndex(s => s.status === 'late');
+    const sim = simulateWeek(days, extra, util, initQueue);
+    const lateIdx = sim.findIndex(x => x.status === 'late');
     if (lateIdx < 0) return { extra, sim, ok: true };
     let pick = null;
-    for (let i = lateIdx; i >= Math.max(0, lateIdx - sla) && !pick; i--) {
+    for (let i = lateIdx; i >= Math.max(first, lateIdx - Math.max(sla, 1)) && !pick; i--) {
+      if (!days[i].extraMin) continue;
       const free = m.mainEmps.filter(emp => !onDay(emp, i)).sort((a, b) => shiftsOf(a) - shiftsOf(b));
       if (free.length) pick = { idx: i, employee: free[0] };
     }
     if (!pick) return { extra, sim, ok: false };
     extra.push(pick);
   }
-  const sim = simulateWeek(days, extra, sla, backlog, util);
-  return { extra, sim, ok: !sim.some(s => s.status === 'late') };
+  const sim = simulateWeek(days, extra, util, initQueue);
+  return { extra, sim, ok: !sim.some(x => x.status === 'late') };
 }
 
 function renderPlanWeek() {
   if (!planState.week) return;
   const w = planState.week, m = planState.model;
-  const sla = Math.max(0, +document.getElementById('pw-sla').value || 0);
   const backlog = Math.max(0, +document.getElementById('pw-backlog').value || 0);
-  const { days, util } = buildWeekDays();
-  const sim = simulateWeek(days, [], sla, backlog, util);
-  const adv = adviseWeek(days, sla, backlog, util);
+  const { days, util, sla, snap } = buildWeekDays();
+  const initQueue = buildInitialQueue(days, sla, backlog);
+  const sim = simulateWeek(days, [], util, initQueue);
+  const intra = intradayCheck(days, snap, util);
+  const dayLate = sim.filter(x => x.status === 'late').length;   // по дням, без почасовой проверки
+  if (intra && intra.late) sim[intra.idx].status = 'late';
+  const adv = adviseWeek(days, sla, util, initQueue);
+  renderQueueInfo(initQueue);
 
   const totDev = days.reduce((s, d) => s + d.devices, 0);
-  const totDemand = days.reduce((s, d) => s + d.demand, 0) + backlog * m.overallAvg;
+  const totDemand = days.reduce((s, d) => s + d.demand, 0) + initQueue.reduce((s, q) => s + q.min, 0);
   const totCap = sim.reduce((s, x) => s + x.cap, 0);
   const lateDays = sim.filter(s => s.status === 'late').length;
   const end = sim[sim.length - 1];
   document.getElementById('pw-kpi').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Ждём устройств</div><div class="kpi-value">${Math.round(totDev)}</div><div class="kpi-delta neutral">${w.supply.length ? `в списке ${w.supply.reduce((s, r) => s + +r.qty, 0)}` : 'только статистика'}</div></div>
     <div class="kpi-card"><div class="kpi-label">Нагрузка / ёмкость</div><div class="kpi-value ${totDemand > totCap ? 'danger' : ''}">${Math.round(totDemand / 60)} / ${Math.round(totCap / 60)} ч</div><div class="kpi-delta neutral">загрузка смены ${Math.round(util * 100)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Дней со срывом срока</div><div class="kpi-value ${lateDays ? 'danger' : 'accent'}">${lateDays}</div><div class="kpi-delta neutral">срок ${sla} дн. после приёма</div></div>
+    <div class="kpi-card"><div class="kpi-label">Дней со срывом срока</div><div class="kpi-value ${lateDays ? 'danger' : 'accent'}">${lateDays}</div><div class="kpi-delta neutral">${planState.queue && planState.queue.items.length ? `в работе ${planState.queue.items.length} устр. со своим сроком` : `срок ${sla} дн. после приёма`}</div></div>
     <div class="kpi-card"><div class="kpi-label">Хвост на конец недели</div><div class="kpi-value">${Math.round(end.leftDev)} устр.</div><div class="kpi-delta neutral">${planR1(end.left / 60)} ч работы</div></div>`;
 
-  const badge = s => s === 'late' ? '<span class="zone-badge zone-critical">срыв срока</span>'
+  const badge = s => s === 'past' ? '<span class="zone-badge" style="background:var(--bg-hover);color:var(--ink-muted)">прошло</span>'
+    : s === 'late' ? '<span class="zone-badge zone-critical">срыв срока</span>'
     : s === 'tight' ? '<span class="zone-badge zone-elevated">впритык</span>' : '<span class="zone-badge zone-normal">успеваем</span>';
   document.getElementById('pw-tbody').innerHTML = days.map((d, i) => {
     const s = sim[i];
+    if (d.past) return `<tr style="opacity:.55"><td>${planDay(d.date)}</td><td class="num">—</td><td>прошло</td><td class="num">—</td><td>${d.people.map(p => esc(planShort(p.employee))).join('<br>') || '—'}</td><td class="num">—</td><td class="num">—</td><td>${badge('past')}</td></tr>`;
+    const intraNote = intra && intra.idx === i && intra.late ? `<div style="font-size:12px;color:var(--danger);margin-top:4px">по сроку в статусе не успеваем ${intra.late} из ${intra.n} устр., первое — к ${intra.first}</div>` : '';
     const ppl = d.people.length
       ? d.people.map(p => `${esc(planShort(p.employee))}${p.start ? ` <span style="color:var(--ink-muted)">${hhmm(p.start)}–${hhmm(p.end)}</span>` : ''}`).join('<br>')
       : '<span style="color:var(--xf-red)">никого</span>';
@@ -8380,7 +8471,7 @@ function renderPlanWeek() {
       <td>${ppl}${skip}</td>
       <td class="num">${planR1(s.cap / 60)}</td>
       <td class="num">${Math.round(s.leftDev)}</td>
-      <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}</td>
+      <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}${intraNote}</td>
     </tr>`;
   }).join('');
 
@@ -8396,7 +8487,12 @@ function renderPlanWeek() {
     ? `<div style="font-size:13px;color:var(--ink-muted);margin-top:10px">Учтены вручную (скорость как у отдела): ${extraOn.map(n => toggleBtn(n, 'убрать')).join(' ')}</div>`
     : '';
   let html;
-  if (lateDays === 0) {
+  const intraHtml = intra && intra.late
+    ? `<div style="font-size:14px;color:var(--danger);margin-top:8px">${planDay(days[intra.idx].date)}: у ${intra.n} устройств в работе срок в статусе истекает до ${intra.last}. Тем, кто в смене, не успеть ${intra.late} из них — первое к ${intra.first}. Помочь может только выход сотрудника с утра или перераспределение задач внутри смены.</div>`
+    : intra ? `<div style="font-size:14px;color:var(--ink-soft);margin-top:8px">${planDay(days[intra.idx].date)}: ${intra.n} устр. со сроком в статусе до ${intra.last} — успеваем по часам.</div>` : '';
+  if (dayLate === 0 && intra && intra.late) {
+    html = `<div class="card-title" style="margin-bottom:6px">По дням успеваем, но не к срокам в статусе</div>`;
+  } else if (dayLate === 0) {
     html = `<div class="card-title" style="margin-bottom:6px">График справляется</div><div style="font-size:14px;color:var(--ink-soft)">При загрузке смены ${Math.round(util * 100)}% всё поступившее проходит базовую в срок.${sim.some(s => s.status === 'tight') ? ' Есть дни впритык — непредвиденная поставка или отсутствие сотрудника даст хвост.' : ''}</div>`;
   } else if (adv.extra.length) {
     const list = [...adv.extra].sort((a, b) => a.idx - b.idx)
@@ -8407,7 +8503,7 @@ function renderPlanWeek() {
   } else {
     html = '<div class="card-title" style="margin-bottom:6px">График не справляется</div><div style="font-size:14px;color:var(--danger)">Свободных сотрудников в нужные дни нет — нужен человек со стороны или перенос части поставки.</div>';
   }
-  box.innerHTML = html + skippedHtml + extraHtml;
+  box.innerHTML = html + intraHtml + skippedHtml + extraHtml;
   box.style.display = '';
 
   mkChart('pw-chart', {
@@ -8443,6 +8539,129 @@ function renderPlanWeek() {
   }
 }
 
+/* ─── Техника в работе сейчас (Excel) ─────────────────────────────────────
+   Выгрузка очереди: дата приёма, наименование, остаток времени до истечения
+   срока в статусе (в Excel — доля суток). Снимок на момент выгрузки хранится в
+   браузере: нужен только для текущего прогноза. */
+const PLAN_QUEUE_KEY = 'xfix-plan-queue';
+const QUEUE_HEADERS = {
+  acc:     ['получ', 'прием', 'приём'],
+  left:    ['в статусе', 'осталось'],
+  name:    ['наименован', 'техник', 'устройств', 'модель'],
+  waybill: ['накладн'],
+};
+function loadQueueLocal() {
+  try {
+    const v = JSON.parse(localStorage.getItem(PLAN_QUEUE_KEY) || 'null');
+    return v && Array.isArray(v.items) ? v : null;
+  } catch (e) { return null; }
+}
+function saveQueueLocal() {
+  try {
+    if (planState.queue) localStorage.setItem(PLAN_QUEUE_KEY, JSON.stringify(planState.queue));
+    else localStorage.removeItem(PLAN_QUEUE_KEY);
+  } catch (e) { /* хранилище недоступно — снимок живёт до перезагрузки */ }
+}
+function planLocalDT(d) { return `${planIso(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+/* Остаток времени: число — доля суток (формат Excel), строка «ЧЧ:ММ» — часы */
+function queueLeftHours(v) {
+  if (v === '' || v == null) return null;
+  if (typeof v === 'number') return v * 24;
+  const m = String(v).match(/(-?\d+):(\d{2})/);
+  if (m) return +m[1] + Math.sign(+m[1] || 1) * +m[2] / 60;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return Number.isFinite(n) ? n * 24 : null;
+}
+function parseQueueGrid(grid) {
+  const find = (hdr, keys, skip) => hdr.findIndex((c, i) => !skip.includes(i) && c && keys.some(k => c.includes(k)));
+  for (let h = 0; h < Math.min(grid.length, 15); h++) {
+    const hdr = (grid[h] || []).map(c => normHeader(c));
+    const col = {};
+    for (const k of ['acc', 'left', 'name', 'waybill']) col[k] = find(hdr, QUEUE_HEADERS[k], Object.values(col));
+    if (col.name < 0) continue;
+    const items = [];
+    for (let i = h + 1; i < grid.length; i++) {
+      const r = grid[i] || [];
+      const name = String(r[col.name] ?? '').replace(/\s+/g, ' ').trim();
+      if (!name) continue;
+      items.push({
+        name, group: matchSupplyGroup(name),
+        acc: col.acc >= 0 ? xlsxDateTimeToISO(r[col.acc]) : null,
+        leftH: col.left >= 0 ? queueLeftHours(r[col.left]) : null,
+        waybill: col.waybill >= 0 ? String(r[col.waybill] ?? '').trim() : '',
+      });
+    }
+    return items;
+  }
+  throw new Error('Не найдена колонка с наименованием техники');
+}
+async function importQueueFile(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file || !planState.loaded) return;
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
+    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+    const items = parseQueueGrid(grid);
+    if (!items.length) throw new Error('В файле нет строк с техникой');
+    // момент выгрузки — время изменения файла, его можно поправить в поле «Выгрузка на»
+    planState.queue = { snap: planLocalDT(new Date(file.lastModified || Date.now())), items, file: file.name };
+    saveQueueLocal();
+    document.getElementById('pw-start').value = planMonday(planState.queue.snap.slice(0, 10));
+    const unk = items.filter(it => !it.group).length;
+    showToast(`Техника в работе: ${items.length}${unk ? `, не распознано: ${unk}` : ''}`);
+    await loadPlanWeek();
+  } catch (e) {
+    console.error('importQueueFile:', e);
+    showToast('Ошибка импорта: ' + e.message, 'error');
+  }
+}
+function onQueueSnapChange() {
+  const v = document.getElementById('pw-snap').value;
+  if (!planState.queue || !v) return;
+  planState.queue.snap = v;
+  saveQueueLocal();
+  renderPlanWeek();
+}
+function clearQueue() {
+  planState.queue = null;
+  saveQueueLocal();
+  renderPlanWeek();
+}
+function renderQueueInfo(initQueue) {
+  const q = planState.queue, m = planState.model;
+  const info = document.getElementById('pw-queue-info');
+  const snap = document.getElementById('pw-snap');
+  const backlog = document.getElementById('pw-backlog');
+  const card = document.getElementById('pw-queue-card');
+  backlog.disabled = !!(q && q.items.length);
+  if (!q || !q.items.length) {
+    info.textContent = 'Техника в работе не загружена — очередь на начало недели берётся из поля «Хвост на начало»';
+    snap.value = ''; snap.disabled = true; card.style.display = 'none';
+    return;
+  }
+  snap.disabled = false;
+  if (snap.value !== q.snap) snap.value = q.snap;
+  const start = planState.week.start;
+  const dueLabel = due => due < 0 ? 'уже истёк' : due > 6 ? 'после недели' : planDay(planAddDays(start, due));
+  const mins = initQueue.reduce((a, x) => a + x.min, 0);
+  const byDue = [...initQueue].sort((a, b) => a.due - b.due).map(x => `${dueLabel(x.due)} — ${x.dev}`).join(' · ');
+  const unk = q.items.filter(it => !it.group || !m.groups.has(it.group)).length;
+  info.innerHTML = `В работе <b>${q.items.length}</b> устр. (${planR1(mins / 60)} ч по нормам)${q.file ? ` из «${esc(q.file)}»` : ''}. Срок в статусе истекает: ${byDue}${unk ? ` · без нормы: ${unk} — по среднему отдела` : ''}`;
+  const groups = new Map();
+  q.items.forEach(it => {
+    const k = it.group || 'не распознано';
+    const g = groups.get(k) || { n: 0, minLeft: Infinity };
+    g.n++; if (it.leftH != null) g.minLeft = Math.min(g.minLeft, it.leftH);
+    groups.set(k, g);
+  });
+  document.getElementById('pw-queue-tbody').innerHTML = [...groups].sort((a, b) => b[1].n - a[1].n).map(([g, x]) => `<tr>
+    <td>${g === 'не распознано' ? `<span style="color:var(--warn-text)">${g}</span>` : esc(g)}</td><td class="num">${x.n}</td>
+    <td class="num">${planR1(m.normFor(g === 'не распознано' ? null : g))}</td>
+    <td class="num">${isFinite(x.minLeft) ? planR1(x.minLeft) : '—'}</td></tr>`).join('');
+  card.style.display = '';
+}
+
 function togglePlanExtra(name) {
   if (planState.extraEmps.has(name)) planState.extraEmps.delete(name); else planState.extraEmps.add(name);
   renderPlanWeek();
@@ -8462,6 +8681,7 @@ const SUPPLY_KEYWORDS = [
   [/станц|алиса|station/i, 'Яндекс.Станция'], [/яндекс.*тв|yandex.*tv|телевиз/i, 'Яндекс ТВ'],
   [/macbook|макбук/i, 'MacBook'], [/ipad|айпад/i, 'iPad'], [/iphone|айфон/i, 'iPhone'],
   [/airpods|эйрподс/i, 'AirPods'], [/watch|часы/i, 'Apple Watch'], [/pencil|стилус/i, 'Apple Pencil'],
+  [/дропс|drops|камера|пульт|яндекс/i, 'Яндекс Аксессуары'], [/magic|мышь|клавиатур|earpods|airtag|адаптер|кабель/i, 'Аксессуар'],
 ];
 function matchSupplyGroup(raw) {
   const s = String(raw || '').toLowerCase().replace(/ё/g, 'е');
