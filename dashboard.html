@@ -359,8 +359,76 @@ body.presentation .slide-hint { display: none; }
 .kpi-grid.compact .kpi-label { font-size: 11px; letter-spacing: .07em; margin-bottom: 8px; }
 .kpi-grid.compact .kpi-value { font-size: 26px; }
 .kpi-grid.compact .kpi-value.kpi-text { font-size: 16px; }
-#meth-s1 .chart-wrap { height: 230px; }
+/* текстовая плитка (напр. «Частый тип») — на две колонки, чтобы слова влезали целиком */
+.kpi-grid.compact .kpi-card:has(.kpi-text) { grid-column: span 2; }
+#meth-s1 .chart-wrap, .meth-fit .chart-wrap { height: 230px; }
 .charts-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.meth-fit > .card, .meth-fit > .charts-grid { margin-bottom: 16px; }
+.meth-row-2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+.meth-detail > summary { cursor: pointer; font-family: var(--font-display); font-size: 15px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
+.meth-detail > summary::-webkit-details-marker { display: none; }
+.meth-detail > summary .ico { transition: transform var(--dur-fast); }
+.meth-detail[open] > summary .ico { transform: rotate(90deg); }
+.meth-detail[open] > summary { margin-bottom: 14px; }
+/* Список сотрудников со статусом загрузки / качества */
+.meth-emp-list { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.meth-emp-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; font-size: 13px; }
+.meth-emp-row b { font-weight: 600; color: var(--ink); }
+.meth-emp-row .sub { font-size: 12px; color: var(--ink-muted); margin-top: 2px; line-height: 1.4; }
+.meth-badge { flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: var(--radius-pill); white-space: nowrap; background: var(--bg-hover); color: var(--ink-muted); }
+.meth-badge.good { background: var(--green-tint); color: var(--green-text); }
+.meth-badge.warn { background: var(--warn-tint); color: var(--warn-text); }
+.meth-badge.bad  { background: var(--danger-tint); color: var(--danger); }
+.meth-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.meth-chip { font-size: 12px; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--bg-hover); color: var(--ink-soft); }
+.meth-chip b { color: var(--danger); font-weight: 600; }
+/* ИИ-выводы */
+.ai-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.ai-head .card-title { margin: 0; display: flex; align-items: center; gap: 8px; }
+.ai-meta { font-size: 12px; color: var(--ink-muted); }
+.ai-summary { font-size: 14px; line-height: 1.5; color: var(--ink); margin-bottom: 14px; }
+.ai-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.ai-item { padding: 14px 16px; border-radius: var(--radius-lg); background: var(--glass-strong); border: 1px solid var(--hairline); font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+.ai-item-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+.ai-item-head b { color: var(--ink); font-weight: 600; font-size: 14px; }
+.ai-list { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.ai-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
+.ai-sub { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .07em; }
+@media (max-width: 900px) { .meth-row-2, .ai-cols { grid-template-columns: 1fr; } }
+
+/* Презентация: слайд — ровно экран. Плитки в один ряд, графики тянутся на
+   оставшуюся высоту, детализирующие таблицы скрыты (они для работы, не для показа). */
+body.presentation .content { padding: 18px 28px 6px; }
+body.presentation #page-methodology.active { display: flex; flex-direction: column; min-height: calc(100vh - 24px); }
+body.presentation #page-methodology .section-header { margin-bottom: 10px; padding-right: 120px; min-height: 0; }
+body.presentation #page-methodology .section-title { font-size: 20px; }
+body.presentation #page-methodology .section-header .section-sub { display: none; }
+body.presentation #meth-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+body.presentation .meth-fit { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+body.presentation .meth-fit > .card, body.presentation .meth-fit > .charts-grid, body.presentation .meth-fit > .meth-row-2 { margin-bottom: 10px; }
+body.presentation .meth-fit .charts-grid, body.presentation .meth-fit .meth-row-2 { gap: 10px; }
+body.presentation .meth-fit .kpi-grid.compact { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-columns: none; margin-bottom: 12px; }
+body.presentation .meth-fit .kpi-grid.compact { gap: 10px; }
+body.presentation .meth-fit .kpi-grid.compact .kpi-card { padding: 9px 11px; }
+body.presentation .meth-fit .kpi-grid.compact .kpi-label { font-size: 10px; letter-spacing: .04em; margin-bottom: 5px; }
+body.presentation .meth-fit .charts-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body.presentation .meth-fit .kpi-grid.compact .kpi-value { font-size: 21px; }
+body.presentation .meth-fit .kpi-grid.compact .kpi-value.kpi-text { font-size: 14px; }
+/* дельта и подпись — в одну строку под значением */
+body.presentation .meth-fit .kpi-grid.compact .kpi-card > div:nth-child(n+3) { display: inline-block; vertical-align: middle; margin: 4px 6px 0 0 !important; font-size: 11px !important; }
+body.presentation .meth-fit .kpi-grid.compact .kpi-delta { margin-top: 0; padding: 2px 7px; font-size: 11px; }
+body.presentation .meth-fit .card { padding: 12px 16px; }
+body.presentation .meth-fit .card-title { margin-bottom: 8px; font-size: 14px; }
+body.presentation .meth-fit-grow { flex: 1; min-height: 150px; margin-bottom: 10px; }
+body.presentation .meth-fit-grow > .card { display: flex; flex-direction: column; min-height: 0; }
+body.presentation .meth-fit-grow .chart-wrap { flex: 1; height: auto; min-height: 110px; }
+body.presentation .meth-fit-grow .meth-emp-list { flex: 1; min-height: 0; }
+body.presentation .meth-fit .meth-insights { gap: 4px 20px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+body.presentation .meth-fit .meth-insights li { font-size: 12.5px; line-height: 1.35; }
+body.presentation #meth-table-card,
+body.presentation .meth-detail { display: none !important; }
+body.presentation .slide-nav { margin-top: 4px; padding: 4px 10px 9px; }
+body.presentation .slide-nav-btn { width: 28px; height: 28px; }
 .meth-insights { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px 24px; }
 .meth-insights li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
 .meth-insights li .ico { flex-shrink: 0; margin-top: 2px; color: var(--green-text); }
@@ -508,7 +576,7 @@ body.presentation .slide-hint { display: none; }
 }
 .kpi-label { font-size: 12px; font-weight: 600; line-height: 1.2; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .09em; margin-bottom: 10px; }
 .kpi-value { font-family: var(--font-display); font-size: 32px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; overflow-wrap: break-word; word-break: break-word; }
-.kpi-value.kpi-text { font-size: 19px; letter-spacing: -.01em; text-transform: uppercase; word-break: keep-all; hyphens: none; }
+.kpi-value.kpi-text { font-size: 19px; letter-spacing: -.01em; text-transform: uppercase; word-break: keep-all; overflow-wrap: normal; hyphens: none; }
 .kpi-value.danger { color: var(--danger); }
 .kpi-value.accent { color: var(--green-text); }
 .kpi-delta {
@@ -1360,6 +1428,7 @@ body.presentation .slide-hint { display: none; }
 
         <!-- Карточки показателей -->
         <div class="kpi-grid" id="kpi-mgr-cards"></div>
+        <div id="kpi-mgr-ai"></div>
 
         <!-- Метрика 6: личный план сотрудников -->
         <div class="card" id="kpi-mgr-plan-card" style="margin-top:16px;display:none">
@@ -1474,16 +1543,29 @@ body.presentation .slide-hint { display: none; }
         </div>
         <div id="meth-stage">
         <!-- Слайд 1: обработка, устройства по сотрудникам, действия — на одном экране -->
-        <div id="meth-s1" style="display:none">
+        <div id="meth-s1" class="meth-fit" style="display:none">
           <div class="kpi-grid compact" id="meth-s1-kpis"></div>
           <div class="card" id="meth-s1-insights-card" style="margin-bottom:20px">
             <div class="card-title">Выводы</div>
             <ul class="meth-insights" id="meth-s1-insights"></ul>
           </div>
-          <div class="charts-grid cols-3">
+          <div class="charts-grid cols-3 meth-fit-grow">
             <div class="card"><div class="card-title">Устройства по вендорам</div><div class="chart-wrap"><canvas id="meth-s1-vendor"></canvas></div></div>
             <div class="card"><div class="card-title">Устройства по сотрудникам</div><div class="chart-wrap"><canvas id="meth-s1-emp"></canvas></div></div>
             <div class="card"><div class="card-title">Действия по типам</div><div class="chart-wrap"><canvas id="meth-s1-types"></canvas></div></div>
+          </div>
+        </div>
+        <!-- Слайд «Выплаты: вендоры и ненормированная работа» (прежние вкладки 5 и 6) -->
+        <div id="meth-vend" class="meth-fit" style="display:none">
+          <div class="kpi-grid compact" id="meth-vend-kpis"></div>
+          <div class="charts-grid cols-3 meth-fit-grow" style="grid-template-columns:1fr 1.3fr 1.3fr">
+            <div class="card"><div class="card-title">Доля выплат по вендорам</div><div class="chart-wrap"><canvas id="meth-vend-share"></canvas></div></div>
+            <div class="card"><div class="card-title">Выплаты сотрудникам по вендорам</div><div class="chart-wrap"><canvas id="meth-vend-emp"></canvas></div></div>
+            <div class="card"><div class="card-title">За какие действия платим</div><div class="chart-wrap"><canvas id="meth-vend-types"></canvas></div></div>
+          </div>
+          <div class="meth-row-2">
+            <div class="card"><div class="card-title">Выводы</div><ul class="meth-insights" id="meth-vend-insights"></ul></div>
+            <div class="card"><div class="card-title">Ненормированная работа</div><div id="meth-vend-unsched"></div></div>
           </div>
         </div>
         <div class="card" id="meth-empty" style="display:none;margin-bottom:16px">
@@ -1517,11 +1599,7 @@ body.presentation .slide-hint { display: none; }
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
               <div class="card-title" id="meth-table-title" style="margin:0">Обработано по вендору</div>
-              <div class="meth-seg period-seg" id="meth-table-src" style="display:none;margin:0">
-                <button data-n="1" class="active" onclick="switchMethTableSrc(1)">Вендоры</button>
-                <button data-n="2" onclick="switchMethTableSrc(2)">Сотрудники</button>
-                <button data-n="3" onclick="switchMethTableSrc(3)">Действия</button>
-              </div>
+              <div class="meth-seg period-seg" id="meth-table-src" style="display:none;margin:0"></div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <select class="settings-input" id="meth-group" style="max-width:220px" onchange="filterMethTable()">
@@ -1577,11 +1655,23 @@ body.presentation .slide-hint { display: none; }
 
           <!-- Карточки показателей -->
           <div class="kpi-grid" id="meth-kpi7-cards"></div>
+          <div id="meth-kpi7-ai"></div>
         </div>
 
-        <!-- 8. Дни просадки — заработок сотрудника по дням заметно ниже его среднего за отчёт -->
-        <div id="meth-downtime" style="display:none">
-          <div id="meth-downtime-body"></div>
+        <!-- 8. Продуктивность и нагрузка — факты по сменам, простоям и очереди работы.
+             Те же данные, что у просадок (get_employee_downtime_days), но по всем дням. -->
+        <div id="meth-prod" class="meth-fit" style="display:none">
+          <div class="kpi-grid compact" id="meth-prod-kpis"></div>
+          <div class="card"><div class="card-title">Выводы и точки роста</div><ul class="meth-insights" id="meth-prod-insights"></ul></div>
+          <div class="charts-grid cols-3 meth-fit-grow">
+            <div class="card"><div class="card-title">Время смены по сотрудникам, ч</div><div class="chart-wrap"><canvas id="meth-prod-time"></canvas></div></div>
+            <div class="card"><div class="card-title">Нагрузка по дням</div><div class="chart-wrap"><canvas id="meth-prod-days"></canvas></div></div>
+            <div class="card"><div class="card-title">Загрузка сотрудников</div><div class="meth-emp-list" id="meth-prod-emps"></div></div>
+          </div>
+          <details class="card meth-detail" id="meth-prod-dips">
+            <summary id="meth-prod-dips-title">Дни просадки</summary>
+            <div id="meth-downtime-body"></div>
+          </details>
         </div>
 
         <!-- 9. Проверка перед выдачей — ошибки ОКК, сопоставленные с исполнителями карточек -->
@@ -2877,13 +2967,37 @@ try { applySidebarState(localStorage.getItem('xfix_sidebar_collapsed') === '1');
 
 function enterPresentation() {
   document.body.classList.add('presentation');
-  setTimeout(() => { window.dispatchEvent(new Event('resize')); fitKpiText(); }, 50);
+  setTimeout(() => { window.dispatchEvent(new Event('resize')); fitKpiText(); schedulePresentFit(); }, 50);
 }
 function exitPresentation() {
   if (!document.body.classList.contains('presentation')) return;
   document.body.classList.remove('presentation');
+  document.getElementById('meth-stage').style.zoom = '';
   setTimeout(() => { window.dispatchEvent(new Event('resize')); fitKpiText(); }, 50);
 }
+/* Слайд не влез в экран даже в компактной раскладке (маленький ноутбук, много
+   выводов) — уменьшаем его целиком, а не заставляем листать. Не мельче 72%:
+   если нужно сильнее — слайд длинный по природе, оставляем прокрутку. */
+let _presentFitTimer;
+function schedulePresentFit() {
+  clearTimeout(_presentFitTimer);
+  _presentFitTimer = setTimeout(fitPresentationSlide, 120);
+}
+function fitPresentationSlide() {
+  const stage = document.getElementById('meth-stage');
+  const content = document.querySelector('.content');
+  if (!stage || !content) return;
+  if (!document.body.classList.contains('presentation') || STATE.currentPage !== 'methodology') { stage.style.zoom = ''; return; }
+  stage.style.zoom = '';
+  const over = content.scrollHeight - content.clientHeight;
+  if (over <= 1) return;
+  const h = stage.getBoundingClientRect().height;
+  if (h <= 0) return;
+  const z = (h - over - 4) / h;
+  // длинный слайд (таблицы проверок, ИИ-выводы) целиком не влезет — пусть листается в обычном масштабе
+  if (z >= 0.72) stage.style.zoom = String(z);
+}
+window.addEventListener('resize', schedulePresentFit);
 function showPage(id, el) {
   if (id !== 'methodology') exitPresentation();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -4203,30 +4317,36 @@ function methDeltaForGroup(rows, prevRows, groupField, groupValue, field, invert
   return fmt.delta((total - prevTotal) / prevTotal * 100, invert);
 }
 // Ужимаем шрифт текстовых KPI-плиток, чтобы длинные слова помещались без
-// уродливых переносов посреди слова. keep-all держит слово целым, поэтому
-// scrollWidth отражает самое широкое слово; уменьшаем кегль пока не влезет.
+// переносов посреди слова. keep-all + overflow-wrap:normal держат слово целым,
+// поэтому scrollWidth отражает самое широкое слово; уменьшаем кегль, пока не влезет.
+// Раньше overflow-wrap:break-word у .kpi-value ломал слово ещё до замера —
+// переполнения не было видно, и шрифт не уменьшался («ДИАГНОСТИК / А»).
+const KPI_FIT_MIN = 10;
 function _fitOne(el) {
-  // Плитка ещё не разложена (скрыта/нулевая ширина) — мерить бессмысленно,
-  // иначе scrollWidth>clientWidth даёт ложное срабатывание и режет слово.
+  // Плитка ещё не разложена (скрыта/нулевая ширина) — мерить бессмысленно.
   if (!el.clientWidth) return false;
+  if (el._fitW === el.clientWidth && el._fitText === el.textContent) return true;
   el.style.wordBreak = 'keep-all';
-  const MAX = 18, MIN = 9;
-  let size = MAX;
-  el.style.fontSize = size + 'px';
-  while (size > MIN && el.scrollWidth > el.clientWidth + 1) {
+  el.style.overflowWrap = 'normal';
+  el.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(el).fontSize) || 18;
+  const min = el.classList.contains('kpi-label') ? 8 : KPI_FIT_MIN;
+  while (size > min && el.scrollWidth > el.clientWidth + 1) {
     size -= 0.5;
     el.style.fontSize = size + 'px';
   }
-  // Слово шире плитки даже при минимальном кегле — крайняя мера, разрыв слова.
-  el.style.wordBreak = (el.scrollWidth > el.clientWidth + 1) ? 'break-word' : 'keep-all';
+  el._fitW = el.clientWidth;
+  el._fitText = el.textContent;
   return true;
 }
+// Перемеряем при любом изменении ширины плитки: смена слайда, режим презентации,
+// сворачивание меню — без привязки к таймерам.
+const _kpiFitRO = typeof ResizeObserver !== 'undefined'
+  ? new ResizeObserver(entries => entries.forEach(e => _fitOne(e.target))) : null;
 function fitKpiText(root) {
-  // Мерим после раскладки; если плитка ещё нулевой ширины — повторяем в след. кадре.
-  requestAnimationFrame(() => {
-    (root || document).querySelectorAll('.kpi-value.kpi-text').forEach(el => {
-      if (!_fitOne(el)) requestAnimationFrame(() => _fitOne(el));
-    });
+  (root || document).querySelectorAll('.kpi-value.kpi-text, .kpi-grid.compact .kpi-label').forEach(el => {
+    if (_kpiFitRO) _kpiFitRO.observe(el);
+    requestAnimationFrame(() => _fitOne(el));
   });
 }
 let _fitKpiTimer;
@@ -4306,21 +4426,24 @@ const METH_REPORTS = {
        chart: rows => methBarChart(rows, 'employee', 'total_price', 'Выплата, ₽') },
 };
 let methCurrentTab = 1;
-let methTableTab = 1;          // чей набор колонок в таблице (на слайде 1 — переключатель 1/2/3)
+let methTableTab = 1;          // чей набор колонок в таблице (на сводных слайдах — переключатель)
 let methCurrentRows = [];
 let methSortKey = null;
 let methSortDir = 1;
 /* Слайды отчёта. n — номер прежней вкладки: по нему выбирается загрузчик.
-   Слайд 1 сводит прежние вкладки 1–3 (обработка, сотрудники, действия). */
+   Слайд 1 сводит прежние вкладки 1–3 (обработка, сотрудники, действия),
+   слайд 5 — вендоры и ненормированную работу (её часто нет за неделю). */
 const METH_SLIDES = [
   { n: 1, title: 'Обработка и действия' },
   { n: 4, title: 'Разрез по выплатам' },
-  { n: 5, title: 'Разрез по вендорам' },
-  { n: 6, title: 'Ненормированные работы' },
-  { n: 8, title: 'Дни просадки' },
+  { n: 5, title: 'Выплаты: вендоры и ненормированная работа' },
+  { n: 8, title: 'Продуктивность и нагрузка' },
   { n: 9, title: 'Проверка перед выдачей' },
   { n: 7, title: 'KPI руководителя' },           // финальный слайд
 ];
+/* Сводные слайды: свой блок + общая таблица с переключателем источника */
+const METH_FIT = { 1: { el: 'meth-s1', src: [[1, 'Вендоры'], [2, 'Сотрудники'], [3, 'Действия']] },
+                   5: { el: 'meth-vend', src: [[5, 'Вендоры'], [6, 'Ненормированная']] } };
 let methSlide = 0;
 try { methSlide = Math.min(METH_SLIDES.length - 1, Math.max(0, +localStorage.getItem('xfix_meth_slide') || 0)); } catch (e) {}
 
@@ -4368,30 +4491,34 @@ document.addEventListener('keydown', e => {
 
 function switchMethTab(n) {
   methCurrentTab = n;
-  // Слайды 7 (KPI руководителя), 8 (Дни просадки) и 9 (Проверка перед выдачей) — свои блоки, не таблично-RPC-отчёт
+  // Слайды 7 (KPI руководителя), 8 (Продуктивность) и 9 (Проверка перед выдачей) — свои блоки, не таблично-RPC-отчёт
   const kpi7 = n === 7;
-  const downtime = n === 8;
+  const prod = n === 8;
   const checks = n === 9;
-  const own = kpi7 || downtime || checks;
+  const own = kpi7 || prod || checks;
   document.getElementById('meth-kpi7').style.display = kpi7 ? '' : 'none';
-  document.getElementById('meth-downtime').style.display = downtime ? '' : 'none';
+  document.getElementById('meth-prod').style.display = prod ? '' : 'none';
   document.getElementById('meth-checks').style.display = checks ? '' : 'none';
-  document.getElementById('meth-s1').style.display = 'none';
+  Object.values(METH_FIT).forEach(f => { document.getElementById(f.el).style.display = 'none'; });
   document.getElementById('meth-pay').style.display = 'none';
   document.getElementById('meth-pay-chart-card').style.display = 'none';
-  document.getElementById('meth-table-src').style.display = n === 1 ? '' : 'none';
+  const fit = METH_FIT[n];
+  const src = document.getElementById('meth-table-src');
+  src.style.display = fit ? '' : 'none';
+  src.innerHTML = fit ? fit.src.map(([k, label]) => `<button data-n="${k}" onclick="switchMethTableSrc(${k})">${label}</button>`).join('') : '';
   ['meth-empty', 'meth-kpis', 'meth-charts-grid', 'meth-table-card'].forEach(id => {
     const e = document.getElementById(id);
     if (e) e.style.display = own ? 'none' : '';
   });
   if (kpi7) { loadWeeklyKpi(); return; }
-  if (downtime) { loadMethDowntime(); return; }
+  if (prod) { loadMethProductivity(); return; }
   if (checks) { loadMethChecks(); return; }
   if (!STATE.currentReportId) return;
   methSortKey = null;
   methSortDir = 1;
   document.getElementById('meth-search').value = '';
   if (n === 1) { loadMethSlide1(); return; }
+  if (n === 5) { loadMethVendors(); return; }
   methTableTab = n;
   document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
   document.getElementById('meth-chart-title').textContent = METH_REPORTS[n].title;
@@ -4477,11 +4604,13 @@ function currentReportLabel() {
   return STATE.period.label || '—';
 }
 function setMethEmptyVisible(on) {
-  const s1 = methCurrentTab === 1;
+  const fit = METH_FIT[methCurrentTab];
   document.getElementById('meth-empty').style.display = on ? '' : 'none';
-  document.getElementById('meth-kpis').style.display = on || s1 ? 'none' : '';
-  document.getElementById('meth-charts-grid').style.display = on || s1 ? 'none' : '';
-  document.getElementById('meth-s1').style.display = !on && s1 ? '' : 'none';
+  document.getElementById('meth-kpis').style.display = on || fit ? 'none' : '';
+  document.getElementById('meth-charts-grid').style.display = on || fit ? 'none' : '';
+  Object.entries(METH_FIT).forEach(([k, f]) => {
+    document.getElementById(f.el).style.display = !on && +k === methCurrentTab ? '' : 'none';
+  });
   document.getElementById('meth-pay').style.display = !on && methCurrentTab === 4 ? '' : 'none';
   document.getElementById('meth-pay-chart-card').style.display = !on && methCurrentTab === 4 ? '' : 'none';
   document.getElementById('meth-table-card').style.display = on ? 'none' : '';
@@ -4646,6 +4775,7 @@ async function loadMethTable(n) {
     mkChart('meth-chart', meta.chart(methCurrentRows));
     populateMethGroupSelect(meta, methCurrentRows);
     filterMethTable();
+    schedulePresentFit();
     if (n === 4) loadMethPay(members, seq);
   } catch(e) {
     setMethEmptyVisible(false);
@@ -4656,7 +4786,7 @@ async function loadMethTable(n) {
 
 /* ─── Слайд 1: обработка + устройства по сотрудникам + действия ─────────── */
 let methSeq = 0;               // номер загрузки: устаревший ответ не перерисовывает другой слайд
-let methS1Data = null;         // {1: вендоры, 2: устройства по сотрудникам, 3: действия}
+let methTableData = null;      // строки таблицы сводного слайда: {1: вендоры, 2: …} или {5: …, 6: …}
 const fnum1 = v => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(+v || 0);
 const pctOf = (a, b) => b ? Math.round(a * 100 / b) : 0;
 const sumBy = (rows, f) => rows.reduce((s, r) => s + (+r[f] || 0), 0);
@@ -4686,11 +4816,11 @@ async function loadMethSlide1() {
     const rows = { 1: v || [], 2: only(d), 3: only(a) };
     const prevRows = { 1: pv || [], 2: only(pd), 3: only(pa) };
     if (!rows[1].length && !rows[2].length && !rows[3].length) {
-      methS1Data = null;
+      methTableData = null;
       showMethEmpty({ title: 'Обработка и действия' });
       return;
     }
-    methS1Data = rows;
+    methTableData = rows;
     renderMethSlide1(rows, prevRows);
     switchMethTableSrc([1, 2, 3].includes(methTableTab) ? methTableTab : 1);
   } catch (e) {
@@ -4780,19 +4910,152 @@ function renderMethSlide1(rows, prevRows) {
   mkChart('meth-s1-vendor', methDoughnutChart(rows[1], 'vendor', 'devices'));
   mkChart('meth-s1-emp', methBarChart(rows[2], 'employee', 'devices', 'Устройств'));
   mkChart('meth-s1-types', methBarChart(rows[3], 'action_type', 'cnt', 'Действий'));
+  schedulePresentFit();
 }
 
-/* Таблица слайда 1: какой из трёх прежних разрезов показывать */
+/* Таблица сводного слайда: какой из прежних разрезов показывать */
 function switchMethTableSrc(n) {
   methTableTab = n;
   document.querySelectorAll('#meth-table-src button').forEach(b => b.classList.toggle('active', +b.dataset.n === n));
   document.getElementById('meth-table-title').textContent = METH_REPORTS[n].title;
-  methCurrentRows = (methS1Data && methS1Data[n]) || [];
+  methCurrentRows = (methTableData && methTableData[n]) || [];
   methSortKey = null;
   methSortDir = 1;
   document.getElementById('meth-group').value = '';
   populateMethGroupSelect(METH_REPORTS[n], methCurrentRows);
   filterMethTable();
+}
+
+/* ─── Слайд 5: выплаты по вендорам + ненормированная работа ────────────────
+   Ненормированных работ за неделю часто нет или единицы — отдельный слайд
+   пустовал, поэтому они здесь блоком рядом с выводами. */
+const methMoneyTick = v => new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 }).format(v);
+function methStackedBar(labels, stacks, money) {
+  return {
+    type: 'bar',
+    data: { labels, datasets: stacks.map(([label, data], i) => ({ label, data, backgroundColor: PALETTE[i % PALETTE.length], borderRadius: 4, stack: 's' })) },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: stacks.length > 1, position: 'bottom' },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${money ? fmt.money(c.parsed.x) : fnum1(c.parsed.x)}` } },
+      },
+      scales: { x: { stacked: true, grid: { color: CC.grid }, ticks: { maxRotation: 0, autoSkipPadding: 12, callback: v => money ? methMoneyTick(v) : v } },
+                y: { stacked: true, grid: { display: false }, ticks: { autoSkip: labels.length > 8 } } },
+    },
+  };
+}
+/* Строки → стопки по второму ключу: labels — топ-n по сумме первого ключа */
+function methPivot(rows, key, stackKey, val, n) {
+  const labels = methAggSum(rows, key, val, n).map(a => a[0]);
+  const stackNames = methAggSum(rows, stackKey, val).map(a => a[0]);
+  const stacks = stackNames.map(sn => [sn, labels.map(l => rows.filter(r => (r[key] ?? '—') === l && (r[stackKey] ?? '—') === sn).reduce((x, r) => x + (+r[val] || 0), 0))]);
+  return { labels, stacks };
+}
+
+async function loadMethVendors() {
+  const seq = ++methSeq;
+  setMethEmptyVisible(false);
+  document.getElementById('meth-vend-kpis').innerHTML = '';
+  document.getElementById('meth-vend-insights').innerHTML = '<li style="color:var(--ink-muted)">Загрузка…</li>';
+  document.getElementById('meth-vend-unsched').innerHTML = '';
+  document.getElementById('meth-tbody').innerHTML = '<tr><td style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr>';
+  try {
+    const members = await weeklyReportEmployees();
+    const only = list => !members ? (list || []) : (list || []).filter(r => members.has(r.employee));
+    const rid = STATE.currentReportId;
+    const prevKey = STATE.period.prevKey;
+    const prev = fn => prevKey ? rpcWithRetry(fn + '_p', { p_period: prevKey }).catch(() => []) : Promise.resolve([]);
+    const [v, u, pv, pu] = await Promise.all([
+      db('report_vendor_payouts', { p_report_id: rid }),
+      db('report_unscheduled_work', { p_report_id: rid }),
+      prev('report_vendor_payouts'), prev('report_unscheduled_work'),
+    ]);
+    if (seq !== methSeq) return;
+    const rows = { 5: only(v), 6: only(u) };
+    const prevRows = { 5: only(pv), 6: only(pu) };
+    if (!rows[5].length && !rows[6].length) {
+      methTableData = null;
+      showMethEmpty({ title: 'Выплаты по вендорам' });
+      return;
+    }
+    methTableData = rows;
+    renderMethVendors(rows, prevRows);
+    switchMethTableSrc([5, 6].includes(methTableTab) ? methTableTab : 5);
+  } catch (e) {
+    if (seq !== methSeq) return;
+    document.getElementById('meth-vend-insights').innerHTML = `<li class="warn">${ico('alert')}<span>${esc(e.message)}</span></li>`;
+    document.getElementById('meth-tbody').innerHTML = '';
+    console.error('meth vendors', e);
+  }
+}
+
+function renderMethVendors(rows, prevRows) {
+  const pay = rows[5], un = rows[6];
+  const total = sumBy(pay, 'total_price');
+  const prevTotal = sumBy(prevRows[5], 'total_price');
+  const byVendor = methAggSum(pay, 'vendor', 'total_price');
+  const byEmp = methAggSum(pay, 'employee', 'total_price');
+  const byType = methAggSum(pay, 'action_type', 'total_price');
+  const unTotal = sumBy(un, 'total_price');
+  const unCnt = sumBy(un, 'devices');
+
+  // Плитки: дельты выплат — как на остальных слайдах (рост выплат — красным)
+  const tiles = [methKpi('Всего выплат', fmt.money(total), null, null, methDeltaFor(pay, prevRows[5], 'total_price', true))];
+  byVendor.slice(0, 3).forEach(([vendor, sum], i) => tiles.push(methKpi(vendor, fmt.money(sum), `${pctOf(sum, total)}% от всех`, PALETTE[i % PALETTE.length],
+    methDeltaForGroup(pay, prevRows[5], 'vendor', vendor, 'total_price', true))));
+  tiles.push(methKpi('Ср. на сотрудника', fmt.money(byEmp.length ? total / byEmp.length : 0), `${byEmp.length} сотр.`));
+  tiles.push(methKpi('Ненормированная', unCnt ? fmt.money(unTotal) : '—', unCnt ? `${fmt.num(unCnt)} обращ. · ${un.length} сотр.` : 'за период нет', null,
+    unCnt ? methDeltaFor(un, prevRows[6], 'total_price', true) : ''));
+  tiles.push(methKpi('Лидер по выплатам', byEmp[0] ? byEmp[0][0] : '—', byEmp[0] ? `${fmt.money(byEmp[0][1])} · ${pctOf(byEmp[0][1], total)}%` : ''));
+  const kpis = document.getElementById('meth-vend-kpis');
+  kpis.innerHTML = tiles.join('');
+  fitKpiText(kpis);
+
+  // Графики: доля вендоров, сотрудники и действия в разрезе вендора
+  mkChart('meth-vend-share', methDoughnutChart(pay, 'vendor', 'total_price'));
+  const e = methPivot(pay, 'employee', 'vendor', 'total_price', 8);
+  mkChart('meth-vend-emp', methStackedBar(e.labels, e.stacks, true));
+  const t = methPivot(pay, 'action_type', 'vendor', 'total_price', 7);
+  mkChart('meth-vend-types', methStackedBar(t.labels, t.stacks, true));
+
+  // Выводы
+  const li = (icon, html) => `<li>${ico(icon)}<span>${html}</span></li>`;
+  const out = [];
+  if (byVendor[0]) {
+    let x = `<b>${esc(byVendor[0][0])}</b> — ${pctOf(byVendor[0][1], total)}% выплат (${fmt.money(byVendor[0][1])})`;
+    if (byVendor[1]) x += `, ${esc(byVendor[1][0])} — ${pctOf(byVendor[1][1], total)}%`;
+    out.push(li('chart', x + '.'));
+  }
+  if (prevTotal) {
+    const ch = (total - prevTotal) / prevTotal * 100;
+    out.push(li(ch >= 0 ? 'trendUp' : 'trendDown', `Выплаты ${ch >= 0 ? 'выросли' : 'снизились'} на <b>${fnum1(Math.abs(ch))}%</b> к прошлому периоду (${fmt.money(prevTotal)} → ${fmt.money(total)}).`));
+    const prevVendor = new Map(methAggSum(prevRows[5], 'vendor', 'total_price'));
+    const shifts = byVendor.map(([vn, sum]) => [vn, sum - (prevVendor.get(vn) || 0)]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+    if (shifts[0] && shifts[0][1]) out.push(li('repeat', `Сильнее всего изменился ${esc(shifts[0][0])}: ${shifts[0][1] > 0 ? '+' : '−'}${fmt.money(Math.abs(shifts[0][1]))}.`));
+  }
+  if (byType[0]) out.push(li('clipboard', `Больше всего платим за «${esc(byType[0][0])}»: ${fmt.money(byType[0][1])} (${pctOf(byType[0][1], total)}%)${byType[1] ? `, следом «${esc(byType[1][0])}» — ${pctOf(byType[1][1], total)}%` : ''}.`));
+  if (byEmp.length > 1) {
+    const avg = total / byEmp.length;
+    const top = byEmp[0], low = byEmp[byEmp.length - 1];
+    out.push(li('users', `Разброс по сотрудникам: от ${fmt.money(low[1])} (${esc(low[0])}) до ${fmt.money(top[1])} (${esc(top[0])}); среднее ${fmt.money(avg)}.`));
+  }
+  document.getElementById('meth-vend-insights').innerHTML = out.join('') || '<li style="color:var(--ink-muted)">Недостаточно данных для выводов</li>';
+
+  schedulePresentFit();
+  // Ненормированная работа: список вместо отдельного слайда
+  const box = document.getElementById('meth-vend-unsched');
+  if (!un.length) {
+    box.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:var(--ink-muted);font-size:13px">${ico('checkCircle', 20)}<span>За период ненормированных работ нет${sumBy(prevRows[6], 'total_price') ? ` (в прошлом периоде — ${fmt.money(sumBy(prevRows[6], 'total_price'))})` : ''}.</span></div>`;
+    return;
+  }
+  const maxSum = Math.max(...un.map(r => +r.total_price || 0), 1);
+  box.innerHTML = `<div class="meth-emp-list">${[...un].sort((a, b) => b.total_price - a.total_price).map(r => `
+    <div>
+      <div class="meth-emp-row"><b>${esc(r.employee)}</b><span style="font-weight:600">${fmt.money(r.total_price)}</span></div>
+      <div style="height:6px;border-radius:3px;background:var(--bg-hover);margin:5px 0 3px;overflow:hidden"><div style="height:100%;width:${(+r.total_price || 0) / maxSum * 100}%;background:${PALETTE[2]};border-radius:3px"></div></div>
+      <div class="sub" style="font-size:12px;color:var(--ink-muted)">${fmt.num(r.devices)} обращ. · ср. ${fmt.money(r.avg_price)}</div>
+    </div>`).join('')}</div>`;
 }
 
 /* ─── Слайд «Выплаты»: средний заработок в месяц и помесячная динамика ──────
@@ -5904,99 +6167,336 @@ function buildDowntimeSection(dtRows) {
     </div>
   `;
 }
-/* Фильтр слайда: отдел + выбранные сотрудники (пусто = все сотрудники отдела).
-   Нормы и средние считаются в SQL по каждому сотруднику, фильтр только скрывает строки. */
-let methDowntimeRows = [];
-let methDowntimeMembers = null;       // состав еженедельного отчёта (Set) или null
-const DOWNTIME_REPORT_SCOPE = '__report';
-const DOWNTIME_FILTER_KEY = 'xfix_downtime_filter_v2';
-function loadDowntimeFilter() {
-  try {
-    const f = JSON.parse(localStorage.getItem(DOWNTIME_FILTER_KEY) || 'null');
-    if (f) return { dept: f.dept ?? null, emps: new Set(f.emps || []) };
-  } catch (e) {}
-  return { dept: null, emps: new Set() };
+/* ─── 8. Продуктивность и нагрузка ─────────────────────────────────────────
+   Факты по всем рабочим дням сотрудников отчёта (а не только по дням просадки):
+   сколько времени смены ушло в работу, сколько — в простои при готовой очереди
+   (резерв сотрудника) и в ожидание работы (не догрузили мы), выработка к норме
+   отдела, ₽ в час, пиковые и тихие дни. Дни просадки — свёрнутой детализацией. */
+const PROD_STATUS = {
+  underload: { label: 'Не догружен',     cls: 'warn', hint: 'не хватало работы' },
+  reserve:   { label: 'Есть резерв',     cls: 'bad',  hint: 'простои при готовой очереди' },
+  slow:      { label: 'Темп ниже отдела', cls: 'bad', hint: 'выработка ниже нормы отдела' },
+  high:      { label: 'Загружен плотно', cls: 'good', hint: 'темп выше отдела, простоев почти нет' },
+  ok:        { label: 'В норме',         cls: 'good', hint: '' },
+  absent:    { label: 'Нет действий',    cls: '',     hint: 'смены по графику без действий' },
+};
+const PROD_WAIT_SHARE = 0.15;     // ожидание работы ≥ 15% времени — не догружен
+const PROD_IDLE_SHARE = 0.12;     // простои при очереди ≥ 12% — резерв
+const PROD_SLOW = 0.8;            // выработка < 80% нормы отдела
+const PROD_HIGH = 1.15;           // выработка ≥ 115% и простоев < 8%
+const DOW_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+const hrs = m => `${fnum1((+m || 0) / 60)} ч`;
+const mean = list => { const v = list.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+
+function computeProductivity(rows) {
+  // рабочие дни: по графику или с действиями (дни вне графика не считаем)
+  const days = rows.filter(r => r.scheduled !== false && (+r.day_actions > 0 || r.scheduled === true))
+    .map(r => ({ ...r, ...classifyDowntimeDay(r) }));
+  const emps = new Map();
+  days.forEach(d => {
+    if (!emps.has(d.employee)) emps.set(d.employee, { employee: d.employee, department: d.department, days: 0, absent: 0, actions: 0, earnings: 0,
+      workMin: 0, earnTimed: 0, planMin: 0, idleWork: 0, idleWait: 0, eff: [], supply: [], dips: 0, loss: 0 });
+    const e = emps.get(d.employee);
+    if (!(+d.day_actions)) { e.absent++; return; }
+    e.days++;
+    e.actions += +d.day_actions || 0;
+    e.earnings += +d.day_earnings || 0;
+    if (d.work_minutes != null) {
+      e.workMin += +d.work_minutes || 0;
+      e.earnTimed += +d.day_earnings || 0;
+      e.idleWork += d.idleWork;
+      e.idleWait += d.idleWait;
+    }
+    if (+d.planned_minutes > 0) e.planMin += +d.planned_minutes;
+    if (d.effRatio != null) e.eff.push(d.effRatio);
+    if (d.supply != null) e.supply.push(d.supply);
+    if (d.base > 0 && (+d.day_earnings || 0) < d.base * DOWNTIME_DIP_RATIO) { e.dips++; e.loss += d.loss; }
+  });
+  const list = [...emps.values()].map(e => {
+    const idle = Math.min(e.workMin, e.idleWork + e.idleWait);
+    const st = {
+      ...e,
+      effAvg: mean(e.eff), supplyAvg: mean(e.supply),
+      prodMin: Math.max(0, e.workMin - idle),
+      waitShare: e.workMin ? e.idleWait / e.workMin : 0,
+      idleShare: e.workMin ? e.idleWork / e.workMin : 0,
+      rph: e.workMin ? e.earnTimed / (e.workMin / 60) : null,
+      perDay: e.days ? e.actions / e.days : 0,
+    };
+    st.status = !e.days ? 'absent'
+      : st.waitShare >= PROD_WAIT_SHARE || (st.supplyAvg != null && st.supplyAvg < DOWNTIME_LOW_SUPPLY + 0.1) ? 'underload'
+      : st.idleShare >= PROD_IDLE_SHARE ? 'reserve'
+      : st.effAvg != null && st.effAvg < PROD_SLOW ? 'slow'
+      : st.effAvg != null && st.effAvg >= PROD_HIGH && st.idleShare + st.waitShare < 0.08 ? 'high'
+      : 'ok';
+    return st;
+  }).sort((a, b) => b.actions - a.actions);
+
+  // по дням: действия сотрудников отчёта и очередь готовых устройств отдела
+  const byDate = new Map();
+  days.forEach(d => {
+    if (!byDate.has(d.action_date)) byDate.set(d.action_date, { date: d.action_date, actions: 0, emps: 0, queue: null });
+    const x = byDate.get(d.action_date);
+    x.actions += +d.day_actions || 0;
+    if (+d.day_actions) x.emps++;
+    if (d.available_work != null) x.queue = Math.max(x.queue ?? 0, +d.available_work);
+  });
+  const dates = [...byDate.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const sum = f => list.reduce((s, e) => s + (+e[f] || 0), 0);
+  const tot = { workMin: sum('workMin'), prodMin: sum('prodMin'), idleWork: sum('idleWork'), idleWait: sum('idleWait'),
+    actions: sum('actions'), empDays: sum('days'), earnTimed: sum('earnTimed'), dips: sum('dips'), loss: sum('loss'), absent: sum('absent'),
+    supplyAvg: mean(days.map(d => d.supply)), effAvg: mean(list.map(e => e.effAvg)) };
+  tot.util = tot.workMin ? tot.prodMin / tot.workMin : null;
+  tot.rph = tot.workMin ? tot.earnTimed / (tot.workMin / 60) : null;
+  tot.perEmpDay = tot.empDays ? tot.actions / tot.empDays : 0;
+  tot.hasSchedule = rows.some(r => r.scheduled != null);
+  return { list, dates, tot };
 }
-const downtimeFilter = loadDowntimeFilter();
-function saveDowntimeFilter() {
-  try {
-    localStorage.setItem(DOWNTIME_FILTER_KEY, JSON.stringify({ dept: downtimeFilter.dept, emps: [...downtimeFilter.emps] }));
-  } catch (e) {}
+
+function prodDayLabel(iso) {
+  const d = new Date(`${String(iso).slice(0, 10)}T00:00:00`);
+  return `${DOW_SHORT[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
-function setDowntimeDept(dept) {
-  downtimeFilter.dept = dept;
-  downtimeFilter.emps.clear();
-  saveDowntimeFilter();
-  renderMethDowntime();
-}
-function toggleDowntimeEmp(btn) {
-  const emp = btn.dataset.emp;
-  if (downtimeFilter.emps.has(emp)) downtimeFilter.emps.delete(emp); else downtimeFilter.emps.add(emp);
-  saveDowntimeFilter();
-  renderMethDowntime();
-}
-function clearDowntimeEmps() {
-  downtimeFilter.emps.clear();
-  saveDowntimeFilter();
-  renderMethDowntime();
-}
-function renderMethDowntime() {
-  const body = document.getElementById('meth-downtime-body');
-  const rows = methDowntimeRows;
-  const depts = [...new Set(rows.map(r => r.department).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
-  const scopes = ['', ...(methDowntimeMembers ? [DOWNTIME_REPORT_SCOPE] : []), ...depts];
-  if (downtimeFilter.dept == null || !scopes.includes(downtimeFilter.dept)) {
-    downtimeFilter.dept = methDowntimeMembers ? DOWNTIME_REPORT_SCOPE : '';
+
+function prodInsights({ list, dates, tot }) {
+  const li = (icon, html, warn) => `<li${warn ? ' class="warn"' : ''}>${ico(icon)}<span>${html}</span></li>`;
+  const names = st => list.filter(e => e.status === st).map(e => `<b>${esc(e.employee)}</b>`);
+  const out = [];
+  const waitSh = tot.workMin ? tot.idleWait / tot.workMin : 0;
+  const idleSh = tot.workMin ? tot.idleWork / tot.workMin : 0;
+  // общий вывод о загрузке
+  if (!tot.workMin) {
+    out.push(li('alert', 'Время действий не выгружено — загрузку по времени оценить нельзя, выводы только по выработке.', true));
+  } else if (waitSh >= 0.12 || (tot.supplyAvg != null && tot.supplyAvg < 0.85)) {
+    out.push(li('alert', `Отдел <b>не догружен</b>: ${hrs(tot.idleWait)} ожидания работы (${Math.round(waitSh * 100)}% времени смен). Работы на текущий состав не хватает — смены можно сдвинуть на пиковые дни или подключать к задачам других отделов.`, true));
+  } else if (idleSh >= 0.1) {
+    out.push(li('alert', `Работа в очереди была, но ${hrs(tot.idleWork)} (${Math.round(idleSh * 100)}% времени) ушло в паузы — это резерв производительности без найма.`, true));
+  } else if (tot.util != null && tot.util >= 0.88 && (tot.supplyAvg ?? 1) >= 1.05) {
+    out.push(li('checkCircle', `Отдел загружен <b>плотно</b>: в работе ${Math.round(tot.util * 100)}% времени смен, очередь выше обычной — при росте потока будут просрочки, нужен запас на пиковые дни.`));
+  } else {
+    out.push(li('checkCircle', `Загрузка ровная: в работе <b>${tot.util != null ? Math.round(tot.util * 100) + '%' : '—'}</b> времени смен, простоев сверх нормы ${hrs(tot.idleWork + tot.idleWait)}.`));
   }
-  const deptRows = downtimeFilter.dept === DOWNTIME_REPORT_SCOPE ? rows.filter(r => methDowntimeMembers.has(r.employee))
-    : downtimeFilter.dept ? rows.filter(r => r.department === downtimeFilter.dept) : rows;
-  // уволенные скрыты из кнопок, если только их не выбрали раньше
-  const emps = [...new Set(deptRows.map(r => r.employee))]
-    .filter(e => !isEmpInactive(e) || downtimeFilter.emps.has(e))
-    .sort((a, b) => a.localeCompare(b, 'ru'));
-  const picked = [...downtimeFilter.emps].filter(e => emps.includes(e));
-  const visible = picked.length
-    ? deptRows.filter(r => picked.includes(r.employee))
-    : deptRows.filter(r => emps.includes(r.employee));
-
-  const chip = (label, active, attrs) =>
-    `<button class="btn ${active ? 'btn-primary' : 'btn-ghost'}" style="padding:4px 12px;font-size:13px" ${attrs}>${label}</button>`;
-  const filterBar = `<div class="card" style="margin-bottom:16px;display:flex;flex-direction:column;gap:12px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <select class="settings-input" style="max-width:240px" onchange="setDowntimeDept(this.value)">
-        ${methDowntimeMembers ? `<option value="${DOWNTIME_REPORT_SCOPE}"${downtimeFilter.dept === DOWNTIME_REPORT_SCOPE ? ' selected' : ''}>Сотрудники отчёта</option>` : ''}
-        <option value=""${downtimeFilter.dept === '' ? ' selected' : ''}>Все отделы</option>
-        ${depts.map(d => `<option value="${esc(d)}"${d === downtimeFilter.dept ? ' selected' : ''}>${esc(d)}</option>`).join('')}
-      </select>
-      <div style="font-size:12px;color:var(--text-muted)">Выберите сотрудников — без выбора показываются все сотрудники отдела</div>
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      ${chip('Все', !picked.length, 'onclick="clearDowntimeEmps()"')}
-      ${emps.map(e => chip(esc(e), downtimeFilter.emps.has(e), `data-emp="${esc(e)}" onclick="toggleDowntimeEmp(this)"`)).join('')}
-    </div>
-  </div>`;
-
-  const html = buildDowntimeSection(visible);
-  body.innerHTML = filterBar + (html || `<div class="card"><div class="empty-state">
-      <div class="empty-state-icon">${ico('inbox', 40)}</div>
-      <div class="empty-state-title">Дней с просадкой не найдено</div>
-      <div style="color:var(--text-muted);font-size:13px">За период ${currentReportLabel()} у выбранных сотрудников заработок за день не опускался ниже половины нормы</div>
-    </div></div>`);
-  fitKpiText(body);
+  // пики и тихие дни
+  if (dates.length > 1) {
+    const avg = dates.reduce((s, d) => s + d.actions, 0) / dates.length;
+    const peak = dates.reduce((a, b) => b.actions > a.actions ? b : a);
+    const low = dates.reduce((a, b) => b.actions < a.actions ? b : a);
+    out.push(li('trendUp', `Пик — <b>${prodDayLabel(peak.date)}</b>: ${fmt.num(peak.actions)} действий (+${Math.round((peak.actions / avg - 1) * 100)}% к среднему дню, работали ${peak.emps})${peak.queue != null ? `, в очереди ${fmt.num(peak.queue)} устройств` : ''}.`));
+    if (low.actions < avg * 0.75) out.push(li('trendDown', `Тихий день — ${prodDayLabel(low.date)}: ${fmt.num(low.actions)} действий (${Math.round((1 - low.actions / avg) * 100)}% ниже среднего), работали ${low.emps}${low.queue != null ? `, очередь ${fmt.num(low.queue)}` : ''}.`));
+  }
+  out.push(li('users', `В среднем <b>${fnum1(tot.perEmpDay)}</b> действий на сотрудника в день${tot.rph != null ? `, <b>${fmt.money(tot.rph)}</b> в час` : ''}.`));
+  // точки роста
+  const reserve = names('reserve'), slow = names('slow'), under = names('underload');
+  if (reserve.length) out.push(li('bulb', `Точка роста — простои при готовой работе: ${reserve.join(', ')}. Разобрать паузы (наведите на «Простои» в детализации) и закрепить очередь.`));
+  if (slow.length) out.push(li('bulb', `Темп ниже нормы отдела: ${slow.join(', ')} — проверить сложность работ и нужна ли помощь/обучение.`));
+  if (under.length) out.push(li('bulb', `Не хватало работы: ${under.join(', ')} — кандидаты на перераспределение смен или смежные задачи.`));
+  const best = list.filter(e => e.rph != null && e.days >= 2).sort((a, b) => b.rph - a.rph)[0];
+  if (best && list.length > 2) out.push(li('trendUp', `Лучшая отдача в час — <b>${esc(best.employee)}</b>: ${fmt.money(best.rph)}, выработка ${downtimePct(best.effAvg)} нормы.`));
+  if (tot.dips) out.push(li('alert', `Дней просадки (заработок ниже половины нормы): ${fmt.num(tot.dips)}, недозаработано ${fmt.money(tot.loss)} — детализация ниже.`, true));
+  if (!tot.hasSchedule) out.push(li('clock', 'График смен не заполнен — смена считается по первому и последнему действию, «нет действий в смену» не отличить от выходного.'));
+  return out.join('');
 }
-async function loadMethDowntime() {
+
+let methProdRows = [];
+let methProdMembers = null;
+function renderMethProductivity() {
+  const rows = methProdMembers ? methProdRows.filter(r => methProdMembers.has(r.employee)) : methProdRows;
+  const data = computeProductivity(rows);
+  const { list, dates, tot } = data;
+  const active = list.filter(e => e.days);
+  if (!active.length) {
+    document.getElementById('meth-prod-kpis').innerHTML = '';
+    document.getElementById('meth-prod-insights').innerHTML = `<li>${ico('inbox')}<span>За период ${esc(currentReportLabel())} нет рабочих дней у сотрудников отчёта.</span></li>`;
+    ['meth-prod-time', 'meth-prod-days'].forEach(destroyChart);
+    document.getElementById('meth-prod-emps').innerHTML = '';
+    document.getElementById('meth-prod-dips').style.display = 'none';
+    return;
+  }
+  const kpis = document.getElementById('meth-prod-kpis');
+  kpis.innerHTML = [
+    methKpi('Время в работе', tot.util != null ? `${Math.round(tot.util * 100)}%` : '—', tot.workMin ? `${hrs(tot.prodMin)} из ${hrs(tot.workMin)}` : 'нет времени действий'),
+    methKpi('Действий на чел./день', fnum1(tot.perEmpDay), `${fmt.num(tot.actions)} за ${fmt.num(tot.empDays)} чел.-дн.`),
+    methKpi('Заработок в час', tot.rph != null ? fmt.money(tot.rph) : '—', 'по времени смены'),
+    methKpi('Простои при очереди', hrs(tot.idleWork), tot.workMin ? `${Math.round(tot.idleWork / tot.workMin * 100)}% времени · резерв` : '', 'var(--danger)'),
+    methKpi('Ожидание работы', hrs(tot.idleWait), tot.workMin ? `${Math.round(tot.idleWait / tot.workMin * 100)}% времени · не догрузили` : '', 'var(--warn-text)'),
+    methKpi('Обеспеченность', tot.supplyAvg != null ? downtimePct(tot.supplyAvg) : '—', 'очередь к обычной'),
+    methKpi('Дней просадки', fmt.num(tot.dips), tot.dips ? `недозаработано ${fmt.money(tot.loss)}` : 'нет'),
+  ].join('');
+  fitKpiText(kpis);
+  document.getElementById('meth-prod-insights').innerHTML = prodInsights(data);
+
+  // Время смены: работа / простои при очереди / ожидание работы
+  const timed = active.filter(e => e.workMin);
+  mkChart('meth-prod-time', methStackedBar(timed.map(e => e.employee), [
+    ['В работе', timed.map(e => Math.round(e.prodMin / 6) / 10)],
+    ['Простой при очереди', timed.map(e => Math.round(e.idleWork / 6) / 10)],
+    ['Ожидание работы', timed.map(e => Math.round(e.idleWait / 6) / 10)],
+  ], false));
+  // Нагрузка по дням: действия + очередь готовых устройств
+  const hasQueue = dates.some(d => d.queue != null);
+  mkChart('meth-prod-days', {
+    type: 'bar',
+    data: {
+      labels: dates.map(d => prodDayLabel(d.date)),
+      datasets: [
+        { type: 'bar', label: 'Действий', data: dates.map(d => d.actions), backgroundColor: PALETTE[0], borderRadius: 4, yAxisID: 'y', order: 2 },
+        ...(hasQueue ? [{ type: 'line', label: 'Очередь, уст.', data: dates.map(d => d.queue), borderColor: PALETTE[2], backgroundColor: PALETTE[2], tension: .3, yAxisID: 'y1', order: 1 }] : []),
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'bottom' },
+        tooltip: { callbacks: { afterBody: items => { const d = dates[items[0].dataIndex]; return d ? `Работали: ${d.emps}` : ''; } } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: CC.grid } },
+        ...(hasQueue ? { y1: { beginAtZero: true, position: 'right', grid: { display: false } } } : {}),
+      },
+    },
+  });
+  // Статусы сотрудников
+  document.getElementById('meth-prod-emps').innerHTML = list.map(e => {
+    const st = PROD_STATUS[e.status];
+    const parts = e.days ? [
+      `${e.days} дн. · ${fnum1(e.perDay)} действ./день`,
+      e.effAvg != null ? `выработка ${downtimePct(e.effAvg)}` : '',
+      e.rph != null ? `${fmt.money(e.rph)}/ч` : '',
+      e.idleWork + e.idleWait >= 30 ? `простои ${hrs(e.idleWork + e.idleWait)}` : '',
+    ].filter(Boolean) : [`${e.absent} смен без действий`];
+    return `<div class="meth-emp-row" title="${esc(st.hint)}"><div><b>${esc(e.employee)}</b><div class="sub">${parts.join(' · ')}</div></div><span class="meth-badge ${st.cls}">${st.label}</span></div>`;
+  }).join('');
+
+  // Детализация дней просадки — для разбора, в презентации скрыта
+  const dipsHtml = buildDowntimeSection(rows);
+  const det = document.getElementById('meth-prod-dips');
+  det.style.display = dipsHtml ? '' : 'none';
+  document.getElementById('meth-prod-dips-title').innerHTML = `${ico('chevronR')}Дни просадки — детализация (${fmt.num(tot.dips)})`;
+  document.getElementById('meth-downtime-body').innerHTML = dipsHtml;
+  fitKpiText(det);
+  schedulePresentFit();
+}
+async function loadMethProductivity() {
   if (!STATE.currentReportId) return;
-  const body = document.getElementById('meth-downtime-body');
-  body.innerHTML = '<div class="card"><div class="empty-state"><div class="spinner"></div></div></div>';
+  const seq = ++methSeq;
+  document.getElementById('meth-prod-kpis').innerHTML = '';
+  document.getElementById('meth-prod-insights').innerHTML = '<li style="color:var(--ink-muted)">Загрузка…</li>';
+  document.getElementById('meth-prod-emps').innerHTML = '';
   try {
-    methDowntimeMembers = await weeklyReportEmployees();
-    methDowntimeRows = (await db('get_employee_downtime_days', { p_report_id: STATE.currentReportId })) || [];
-    renderMethDowntime();
-  } catch(e) {
-    body.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-state-title" style="color:var(--xf-red)">${esc(e.message)}</div></div></div>`;
-    console.error('meth_downtime', e);
+    const [members, rows] = await Promise.all([
+      weeklyReportEmployees(),
+      db('get_employee_downtime_days', { p_report_id: STATE.currentReportId }),
+    ]);
+    if (seq !== methSeq) return;
+    methProdMembers = members;
+    methProdRows = rows || [];
+    renderMethProductivity();
+  } catch (e) {
+    if (seq !== methSeq) return;
+    document.getElementById('meth-prod-insights').innerHTML = `<li class="warn">${ico('alert')}<span>${esc(e.message)}</span></li>`;
+    console.error('meth_productivity', e);
   }
 }
+
+/* ─── ИИ-выводы (Claude через Edge Function ai-insights) ──────────────────────
+   Только по кнопке: дашборд собирает факты, функция зовёт Claude и сохраняет
+   ответ в ai_insights — его видят все, пока кто-то не обновит. Ключ Claude —
+   в секретах Edge Functions (ANTHROPIC_API_KEY), в браузер не попадает. */
+const AI_SETUP_HINT = `Ключ Claude кладётся в секреты Supabase, не в дашборд:<br>
+  <code>supabase secrets set ANTHROPIC_API_KEY=sk-ant-…</code><br>
+  <code>supabase functions deploy ai-insights</code><br>
+  и один раз прогнать <code>supabase_ai_insights.sql</code> в SQL Editor.`;
+const aiState = {};          // container id → { kind, scope, busy }
+
+async function aiLoadSaved(kind, scope) {
+  const { data, error } = await sb.rpc('get_ai_insight', { p_kind: kind, p_scope: scope });
+  if (error) {
+    if (/could not find|does not exist|schema cache/i.test(error.message)) return { missing: true };
+    throw new Error(error.message);
+  }
+  return (data && data[0]) || null;
+}
+async function aiRequest(kind, scope, facts) {
+  const res = await fetch(`${CONFIG.supabaseUrl}/functions/v1/ai-insights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${CONFIG.supabaseAnonKey}`, apikey: CONFIG.supabaseAnonKey },
+    body: JSON.stringify({ kind, scope, facts }),
+  });
+  if (res.status === 404) { const e = new Error('Edge Function ai-insights не задеплоена'); e.setup = true; throw e; }
+  let body = {};
+  try { body = await res.json(); } catch (e) {}
+  if (!res.ok || !body.ok) {
+    const e = new Error(body.error || `HTTP ${res.status}`);
+    e.setup = /ANTHROPIC_API_KEY/.test(e.message);
+    throw e;
+  }
+  return body;
+}
+function aiStamp(row) {
+  if (!row || !row.created_at) return '';
+  const d = new Date(row.created_at);
+  return `обновлено ${d.toLocaleDateString('ru-RU')} в ${d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+}
+/* Карточка ИИ-выводов: заголовок, кнопка, состояние. opts: {title, kind, scope, buildFacts, render, empty} */
+function aiCardHtml(id, title) {
+  return `<div class="card ai-card" id="${id}" style="margin-top:16px">
+    <div class="ai-head">
+      <div class="card-title">${ico('bot', 18)}${esc(title)}</div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="ai-meta" id="${id}-meta"></span>
+        <button class="btn btn-ghost" id="${id}-btn" onclick="aiRun('${id}')">${ico('bulb')} Сформировать выводы</button></div>
+    </div>
+    <div id="${id}-body"><div class="ai-meta">Загрузка…</div></div>
+  </div>`;
+}
+async function aiMount(id, opts) {
+  aiState[id] = { ...opts, busy: false };
+  const body = document.getElementById(id + '-body');
+  if (!body) return;
+  try {
+    const row = await aiLoadSaved(opts.kind, opts.scope);
+    if (aiState[id].scope !== opts.scope) return;
+    aiShow(id, row);
+  } catch (e) {
+    body.innerHTML = `<div class="ai-meta" style="color:var(--danger)">${esc(e.message)}</div>`;
+  }
+}
+function aiShow(id, row) {
+  const st = aiState[id];
+  const body = document.getElementById(id + '-body');
+  const btn = document.getElementById(id + '-btn');
+  if (!body || !st) return;
+  document.getElementById(id + '-meta').textContent = row && row.result ? `${aiStamp(row)}${row.model ? ' · ' + row.model : ''}` : '';
+  if (btn) btn.innerHTML = `${ico('bulb')} ${row && row.result ? 'Обновить выводы' : 'Сформировать выводы'}`;
+  if (row && row.missing) { body.innerHTML = `<div class="ai-meta" style="line-height:1.6">ИИ-выводы не настроены. ${AI_SETUP_HINT}</div>`; return; }
+  if (!row || !row.result) { body.innerHTML = `<div class="ai-meta">${st.empty || 'Выводы ещё не запрашивались — нажмите «Сформировать выводы».'}</div>`; return; }
+  try { body.innerHTML = st.render(row.result); }
+  catch (e) { body.innerHTML = `<div class="ai-meta" style="color:var(--danger)">Не удалось показать ответ: ${esc(e.message)}</div>`; }
+}
+async function aiRun(id) {
+  const st = aiState[id];
+  if (!st || st.busy) return;
+  if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) { showToast('Supabase не настроен', 'error'); return; }
+  st.busy = true;
+  const btn = document.getElementById(id + '-btn');
+  const body = document.getElementById(id + '-body');
+  const prevHtml = body.innerHTML;
+  btn.disabled = true;
+  body.innerHTML = `<div style="display:flex;align-items:center;gap:12px;color:var(--ink-muted);font-size:13px"><div class="spinner"></div>Собираю факты и спрашиваю Claude — обычно 20–60 секунд…</div>`;
+  try {
+    const facts = await st.buildFacts();
+    const row = await aiRequest(st.kind, st.scope, facts);
+    if (!row.saved && row.save_error) showToast('Вывод не сохранён: ' + row.save_error + ' — прогоните supabase_ai_insights.sql', 'error');
+    aiShow(id, row);
+  } catch (e) {
+    console.error('ai', e);
+    body.innerHTML = prevHtml;
+    body.insertAdjacentHTML('afterbegin', `<div class="ai-meta" style="color:var(--danger);margin-bottom:10px;line-height:1.6">${esc(e.message)}${e.setup ? '<br>' + AI_SETUP_HINT : ''}</div>`);
+  } finally {
+    st.busy = false;
+    btn.disabled = false;
+  }
+}
+const aiList = items => items && items.length ? `<ul class="ai-list">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<div class="ai-meta">—</div>';
 
 /* ─── 9. Проверка перед выдачей ─────────────────────────────────────────────
    Выгрузка ОКК (Тип = «Проверка перед выдачей») грузится в issue_checks.
@@ -6014,6 +6514,93 @@ function issueCheckResponsible(r) {
 function issueCheckComment(c) {
   return String(c || '').replace(/^❌\s*Обнаружены ошибки:\s*/i, '').replace(/^✅\s*/, '').trim();
 }
+/* Текст ошибки → отдельные пункты: ОКК пишет списком через перенос, «;» или нумерацию */
+function issueCheckItems(c) {
+  return issueCheckComment(c).split(/\n|;|•|\s(?=\d{1,2}[.)]\s)/)
+    .map(x => x.replace(/^[\s\d.)\-–—*:]+/, '').replace(/[\s.,;:!]+$/, '').trim())
+    .filter(x => x.length > 2);
+}
+const issueItemKey = x => x.toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+/* Повторы по сотруднику: одинаковые по тексту пункты ошибок (смысловые повторы — у ИИ) */
+function issueRepeats(rows) {
+  const byEmp = new Map();
+  rows.filter(r => !r.passed && r.resp).forEach(r => {
+    const emp = r.resp.employee;
+    if (!byEmp.has(emp)) byEmp.set(emp, new Map());
+    const m = byEmp.get(emp);
+    new Set(issueCheckItems(r.comment).map(x => [issueItemKey(x), x]).map(JSON.stringify)).forEach(js => {
+      const [k, text] = JSON.parse(js);
+      if (!k) return;
+      const cur = m.get(k) || { text, n: 0 };
+      cur.n++;
+      m.set(k, cur);
+    });
+  });
+  return [...byEmp].map(([employee, m]) => ({ employee, items: [...m.values()].sort((a, b) => b.n - a.n) }))
+    .sort((a, b) => (b.items[0]?.n || 0) - (a.items[0]?.n || 0));
+}
+/* Дата → 'YYYY-MM-DD' по местному времени (toISOString сдвигает на день назад в UTC+3) */
+const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/* Период в датах: понедельник первой недели — воскресенье последней */
+function periodDates() {
+  const ids = (STATE.period.ids && STATE.period.ids.length ? STATE.period.ids : [STATE.currentReportId]).map(String);
+  const weeks = (STATE.reports || []).filter(r => ids.includes(String(r.id))).map(r => r.report_week).sort();
+  if (!weeks.length) return null;
+  const end = new Date(`${weeks[weeks.length - 1]}T00:00:00`);
+  end.setDate(end.getDate() + 6);
+  return { from: weeks[0], to: isoDay(end) };
+}
+const ISSUE_HISTORY_WEEKS = 6;
+/* Факты для ИИ: ошибки по сотрудникам за период + история предыдущих недель */
+async function buildIssueChecksFacts() {
+  const pack = (rows) => {
+    const by = new Map();
+    rows.map(r => ({ ...r, resp: issueCheckResponsible(r) })).filter(r => r.resp).forEach(r => {
+      const k = r.resp.employee;
+      if (!by.has(k)) by.set(k, { employee: k, checked: 0, errors: 0, error_texts: [] });
+      const e = by.get(k);
+      e.checked++;
+      if (!r.passed) { e.errors++; e.error_texts.push({ date: String(r.check_date).slice(0, 10), vendor: r.vendor || null, text: issueCheckComment(r.comment).slice(0, 600) }); }
+    });
+    return [...by.values()].filter(e => !methChecksMembers || methChecksMembers.has(e.employee));
+  };
+  const facts = { period: currentReportLabel(), current: pack(methChecksRows), history_weeks: [] };
+  const pd = periodDates();
+  if (pd) {
+    const from = new Date(`${pd.from}T00:00:00`);
+    const hFrom = new Date(from); hFrom.setDate(hFrom.getDate() - 7 * ISSUE_HISTORY_WEEKS);
+    const hTo = new Date(from); hTo.setDate(hTo.getDate() - 1);
+    try {
+      const hist = (await rpcWithRetry('get_issue_checks_range', { p_from: isoDay(hFrom), p_to: isoDay(hTo) }, { retries: 1 })) || [];
+      const weeks = new Map();
+      hist.forEach(r => { const d = new Date(`${String(r.check_date).slice(0, 10)}T00:00:00`); d.setDate(d.getDate() - (d.getDay() + 6) % 7); const w = isoDay(d); if (!weeks.has(w)) weeks.set(w, []); weeks.get(w).push(r); });
+      facts.history_weeks = [...weeks].sort((a, b) => a[0].localeCompare(b[0])).map(([week, rows]) => ({ week, employees: pack(rows) }));
+    } catch (e) {
+      console.warn('issue history:', e.message);
+      facts.history_note = 'История предыдущих недель недоступна';
+    }
+  }
+  return facts;
+}
+const AI_STATUS = { ok: ['В норме', 'good'], watch: ['Есть повторы', 'warn'], problem: ['Системная проблема', 'bad'] };
+function renderIssueAi(r) {
+  const emps = (r.employees || []).map(e => {
+    const [label, cls] = AI_STATUS[e.status] || ['—', ''];
+    return `<div class="ai-item">
+      <div class="ai-item-head"><b>${esc(e.employee)}</b><span class="meth-badge ${cls}">${label}</span></div>
+      <div>${esc(e.weak_spot || '')}</div>
+      ${(e.patterns || []).length ? `<div class="meth-chips">${e.patterns.map(p => `<span class="meth-chip" title="${p.recurring ? 'Повторяется в разные недели' : ''}">${esc(p.pattern)} <b>×${p.count}</b>${p.recurring ? ' ↻' : ''}</span>`).join('')}</div>` : ''}
+      ${e.recommendation ? `<div style="margin-top:8px;color:var(--ink)">→ ${esc(e.recommendation)}</div>` : ''}
+    </div>`;
+  }).join('');
+  return `<div class="ai-summary">${esc(r.summary || '')}</div>
+    <div class="ai-grid">${emps}</div>
+    <div class="ai-cols">
+      <div><div class="ai-sub">Общие ошибки отдела</div>${aiList(r.team_patterns)}</div>
+      <div><div class="ai-sub">Что сделать</div>${aiList(r.actions)}</div>
+    </div>`;
+}
+
 function renderMethChecks() {
   const body = document.getElementById('meth-checks-body');
   const rows = methChecksRows.map(r => ({ ...r, resp: issueCheckResponsible(r) }));
@@ -6050,7 +6637,7 @@ function renderMethChecks() {
       unmatched.length ? `нет в загруженных отчётах${errUnmatched.length ? ` · из них с ошибками ${errUnmatched.length}` : ''}` : 'все карточки найдены', unmatched.length ? 'var(--xf-yellow)' : ''),
   ].join('');
 
-  const empTable = `<div class="card" style="margin-top:16px">
+  const empTable = `<div class="card">
     <div class="card-title">Ошибки по сотрудникам</div>
     <div style="overflow-x:auto"><table class="data-table">
       <thead><tr><th>Сотрудник</th><th class="num">Проверено карточек</th><th class="num">Ошибок</th><th class="num">% ошибок</th><th style="width:30%"></th></tr></thead>
@@ -6086,8 +6673,30 @@ function renderMethChecks() {
     </table></div>
   </div>`;
 
-  body.innerHTML = `<div class="kpi-grid">${tiles}</div>${empTable}${errList}`;
+  // Повторы без ИИ: одинаковые пункты ошибок у одного сотрудника
+  const reps = issueRepeats(rows).filter(e => !methChecksMembers || methChecksMembers.has(e.employee));
+  const repCard = `<div class="card">
+    <div class="card-title">Что повторяется</div>
+    ${reps.length ? `<div class="meth-emp-list">${reps.map(e => {
+      const rep = e.items.filter(x => x.n > 1);
+      return `<div><div class="meth-emp-row"><b>${esc(e.employee)}</b>${rep.length ? `<span class="meth-badge bad">повторов: ${rep.length}</span>` : '<span class="meth-badge">разовые</span>'}</div>
+        <div class="meth-chips">${e.items.slice(0, 6).map(x => `<span class="meth-chip">${esc(x.text.length > 70 ? x.text.slice(0, 68) + '…' : x.text)}${x.n > 1 ? ` <b>×${x.n}</b>` : ''}</span>`).join('')}</div></div>`;
+    }).join('')}</div>` : '<div class="ai-meta">Ошибок у сотрудников отчёта нет</div>'}
+    <div class="ai-meta" style="margin-top:10px">Совпадения по тексту. Похожие по смыслу ошибки и повторы из недели в неделю — в анализе ИИ ниже.</div>
+  </div>`;
+
+  body.innerHTML = `<div class="kpi-grid">${tiles}</div>
+    <div class="meth-row-2" style="grid-template-columns:1fr 1fr">${empTable}${repCard}</div>
+    ${aiCardHtml('ai-checks', 'Паттерны ошибок по сотрудникам · ИИ')}
+    ${errList}`;
   fitKpiText(body);
+  aiMount('ai-checks', {
+    kind: 'issue_checks',
+    scope: `${STATE.period.key || STATE.currentReportId}`,
+    buildFacts: buildIssueChecksFacts,
+    render: renderIssueAi,
+    empty: `Claude разберёт ошибки за период и ${ISSUE_HISTORY_WEEKS} предыдущих недель: у кого что проседает и что повторяется. Запуск — вручную.`,
+  });
 }
 async function loadMethChecks() {
   if (!STATE.currentReportId) return;
@@ -6747,7 +7356,7 @@ async function loadManagerKpi() {
     emptyEl.style.display = kpiMgr.rows.length ? 'none' : '';
     scoreEl.style.display = kpiMgr.rows.length ? '' : 'none';
     planCard.style.display = kpiMgr.rows.length ? '' : 'none';
-    if (!kpiMgr.rows.length) { document.getElementById('kpi-mgr-cards').innerHTML = ''; return; }
+    if (!kpiMgr.rows.length) { document.getElementById('kpi-mgr-cards').innerHTML = ''; document.getElementById('kpi-mgr-ai').innerHTML = ''; return; }
 
     renderKpiCards();
     renderKpiPlanTable();
@@ -7176,7 +7785,7 @@ async function renderWeeklyKpiMonth() {
     kpiMgr.plan = planRes.data || [];
     emptyEl.style.display = rows.length ? 'none' : '';
     scoreEl.style.display = rows.length ? '' : 'none';
-    if (!rows.length) { cardsEl.innerHTML = ''; return; }
+    if (!rows.length) { cardsEl.innerHTML = ''; document.getElementById('meth-kpi7-ai').innerHTML = ''; return; }
     renderKpiCards('meth-kpi7');
   } catch (e) {
     console.error('renderWeeklyKpiMonth:', e);
@@ -7233,6 +7842,129 @@ function renderKpiCards(prefix = 'kpi-mgr') {
   badge.innerHTML = (pass
     ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--green-tint);color:var(--xf-green,#39bb3b);font-weight:600;font-size:13px">✓ Порог премии пройден</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">+${total - thr} сверх порога</div>`
     : `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--warn-tint);color:var(--warn-text);font-weight:600;font-size:13px">Ниже порога премии</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">не хватает ${thr - total} баллов</div>`) + premium;
+  mountKpiAi(prefix);
+  schedulePresentFit();
+}
+
+/* ─── ИИ-прогноз KPI руководителя ─────────────────────────────────────────
+   Claude получает схему, текущие значения, динамику по неделям месяца, личные
+   планы и итоги прошлых месяцев → прогноз к концу месяца и на чём сделать упор. */
+function mountKpiAi(prefix) {
+  const box = document.getElementById(prefix + '-ai');
+  if (!box || !kpiMgr.month) return;
+  const id = prefix + '-ai-card';
+  const scope = `kpi:${kpiMgr.month}`;
+  if (document.getElementById(id) && aiState[id] && aiState[id].scope === scope) return;   // уже показан
+  box.innerHTML = aiCardHtml(id, `Прогноз и фокус на ${kpiMonthLabel(kpiMgr.month).toLowerCase()} · ИИ`);
+  const month = kpiMgr.month;
+  aiMount(id, {
+    kind: 'manager_kpi', scope,
+    buildFacts: () => buildKpiFacts(month),
+    render: renderKpiAi,
+    empty: 'Claude оценит, сколько баллов реально набрать к концу месяца, пройдёт ли порог премии и на каких показателях сделать упор. Запуск — вручную.',
+  });
+}
+/* Посчитать показатели на других строках, не трогая состояние вкладки */
+function kpiWith(state, fn) {
+  const saved = { rows: kpiMgr.rows, plan: kpiMgr.plan, issueChecks: kpiMgr.issueChecks };
+  Object.assign(kpiMgr, state);
+  try { return fn(); } finally { Object.assign(kpiMgr, saved); }
+}
+const kpiRound = v => Math.round((+v || 0) * 10) / 10;
+async function buildKpiFacts(month) {
+  if (kpiMgr.month !== month) throw new Error('Месяц KPI сменился — откройте его заново');
+  const cfg = kpiSchemeFor(month).config;
+  const metrics = kpiMetrics(month).filter(m => (+m.maxPts) > 0);
+  const evalAll = ms => ms.map(m => { const r = kpiComputeMetric(m); return { metric: m.title, num: r.num, den: r.den, pct: kpiRound(r.pct), pts: r.pts, no_data: r.empty }; });
+  const current = evalAll(metrics);
+  const [y, mo] = month.split('-').map(Number);
+  const daysInMonth = new Date(y, mo, 0).getDate();
+  const facts = {
+    month,
+    scheme: {
+      threshold: +cfg.threshold || 0, point_rub: cfg.pointRub || null, max_points: kpiSchemeMax(cfg),
+      metrics: metrics.map(m => ({ metric: m.title, description: m.desc, max_points: +m.maxPts,
+        scale: [...m.scale].sort((a, b) => a[0] - b[0]).map(([pct, pts]) => ({ up_to_pct: pct, points: pts })) })),
+    },
+    current: { total_points: current.reduce((x, r) => x + r.pts, 0), metrics: current },
+    days_in_month: daysInMonth,
+  };
+  // Динамика по неделям месяца + дата последних данных
+  try {
+    const weekly = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await sb.rpc('get_kpi_month_rows_weekly', { p_month: month }).range(from, from + 999);
+      if (error) throw error;
+      if (!data || !data.length) break;
+      weekly.push(...data);
+      if (data.length < 1000) break;
+    }
+    const through = weekly.reduce((mx, r) => (r.last_date > mx ? r.last_date : mx), '');
+    if (through) {
+      facts.data_through = String(through).slice(0, 10);
+      facts.days_passed = +facts.data_through.slice(8, 10);
+      facts.days_left = daysInMonth - facts.days_passed;
+    }
+    const weeks = [...new Set(weekly.map(r => String(r.week).slice(0, 10)))].sort();
+    const noPlan = metrics.filter(m => !m.plan);
+    facts.by_week = weeks.map(w => ({
+      week_from: w,
+      metrics: kpiWith({ rows: weekly.filter(r => String(r.week).slice(0, 10) === w), issueChecks: null }, () => evalAll(noPlan))
+        .map(({ metric, num, den, pct }) => ({ metric, num, den, pct })),
+    }));
+  } catch (e) {
+    console.warn('KPI weekly:', e.message);
+    facts.by_week_note = 'Нет разбивки по неделям (не прогнан supabase_ai_insights.sql)';
+  }
+  // Личный план: факт и прогноз по темпу
+  const earn = kpiEarningsByEmployee();
+  const share = facts.days_passed ? daysInMonth / facts.days_passed : null;
+  facts.personal_plan = kpiMgr.plan.filter(p => (+p.plan) > 0 && !kpiMgr.excluded.includes(p.employee)).map(p => ({
+    employee: p.employee, plan: +p.plan, earned: Math.round(earn[p.employee] || 0),
+    projected_end_of_month: share ? Math.round((earn[p.employee] || 0) * share) : null,
+  }));
+  // Итоги прошлых месяцев (до двух) — по схеме того месяца
+  facts.previous_months = [];
+  for (const pm of kpiMgr.months.filter(m => m.month < month).slice(0, 2)) {
+    try {
+      const saved = kpiMgr.issueChecks;
+      const [rows, planRes] = await Promise.all([
+        fetchAllKpiRows(pm.month),
+        sb.from('kpi_plan').select('employee, plan, fix').eq('month', pm.month),
+        loadKpiIssueChecks(pm.month),
+      ]);
+      const ic = kpiMgr.issueChecks;
+      kpiMgr.issueChecks = saved;
+      const ms = kpiMetrics(pm.month).filter(m => (+m.maxPts) > 0);
+      const res = kpiWith({ rows, plan: planRes.data || [], issueChecks: ic }, () => evalAll(ms));
+      facts.previous_months.push({ month: pm.month, total_points: res.reduce((x, r) => x + r.pts, 0),
+        threshold: +kpiSchemeFor(pm.month).config.threshold || 0,
+        metrics: res.map(({ metric, pct, pts }) => ({ metric, pct, pts })) });
+    } catch (e) { console.warn('KPI prev month', pm.month, e.message); }
+  }
+  return facts;
+}
+function renderKpiAi(r) {
+  const f = r.forecast || {};
+  const pr = { 'высокий': 'bad', 'средний': 'warn', 'низкий': '' };
+  return `<div class="ai-summary">${esc(r.summary || '')}</div>
+    <div class="kpi-grid compact" style="margin-bottom:14px">
+      ${methKpi('Сейчас', fmt.num(f.current_score))}
+      ${methKpi('Прогноз к концу месяца', fmt.num(f.expected_score), f.threshold_reachable ? 'порог премии достижим' : 'порог премии под угрозой', f.threshold_reachable ? 'var(--green-text)' : 'var(--danger)')}
+      ${methKpi('Если сделать упор', fmt.num(f.best_case_score), `уверенность: ${esc(f.confidence || '—')}`)}
+    </div>
+    ${f.comment ? `<div class="ai-meta" style="margin:-4px 0 14px;font-size:13px;line-height:1.5">${esc(f.comment)}</div>` : ''}
+    <div class="ai-sub" style="margin-bottom:8px">На чём сделать упор</div>
+    <div class="ai-grid">${(r.focus || []).map(x => `<div class="ai-item">
+      <div class="ai-item-head"><b>${esc(x.metric)}</b><span class="meth-badge ${pr[x.priority] ?? ''}">${esc(x.priority || '')}</span></div>
+      <div><span style="color:var(--ink-muted)">Сейчас:</span> ${esc(x.now || '')}</div>
+      <div><span style="color:var(--ink-muted)">Цель:</span> ${esc(x.target || '')} ${x.reachable ? '<span class="meth-badge good">достижимо</span>' : '<span class="meth-badge">сложно</span>'}</div>
+      <div style="margin-top:6px;color:var(--ink)">→ ${esc(x.how || '')}</div>
+    </div>`).join('')}</div>
+    <div class="ai-cols">
+      <div><div class="ai-sub">Риски</div>${aiList(r.risks)}</div>
+      <div><div class="ai-sub">Шаги до конца месяца</div>${aiList(r.actions)}</div>
+    </div>`;
 }
 
 /* ─── Личный план сотрудников (метрика 6) ──────────────────────────────── */
