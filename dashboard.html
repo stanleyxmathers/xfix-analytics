@@ -1474,6 +1474,7 @@ body.presentation .slide-hint { display: none; }
             <button class="tab plan-tab" data-plan="people" onclick="switchPlanTab('people',this)">Сотрудники</button>
             <button class="tab plan-tab" data-plan="norms" onclick="switchPlanTab('norms',this)">Нормы устройств</button>
             <button class="tab plan-tab" data-plan="intake" onclick="switchPlanTab('intake',this)">Поступление</button>
+            <button class="tab plan-tab" data-plan="tasks" onclick="switchPlanTab('tasks',this)">Типы задач</button>
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)">Статистика за
             <select class="settings-input" id="plan-weeks" style="width:auto;min-height:36px;padding:6px 10px" onchange="reloadPlanning()">
@@ -1615,6 +1616,48 @@ body.presentation .slide-hint { display: none; }
             <div class="card-title">Через сколько дней после приёма</div>
             <table class="data-table"><thead><tr><th>Этап</th><th class="num">В день приёма</th><th class="num">+1 день</th><th class="num">+2 дня</th><th class="num">+3–6 дней</th><th class="num">7 и больше</th></tr></thead>
               <tbody id="pi-lag"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Типы задач объединённого отдела -->
+        <div class="plan-view" id="plan-tasks" style="display:none">
+          <div class="section-header">
+            <div><div class="section-title">Задачи объединённого отдела</div><div class="section-sub">Диагностика, логистика и ОКК вместе. Время задачи — интервалы между действиями сотрудника, как в нормах устройств; тип задачи — по разметке действий внизу страницы</div></div>
+          </div>
+          <div class="kpi-grid" id="pt-kpi"></div>
+          <div class="card" style="overflow-x:auto;margin-bottom:16px">
+            <div class="card-title">Нормы и оплата по типам задач</div>
+            <table class="data-table" style="min-width:900px">
+              <thead><tr>
+                <th>Задача</th><th class="num" title="Обращений (или действий без id сервиса) в среднем за день с данными">В день</th>
+                <th class="num">Медиана, мин</th><th class="num">Среднее, мин</th>
+                <th class="num" title="Доля в нагрузке отдела по нормам">Доля нагрузки</th>
+                <th class="num">₽ за единицу</th>
+                <th class="num" title="Оплата ÷ измеренное время. Сильно выше или ниже среднего — риск, что выгодные задачи будут выбирать, а невыгодные откладывать">₽ / час</th>
+                <th>Кто делает</th>
+              </tr></thead>
+              <tbody id="pt-types"></tbody>
+            </table>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Нагрузка по нормам против часов смен</div>
+            <div class="section-sub" style="margin-bottom:8px" id="pt-load-note"></div>
+            <div class="chart-wrap"><canvas id="pt-chart"></canvas></div>
+          </div>
+          <div class="card" style="overflow-x:auto;margin-bottom:16px">
+            <div class="card-title">Кто чем занят — доля нормированного времени сотрудника</div>
+            <table class="data-table" id="pt-matrix"><thead id="pt-matrix-head"></thead><tbody id="pt-matrix-body"></tbody></table>
+          </div>
+          <div class="card" style="overflow-x:auto">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+              <div class="card-title" style="margin:0">Разметка действий по типам задач</div>
+              <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" id="pt-map-unmapped" onchange="renderPlanTaskMap()"> только неразмеченные</label>
+            </div>
+            <div class="section-sub" style="margin-bottom:8px">Тип задачи задаётся для пары «тип действия + отдел». «По умолчанию» — общая разметка для всех отделов; неразмеченная логистика попадает в «Логистика, не размечено»</div>
+            <table class="data-table" style="min-width:760px">
+              <thead><tr><th>Действие</th><th>Отдел</th><th class="num">Действий</th><th class="num">Сотр.</th><th class="num">₽</th><th>Тип задачи</th></tr></thead>
+              <tbody id="pt-map"></tbody>
+            </table>
           </div>
         </div>
       </div><!-- /page-planning -->
@@ -8088,7 +8131,7 @@ const PLAN_DOW = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 const planState = {
   tab: 'week', loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
-  model: null, week: null, extraEmps: new Set(), queue: null,
+  model: null, week: null, extraEmps: new Set(), queue: null, tasks: null,
 };
 
 function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -8113,6 +8156,7 @@ function reloadPlanning() {
   planState.loaded = false;
   planState.loading = null;
   planState.week = null;
+  planState.tasks = null;
   loadPlanning();
 }
 
@@ -8138,6 +8182,7 @@ async function loadPlanning() {
   if (planState.tab === 'people') renderPlanPeople();
   if (planState.tab === 'norms') renderPlanNorms();
   if (planState.tab === 'intake') renderPlanIntake();
+  if (planState.tab === 'tasks') renderPlanTasks();
 }
 
 async function fetchPlanning() {
@@ -8864,6 +8909,223 @@ function renderPlanNorms() {
     },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: CC.grid }, beginAtZero: true }, y: { grid: { display: false } } } },
   });
+}
+
+/* ─── Типы задач объединённого отдела (supabase_tasks.sql) ─────────────────
+   Нормы, оплата за час и нагрузка по типам задач: диагностика, логистика, ОКК.
+   Грузится отдельно при открытии вкладки — остальное «Планирование» от неё не зависит. */
+async function loadPlanTasks() {
+  if (planState.tasks) return planState.tasks;
+  const p = { p_from: planState.from, p_to: planState.to };
+  const [norms, daily, actionTypes, types] = await Promise.all([
+    rpcWithRetry('get_task_norms', { ...p, p_cap: PLAN_CAP }),
+    rpcWithRetry('get_task_daily', { ...p, p_cap: PLAN_CAP }),
+    rpcWithRetry('get_task_action_types', p),
+    sb.from('task_types').select('*').order('sort_order').then(r => { if (r.error) throw new Error(r.error.message); return r.data; }),
+  ]);
+  planState.tasks = { norms: norms || [], daily: daily || [], actionTypes: actionTypes || [], types: types || [] };
+  return planState.tasks;
+}
+
+async function renderPlanTasks() {
+  const kpi = document.getElementById('pt-kpi');
+  if (!planState.tasks) {
+    skelKpi('pt-kpi', 4);
+    try { await loadPlanTasks(); }
+    catch (e) {
+      console.error('loadPlanTasks:', e);
+      kpi.innerHTML = `<div class="card" style="grid-column:1/-1;color:var(--xf-red)">Ошибка: ${esc(e.message)}${/task_|get_task/i.test(e.message) ? ' — прогоните supabase_tasks.sql' : ''}</div>`;
+      return;
+    }
+  }
+  const t = planState.tasks, m = planState.model;
+  const typeName = new Map(t.types.map(x => [x.code, x.name]));
+  const lane = new Map(t.types.map(x => [x.code, x.lane]));
+  const tName = c => typeName.get(c) || c;
+
+  // дни сотрудника: строки по типам задач + поля дня (одинаковые в строках дня)
+  const empDays = new Map();
+  t.daily.forEach(r => {
+    const key = `${r.employee}|${r.work_date}`;
+    const d = empDays.get(key) || { employee: r.employee, date: r.work_date, row: r, tasks: [] };
+    if (r.task_type) d.tasks.push(r);
+    empDays.set(key, d);
+  });
+  // сотрудники отдела: от PLAN_MIN_CORE действий общей полосы и не меньше 10% от самого загруженного
+  const byEmp = new Map();
+  empDays.forEach(d => {
+    const e = byEmp.get(d.employee) || { employee: d.employee, days: [], n: 0, norm: new Map() };
+    e.days.push(d);
+    d.tasks.forEach(x => {
+      if (lane.get(x.task_type) === 'dept') e.n += +x.n_actions;
+      e.norm.set(x.task_type, (e.norm.get(x.task_type) || 0) + +x.norm_min);
+    });
+    byEmp.set(d.employee, e);
+  });
+  const top = Math.max(0, ...[...byEmp.values()].map(e => e.n));
+  const team = [...byEmp.values()]
+    .filter(e => e.n >= Math.max(PLAN_MIN_CORE, top * PLAN_MIN_SHARE) && !_inactiveEmps.has(e.employee))
+    .sort((a, b) => b.n - a.n);
+  const teamSet = new Set(team.map(e => e.employee));
+
+  // по дням: нагрузка по нормам (все сотрудники) и часы смен команды
+  const days = new Map();
+  const dayOf = date => days.get(date) || days.set(date, { load: new Map(), okk: 0, shift: 0 }).get(date);
+  empDays.forEach(d => {
+    const day = dayOf(d.date);
+    d.tasks.forEach(x => {
+      if (lane.get(x.task_type) === 'okk') day.okk += +x.norm_min;
+      else day.load.set(x.task_type, (day.load.get(x.task_type) || 0) + +x.norm_min);
+    });
+    if (teamSet.has(d.employee)) {
+      const st = m.dayStats(d.row);
+      if (st.sched || st.worked) day.shift += st.len;
+    }
+  });
+  const dates = [...days.keys()].filter(d => d >= m.dataFrom && d <= m.dataTo).sort();
+  const sumLoad = d => [...days.get(d).load.values()].reduce((s, v) => s + v, 0);
+  const worked = dates.filter(d => sumLoad(d) > 0);
+  const nDays = worked.length || 1;
+  const util = dates.map(d => days.get(d).shift ? sumLoad(d) / days.get(d).shift : null).filter(x => x != null);
+  const totLoad = worked.reduce((s, d) => s + sumLoad(d), 0);
+  const totShift = worked.reduce((s, d) => s + days.get(d).shift, 0);
+  const okkPerDay = worked.reduce((s, d) => s + days.get(d).okk, 0) / nDays;
+
+  // нормы отдела по типам задач — свёртка групп устройств, взвешенно по числу единиц
+  const dept = t.norms.filter(r => r.employee == null);
+  const agg = new Map();
+  dept.forEach(r => {
+    const a = agg.get(r.task_type) || { units: 0, med: 0, avg: 0, rub: 0 };
+    const u = +r.units;
+    a.units += u; a.med += u * +r.med_min; a.avg += u * +r.avg_min; a.rub += u * +r.rub;
+    agg.set(r.task_type, a);
+  });
+  const totRub = [...agg.values()].reduce((s, a) => s + a.rub, 0);
+  const totMin = [...agg.values()].reduce((s, a) => s + a.avg, 0);
+  const avgRubHour = totMin ? totRub / totMin * 60 : 0;
+  const unitsDay = new Map(), normTot = new Map(), who = new Map();
+  t.daily.forEach(r => {
+    if (!r.task_type || r.work_date < m.dataFrom || r.work_date > m.dataTo) return;
+    unitsDay.set(r.task_type, (unitsDay.get(r.task_type) || 0) + +r.units);
+    normTot.set(r.task_type, (normTot.get(r.task_type) || 0) + +r.norm_min);
+    const w = who.get(r.task_type) || new Map();
+    w.set(r.employee, (w.get(r.employee) || 0) + +r.norm_min);
+    who.set(r.task_type, w);
+  });
+  const normAll = [...normTot.values()].reduce((s, v) => s + v, 0) || 1;
+  const order = t.types.map(x => x.code).filter(c => agg.has(c) || normTot.has(c));
+  const rubHours = order.map(c => agg.get(c)).filter(a => a && a.avg).map(a => a.rub / a.avg * 60);
+  const unmapped = t.actionTypes.filter(r => !r.mapped_dept && r.task_type === 'logistics');
+  const unmappedN = unmapped.reduce((s, r) => s + +r.actions, 0);
+
+  kpi.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Загрузка команды</div><div class="kpi-value">${planPct(totShift ? totLoad / totShift : null)}</div><div class="kpi-delta neutral">нагрузка по нормам ÷ часы смен, ${team.length} сотр.</div></div>
+    <div class="kpi-card"><div class="kpi-label">Разброс по дням</div><div class="kpi-value kpi-text">${util.length ? `${planPct(Math.min(...util))} – ${planPct(Math.max(...util))}` : '—'}</div><div class="kpi-delta neutral">самый лёгкий и самый тяжёлый день</div></div>
+    <div class="kpi-card"><div class="kpi-label">₽ / час по задачам</div><div class="kpi-value kpi-text">${rubHours.length ? `${fmtNum(Math.round(Math.min(...rubHours)))} – ${fmtNum(Math.round(Math.max(...rubHours)))}` : '—'}</div><div class="kpi-delta neutral">в среднем ${fmtNum(Math.round(avgRubHour))} ₽</div></div>
+    <div class="kpi-card"><div class="kpi-label">ОКК в день</div><div class="kpi-value">${planR1(okkPerDay / 60)} ч</div><div class="kpi-delta ${unmappedN ? 'down' : 'neutral'}">${unmappedN ? `логистика не размечена: ${fmtNum(unmappedN)} действий` : 'отдельная полоса, вне ёмкости команды'}</div></div>`;
+
+  document.getElementById('pt-types').innerHTML = order.length ? order.map(c => {
+    const a = agg.get(c) || { units: 0 };
+    const rh = a.avg ? a.rub / a.avg * 60 : null;
+    const dev = rh != null && avgRubHour ? rh / avgRubHour - 1 : 0;
+    const color = dev >= 0.25 ? 'var(--green-text)' : dev <= -0.25 ? 'var(--danger)' : 'inherit';
+    const wAll = [...(who.get(c) || new Map())].sort((x, y) => y[1] - x[1]);
+    const wTot = wAll.reduce((s, [, v]) => s + v, 0) || 1;
+    const w = wAll.filter(([, v]) => v / wTot >= 0.01);
+    return `<tr${lane.get(c) === 'okk' ? ' style="opacity:.75"' : ''}>
+      <td>${esc(tName(c))}</td>
+      <td class="num">${planR1((unitsDay.get(c) || 0) / nDays)}</td>
+      <td class="num"><b>${a.units ? planR1(a.med / a.units) : '—'}</b></td>
+      <td class="num">${a.units ? planR1(a.avg / a.units) : '—'}</td>
+      <td class="num">${lane.get(c) === 'okk' ? '—' : planPct((normTot.get(c) || 0) / normAll)}</td>
+      <td class="num">${a.units ? fmtNum(Math.round(a.rub / a.units)) : '—'}</td>
+      <td class="num" style="color:${color}">${rh != null ? fmtNum(Math.round(rh)) : '—'}</td>
+      <td style="font-size:12px;color:var(--ink-muted)">${w.slice(0, 3).map(([e, v]) => `${esc(planShort(e))} ${planPct(v / wTot)}`).join(', ')}${w.length > 3 ? ` +${w.length - 3}` : ''}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных за период</td></tr>';
+
+  document.getElementById('pt-load-note').textContent = worked.length
+    ? `В среднем ${planR1(totLoad / 60 / nDays)} ч работы по нормам на ${planR1(totShift / 60 / nDays)} ч смен в день. Дни, где столбец сильно ниже линии смен, — резерв: часть смен можно сократить или забрать задачи соседнего направления. ОКК не входит.`
+    : 'Нет дней с данными';
+  const loadTypes = order.filter(c => lane.get(c) === 'dept');
+  mkChart('pt-chart', {
+    type: 'bar',
+    data: {
+      labels: dates.map(d => planDay(d)),
+      datasets: [
+        ...loadTypes.map((c, i) => ({
+          label: tName(c), stack: 'load',
+          data: dates.map(d => planR1((days.get(d).load.get(c) || 0) / 60)),
+          backgroundColor: PALETTE[i % PALETTE.length],
+        })),
+        { type: 'line', label: 'Часы смен команды', data: dates.map(d => planR1(days.get(d).shift / 60)),
+          borderColor: CC.ref, backgroundColor: CC.ref, _ref: true, pointRadius: 0, stepped: 'middle' },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: CC.grid }, beginAtZero: true, title: { display: true, text: 'часов' } } },
+    },
+  });
+
+  // матрица: доля нормированного времени сотрудника по типам задач
+  const all = [...team, ...[...byEmp.values()].filter(e => !teamSet.has(e.employee) && [...e.norm.values()].some(v => v > 0))
+    .sort((a, b) => b.n - a.n).slice(0, 10)];
+  document.getElementById('pt-matrix-head').innerHTML = `<tr><th>Сотрудник</th><th class="num">Смен</th><th class="num" title="Нормированные часы за смену">Усл. ч / смена</th>${order.map(c => `<th class="num">${esc(tName(c))}</th>`).join('')}</tr>`;
+  document.getElementById('pt-matrix-body').innerHTML = all.map(e => {
+    const shifts = e.days.filter(d => d.tasks.length && d.date >= m.dataFrom && d.date <= m.dataTo).length || 1;
+    const tot = [...e.norm.values()].reduce((s, v) => s + v, 0) || 1;
+    return `<tr${teamSet.has(e.employee) ? '' : ' style="opacity:.6" title="Не в команде: мало действий за период"'}>
+      <td>${esc(e.employee)}</td><td class="num">${shifts}</td><td class="num">${planR1(tot / 60 / shifts)}</td>
+      ${order.map(c => {
+        const v = (e.norm.get(c) || 0) / tot;
+        return `<td class="num"${v >= 0.5 ? ' style="font-weight:600"' : ''}>${v >= 0.005 ? planPct(v) : '<span style="color:var(--ink-muted)">—</span>'}</td>`;
+      }).join('')}
+    </tr>`;
+  }).join('');
+
+  renderPlanTaskMap();
+}
+
+/* Разметка действий: тип задачи для пары «действие + отдел» */
+function renderPlanTaskMap() {
+  const t = planState.tasks;
+  if (!t) return;
+  const only = document.getElementById('pt-map-unmapped').checked;
+  const types = t.types;
+  const rows = t.actionTypes.filter(r => !only || !r.mapped_dept);
+  document.getElementById('pt-map').innerHTML = rows.length ? rows.map(r => {
+    const i = t.actionTypes.indexOf(r);
+    const own = r.mapped_dept && r.mapped_dept !== '*';   // своя строка разметки для отдела
+    const defName = !own && r.task_type ? (types.find(x => x.code === r.task_type) || {}).name || r.task_type : 'не учитывается';
+    return `<tr${r.mapped_dept ? '' : ' style="background:var(--warn-tint)"'}>
+      <td>${esc(r.action_type)}</td><td>${esc(r.department || '—')}</td>
+      <td class="num">${fmtNum(r.actions)}</td><td class="num">${r.employees}</td><td class="num">${fmtNum(Math.round(+r.rub))}</td>
+      <td><select class="settings-input" style="min-height:32px;padding:4px 8px;width:auto" data-i="${i}" onchange="savePlanTaskMap(this)">
+        <option value=""${own ? '' : ' selected'}>По умолчанию: ${esc(defName)}</option>
+        ${types.map(x => `<option value="${esc(x.code)}"${own && r.task_type === x.code ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}
+      </select></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Все действия размечены</td></tr>';
+}
+
+async function savePlanTaskMap(sel) {
+  const r = planState.tasks.actionTypes[+sel.dataset.i];
+  const dept = r.department || '*';
+  sel.disabled = true;
+  try {
+    const q = sel.value
+      ? sb.from('task_action_map').upsert({ action_type: r.action_type, department: dept, task_type: sel.value, updated_at: new Date().toISOString() }, { onConflict: 'action_type,department' })
+      : sb.from('task_action_map').delete().eq('action_type', r.action_type).eq('department', dept);
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+    showToast(`Разметка сохранена: ${esc(r.action_type)}`, 'success');
+    planState.tasks = null;   // нормы и нагрузка пересчитываются по новой разметке
+    await renderPlanTasks();
+  } catch (e) {
+    showToast('Ошибка сохранения: ' + esc(e.message), 'error');
+    sel.disabled = false;
+  }
 }
 
 /* ─── Поступление ──────────────────────────────────────────────────────── */

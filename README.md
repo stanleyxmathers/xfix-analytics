@@ -16,6 +16,7 @@
 ├── supabase_kpi.sql          # KPI руководителя: схемы по месяцам, история до окт. 2026
 ├── supabase_unified_upload.sql # один отчёт на всё: импорт, KPI из actions, «мой отдел»
 ├── supabase_planning.sql     # планирование: нормы по устройствам, поступление, продуктивность, ожидаемые поставки, план графика
+├── supabase_tasks.sql        # типы задач объединённого отдела: разметка действий, нормы, ₽/час, нагрузка
 └── supabase/functions/db-health/index.ts   # Edge Function: прокси к Metrics API
 ```
 
@@ -53,6 +54,7 @@ dashboard.html <──supabase-js RPC──────────────�
 6. supabase_unified_upload.sql  # импорт общего отчёта (зависит от п.2 и п.5)
 7. supabase_planning.sql        # страница «Планирование» (зависит от п.2 и supabase_schedule.sql)
 8. supabase_api_shifts.sql      # API смен для внешних сервисов (зависит от supabase_schedule.sql)
+9. supabase_tasks.sql           # «Планирование → Типы задач» (зависит от п.7)
 ```
 
 Грузится один общий отчёт (все сотрудники, все типы действий, колонки «Маркер корп»,
