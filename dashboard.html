@@ -1564,14 +1564,14 @@ details[open] > .pl-summary::before { content: '▾'; }
             <button class="tab plan-tab" data-plan="settings" onclick="switchPlanTab('settings',this)">Настройки</button>
           </div>
           <div class="pl-sources" id="pl-sources"></div>
-          <label class="btn btn-primary" title="Выгрузка FileMaker (техника в работе) или список ожидаемых поставок — тип файла определяется сам. Можно просто перетащить файл на страницу">
+          <label class="btn btn-primary" title="Выгрузка FileMaker (техника в работе), график смен Shifton или список ожидаемых поставок — тип файла определяется сам. Можно просто перетащить файл на страницу">
             <input type="file" id="pl-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="planImportInput(this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Загрузить файл
           </label>
         </div>
         <div class="pl-meta" id="plan-range-note" style="margin:-6px 0 12px"></div>
-        <div class="pl-drop" id="pl-drop"><div>Отпустите файл<br><small>выгрузка FileMaker или список поставок</small></div></div>
+        <div class="pl-drop" id="pl-drop"><div>Отпустите файл<br><small>выгрузка FileMaker, график Shifton или список поставок</small></div></div>
 
         <!-- Сегодня: роли по людям на день -->
         <div class="plan-view" id="plan-shift">
@@ -1755,7 +1755,7 @@ details[open] > .pl-summary::before { content: '▾'; }
                 </select>
               </label>
             </div>
-            <div class="pl-hint">Файлы: выгрузка FileMaker — скрипт «XFIX выгрузка очереди»; список поставок — <a href="#" onclick="event.preventDefault();downloadSupplyTemplate()">шаблон Excel</a>. Оба грузятся кнопкой «Загрузить файл».</div>
+            <div class="pl-hint">Файлы: выгрузка FileMaker — скрипт «XFIX выгрузка очереди»; график смен — Excel из Shifton (сотрудники × дни); список поставок — <a href="#" onclick="event.preventDefault();downloadSupplyTemplate()">шаблон Excel</a>. Всё грузится кнопкой «Загрузить файл», тип файла определяется сам.</div>
           </div>
           <div class="card pl-card" style="overflow-x:auto">
             <div class="card-title">Допуски к ролям</div>
@@ -7285,6 +7285,37 @@ function parseScheduleGrid(grid, month) {
   throw new Error('Не удалось распознать таблицу: нужна колонка с сотрудником и колонка с датой, либо строка с днями месяца (1–31)');
 }
 
+/* Импорт графика из уже прочитанной таблицы: сопоставление ФИО и запись в базу.
+   Общий для «Графика работы» и кнопки «Загрузить файл» в Планировании. */
+async function importScheduleGrid(grid, month) {
+  const { format, rows, names } = parseScheduleGrid(grid, month);
+  if (!rows.length) throw new Error('В файле не найдено ни одной смены');
+  await ensureEmployeeList();
+  const known = _empDeptData.map(r => r.employee);
+  const matched = [], unmatched = new Map();
+  const cache = new Map();
+  const resolve = name => {
+    if (!cache.has(name)) cache.set(name, matchEmployeeName(name, known));
+    return cache.get(name);
+  };
+  rows.forEach(r => {
+    const emp = resolve(r.name);
+    if (emp) matched.push({ employee: emp, work_date: r.date, shift_start: r.shift_start, shift_end: r.shift_end });
+    else unmatched.set(r.name, (unmatched.get(r.name) || 0) + 1);
+  });
+  // все сопоставленные из файла, включая тех, у кого за период нет смен (отпуск)
+  const fileEmployees = [...new Set(names.map(resolve).filter(Boolean))];
+  if (!matched.length) throw new Error('Ни одно ФИО из файла не сопоставлено с сотрудниками аналитики');
+
+  const dates = matched.map(r => r.work_date).sort();
+  const from = dates[0].slice(0, 7) + '-01';
+  const lastMonth = dates[dates.length - 1].slice(0, 7);
+  const to = `${lastMonth}-${String(daysInMonth(lastMonth)).padStart(2, '0')}`;
+  const { data: count, error } = await sb.rpc('import_work_schedule', { p_rows: matched, p_from: from, p_to: to, p_employees: fileEmployees });
+  if (error) throw new Error(error.message + (/import_work_schedule/i.test(error.message) ? ' — прогоните supabase_schedule.sql' : ''));
+  return { format, count, employees: new Set(matched.map(r => r.employee)).size, from, to, unmatched };
+}
+
 async function importScheduleFile(input) {
   const file = input.files && input.files[0];
   input.value = '';
@@ -7294,44 +7325,18 @@ async function importScheduleFile(input) {
   box.innerHTML = 'Импорт…';
   try {
     if (!window.XLSX) throw new Error('Библиотека XLSX не загрузилась — обновите страницу');
-    await ensureEmployeeList();
     const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
     const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '', raw: true });
-    const { format, rows, names } = parseScheduleGrid(grid, document.getElementById('sched-month').value || currentMonthStr());
-    if (!rows.length) throw new Error('В файле не найдено ни одной смены');
-
-    const known = _empDeptData.map(r => r.employee);
-    const matched = [], unmatched = new Map();
-    const cache = new Map();
-    const resolve = name => {
-      if (!cache.has(name)) cache.set(name, matchEmployeeName(name, known));
-      return cache.get(name);
-    };
-    rows.forEach(r => {
-      const emp = resolve(r.name);
-      if (emp) matched.push({ employee: emp, work_date: r.date, shift_start: r.shift_start, shift_end: r.shift_end });
-      else unmatched.set(r.name, (unmatched.get(r.name) || 0) + 1);
-    });
-    // все сопоставленные из файла, включая тех, у кого за период нет смен (отпуск)
-    const fileEmployees = [...new Set(names.map(resolve).filter(Boolean))];
-    if (!matched.length) throw new Error('Ни одно ФИО из файла не сопоставлено с сотрудниками аналитики');
-
-    const dates = matched.map(r => r.work_date).sort();
-    const from = dates[0].slice(0, 7) + '-01';
-    const lastMonth = dates[dates.length - 1].slice(0, 7);
-    const to = `${lastMonth}-${String(daysInMonth(lastMonth)).padStart(2, '0')}`;
-    const { data: count, error } = await sb.rpc('import_work_schedule', { p_rows: matched, p_from: from, p_to: to, p_employees: fileEmployees });
-    if (error) throw new Error(error.message);
-
-    const emps = new Set(matched.map(r => r.employee));
-    box.innerHTML = `<div style="font-weight:600;margin-bottom:6px;color:var(--xf-green)">Импортировано смен: ${fmt.num(count)} · сотрудников: ${emps.size} · ${fmt.date(from)} – ${fmt.date(to)}</div>
-      <div style="font-size:12px;color:var(--text-muted)">Формат файла: ${format}. График этих сотрудников за период заменён данными из файла.</div>
-      ${unmatched.size ? `<div style="font-size:12px;color:var(--xf-yellow);margin-top:8px">Не сопоставлены с сотрудниками аналитики (смены пропущены): ${[...unmatched.entries()].map(([n, c]) => `${esc(n)} (${c})`).join(', ')}. Проверьте написание ФИО в Shifton и в отчётах.</div>` : ''}`;
-    document.getElementById('sched-month').value = from.slice(0, 7);
+    const r = await importScheduleGrid(grid, document.getElementById('sched-month').value || currentMonthStr());
+    box.innerHTML = `<div style="font-weight:600;margin-bottom:6px;color:var(--xf-green)">Импортировано смен: ${fmt.num(r.count)} · сотрудников: ${r.employees} · ${fmt.date(r.from)} – ${fmt.date(r.to)}</div>
+      <div style="font-size:12px;color:var(--text-muted)">Формат файла: ${r.format}. График этих сотрудников за период заменён данными из файла.</div>
+      ${r.unmatched.size ? `<div style="font-size:12px;color:var(--xf-yellow);margin-top:8px">Не сопоставлены с сотрудниками аналитики (смены пропущены): ${[...r.unmatched.entries()].map(([n, c]) => `${esc(n)} (${c})`).join(', ')}. Проверьте написание ФИО в Shifton и в отчётах.</div>` : ''}`;
+    document.getElementById('sched-month').value = r.from.slice(0, 7);
+    planState.shiftSched = {};
     await loadScheduleTab();
   } catch (e) {
     console.error('importScheduleFile:', e);
-    box.innerHTML = `<span style="color:var(--xf-red)">Ошибка импорта: ${esc(e.message)}${/import_work_schedule/i.test(e.message) ? ' — прогоните supabase_schedule.sql' : ''}</span>`;
+    box.innerHTML = `<span style="color:var(--xf-red)">Ошибка импорта: ${esc(e.message)}</span>`;
   }
 }
 
@@ -8293,6 +8298,7 @@ function reloadPlanning() {
   planState.access = null;
   planState.shiftSched = {};
   planState.shiftTrips = {};
+  planState.schedInfo = null;
   loadPlanning();
 }
 
@@ -8352,6 +8358,7 @@ async function renderPlanSources() {
   } else {
     chips.push(`<button class="pl-chip off" onclick="document.getElementById('pl-file').click()" title="Загрузите выгрузку FileMaker"><i></i>Очередь не загружена</button>`);
   }
+  chips.push(await planScheduleChip(today));
   if (!planState.trips) planState.trips = await loadPlanTrips(today, planAddDays(today, 14));
   const next = planNextTrip(planState.trips, planAddDays(today, -1));
   chips.push(next
@@ -8360,7 +8367,26 @@ async function renderPlanSources() {
   el.innerHTML = chips.join('');
 }
 
-/* ─── Импорт одним файлом: выгрузка FileMaker или список поставок ────────── */
+/* График смен: загружен ли текущий месяц; с 20-го числа — и следующий */
+async function planScheduleChip(today) {
+  const month = today.slice(0, 7);
+  const next = planAddDays(`${month}-28`, 7).slice(0, 7);
+  const need = +today.slice(8, 10) >= 20 ? [month, next] : [month];
+  if (!planState.schedInfo) {
+    try {
+      const res = await Promise.all(need.map(m => rpcWithRetry('get_work_schedule', { p_month: `${m}-01` })));
+      planState.schedInfo = need.map((m, i) => ({ m, n: (res[i] || []).length }));
+    } catch (e) { planState.schedInfo = need.map(m => ({ m, n: -1 })); }
+  }
+  const name = m => MONTHS_NOM[+m.slice(5, 7) - 1].toLowerCase();
+  const [cur, nxt] = planState.schedInfo;
+  const pick = `onclick="document.getElementById('pl-file').click()"`;
+  if (cur.n <= 0) return `<button class="pl-chip off" ${pick} title="Загрузите график смен Shifton (Excel)"><i></i>Графика на ${name(cur.m)} нет</button>`;
+  if (nxt && nxt.n <= 0) return `<button class="pl-chip old" ${pick} title="Загрузите график Shifton на ${name(nxt.m)}"><i></i>График: нет ${name(nxt.m)}</button>`;
+  return `<span class="pl-chip ok" title="Смен в графике: ${cur.n}${nxt ? ` + ${nxt.n}` : ''}"><i></i>График ${name(cur.m)}${nxt ? '–' + name(nxt.m) : ''}</span>`;
+}
+
+/* ─── Импорт одним файлом: выгрузка FileMaker, график смен или список поставок ─ */
 function planImportInput(input) {
   const file = input.files && input.files[0];
   input.value = '';
@@ -8376,6 +8402,7 @@ async function planImportFile(file) {
     const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
     const head = grid.slice(0, 15).map(r => (r || []).map(c => normHeader(c).replace(/^service::/, '')));
     const isFm = head.some(h => h.includes('статус') && h.includes(FM_QUEUE_COLS.name));
+    if (!isFm && planIsScheduleGrid(grid)) { await planImportSchedule(grid); return; }
     let supply = null;
     if (!isFm) { try { supply = parseSupplyGrid(grid); } catch (e) { supply = null; } }
     if (isFm || !supply) await importQueueGrid(grid, file);
@@ -8385,6 +8412,22 @@ async function planImportFile(file) {
     showToast('Не удалось загрузить: ' + e.message, 'error');
   }
 }
+// График смен (Shifton): строка с датами по дням месяца — не меньше 20 колонок
+function planIsScheduleGrid(grid) {
+  return grid.slice(0, 15).some(r => (r || []).filter(c => {
+    const v = String(c ?? '').trim();
+    return /^\d{1,2}[.\/]\d{1,2}[.\/]\d{4}$|^\d{4}-\d{2}-\d{2}$/.test(v) || (/^\d{1,2}$/.test(v) && +v >= 1 && +v <= 31);
+  }).length >= 20);
+}
+async function planImportSchedule(grid) {
+  const r = await importScheduleGrid(grid, (document.getElementById('pd-date').value || planIso(new Date())).slice(0, 7));
+  const miss = r.unmatched.size ? ` · без пары в аналитике: ${r.unmatched.size}` : '';
+  showToast(`График ${fmt.date(r.from)} – ${fmt.date(r.to)}: ${fmt.num(r.count)} смен, ${r.employees} сотрудников${miss}`, 'success');
+  if (r.unmatched.size) console.info('График: не сопоставлены', [...r.unmatched.keys()]);
+  planState.schedInfo = null;
+  reloadPlanning();
+}
+
 // Перетаскивание файла на страницу «Планирование»
 function initPlanDrop() {
   if (initPlanDrop.done) return;

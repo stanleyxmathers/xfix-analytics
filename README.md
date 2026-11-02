@@ -19,6 +19,7 @@
 ├── supabase_tasks.sql        # типы задач объединённого отдела: разметка, нормы, ₽/час, нагрузка, роли и допуски для плана смены
 ├── supabase_trips.sql        # командировки от инструмента командировок: API приёма (токен) и чтение для планирования
 ├── FileMaker_выгрузка_очереди.md # скрипт FileMaker: выгрузка техники в работе в Excel для «Планирования»
+├── shifton/shifton_to_xlsx.py # график Shifton (ответ MCP shift:list) → Excel «сотрудники × дни» для импорта графика
 └── supabase/functions/db-health/index.ts   # Edge Function: прокси к Metrics API
 ```
 
