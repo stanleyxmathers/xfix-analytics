@@ -37,6 +37,31 @@ INSERT INTO task_types(code, name, sort_order, lane) VALUES
   ('skip',            'Не задача отдела',     99, 'none')
 ON CONFLICT (code) DO NOTHING;
 
+-- Роль на смене: план смены раскладывает людей по ролям, а не по отдельным типам
+-- задач — внутри роли задачи смешиваются свободно, переключение между ролями — смена роли.
+ALTER TABLE task_types ADD COLUMN IF NOT EXISTS role TEXT;
+UPDATE task_types SET role = CASE
+    WHEN code IN ('diag', 'post_asc', 'accessory_order') THEN 'diag'
+    WHEN code = 'okk' THEN 'okk'
+    WHEN code = 'skip' THEN NULL
+    ELSE 'log' END
+  WHERE role IS NULL AND code <> 'skip';
+
+-- Допуски сотрудников к ролям на смене (стажёры, ОКК). Нет строки — по умолчанию:
+-- диагностика и логистика разрешены всем в команде, ОКК — тем, у кого проверки ОКК
+-- составляют основную работу.
+CREATE TABLE IF NOT EXISTS task_access (
+  employee   TEXT NOT NULL,
+  role       TEXT NOT NULL CHECK (role IN ('diag', 'log', 'okk')),
+  allowed    BOOLEAN NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (employee, role)
+);
+ALTER TABLE task_access ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS anon_all ON task_access;
+CREATE POLICY anon_all ON task_access FOR ALL TO anon USING (true) WITH CHECK (true);
+GRANT SELECT, INSERT, UPDATE, DELETE ON task_access TO anon;
+
 CREATE TABLE IF NOT EXISTS task_action_map (
   action_type TEXT NOT NULL,
   department  TEXT NOT NULL DEFAULT '*',

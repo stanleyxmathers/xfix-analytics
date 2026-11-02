@@ -1474,6 +1474,7 @@ body.presentation .slide-hint { display: none; }
             <button class="tab plan-tab" data-plan="people" onclick="switchPlanTab('people',this)">Сотрудники</button>
             <button class="tab plan-tab" data-plan="norms" onclick="switchPlanTab('norms',this)">Нормы устройств</button>
             <button class="tab plan-tab" data-plan="intake" onclick="switchPlanTab('intake',this)">Поступление</button>
+            <button class="tab plan-tab" data-plan="shift" onclick="switchPlanTab('shift',this)">План смены</button>
             <button class="tab plan-tab" data-plan="tasks" onclick="switchPlanTab('tasks',this)">Типы задач</button>
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)">Статистика за
@@ -1616,6 +1617,43 @@ body.presentation .slide-hint { display: none; }
             <div class="card-title">Через сколько дней после приёма</div>
             <table class="data-table"><thead><tr><th>Этап</th><th class="num">В день приёма</th><th class="num">+1 день</th><th class="num">+2 дня</th><th class="num">+3–6 дней</th><th class="num">7 и больше</th></tr></thead>
               <tbody id="pi-lag"></tbody></table>
+          </div>
+        </div>
+
+        <!-- План смены: роли по людям на день, по прогнозу -->
+        <div class="plan-view" id="plan-shift" style="display:none">
+          <div class="section-header">
+            <div><div class="section-title">План смены</div><div class="section-sub">Кто на какой роли в течение дня. Объём — прогноз по дню недели (поступление и средняя нагрузка за период статистики), поля можно поправить под факт. Логистика ставится с начала смены тем, у кого она получается лучше относительно диагностики; во вторник и пятницу отправки клиентам — к 15:00</div></div>
+            <button class="btn btn-ghost" onclick="copyShiftPlan()" title="Скопировать план текстом — для чата смены">Скопировать план</button>
+          </div>
+          <div class="card plan-controls">
+            <label>Дата<input type="date" class="settings-input" id="pd-date" onchange="onShiftDateChange()"></label>
+            <label title="Доля смены на нормированную работу. По умолчанию — факт команды за период статистики">Загрузка смены, %<input type="number" min="30" max="100" step="1" class="settings-input" id="pd-util" onchange="renderPlanShift()"></label>
+            <label title="Устройств на диагностику за день: прогноз поступления по дню недели">Диагностика, устр.<input type="number" min="0" step="1" class="settings-input" id="pd-diag" onchange="renderPlanShift()"></label>
+            <label title="Устройств, которые на начало дня ещё ждут диагностики">Хвост, устр.<input type="number" min="0" step="1" class="settings-input" id="pd-backlog" value="0" onchange="renderPlanShift()"></label>
+            <label title="Часы логистики по нормам: средняя нагрузка этого дня недели">Логистика, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-log" onchange="renderPlanShift()"></label>
+            <label title="Часы проверок ОКК по нормам: средняя нагрузка этого дня недели">ОКК, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-okk" onchange="renderPlanShift()"></label>
+          </div>
+          <div class="kpi-grid" id="pd-kpi" style="margin-top:16px"></div>
+          <div class="card" id="pd-advice" style="margin-bottom:16px;display:none"></div>
+          <div class="card" style="overflow-x:auto;margin-bottom:16px">
+            <table class="data-table" style="min-width:860px">
+              <thead><tr>
+                <th>Сотрудник</th><th>Смена</th><th style="width:42%">Роли</th>
+                <th class="num" title="Работа по нормам отдела, с учётом личной скорости">Работы, ч</th>
+                <th class="num" title="Длина смены × загрузка × личная скорость">Ёмкость, ч</th>
+              </tr></thead>
+              <tbody id="pd-tbody"></tbody>
+            </table>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink-muted)" id="pd-legend"></div>
+          </div>
+          <div class="card" style="overflow-x:auto">
+            <div class="card-title">Допуски к ролям</div>
+            <div class="section-sub" style="margin-bottom:8px">Снимите галочку, если сотрудник пока не делает эту роль (стажёры). По умолчанию диагностика и логистика открыты всем в команде, ОКК — тем, у кого проверки ОКК основная работа. Замещающего ОКК отметьте вручную</div>
+            <table class="data-table" style="min-width:520px">
+              <thead><tr><th>Сотрудник</th><th class="num">Скорость: диагностика</th><th class="num">логистика</th><th style="text-align:center">Диагностика</th><th style="text-align:center">Логистика</th><th style="text-align:center">ОКК</th></tr></thead>
+              <tbody id="pd-access"></tbody>
+            </table>
           </div>
         </div>
 
@@ -8135,6 +8173,7 @@ const planState = {
   tab: 'week', loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
   model: null, week: null, extraEmps: new Set(), queue: null, tasks: null,
+  access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null,
 };
 
 function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -8160,6 +8199,8 @@ function reloadPlanning() {
   planState.loading = null;
   planState.week = null;
   planState.tasks = null;
+  planState.access = null;
+  planState.shiftSched = {};
   loadPlanning();
 }
 
@@ -8186,6 +8227,7 @@ async function loadPlanning() {
   if (planState.tab === 'norms') renderPlanNorms();
   if (planState.tab === 'intake') renderPlanIntake();
   if (planState.tab === 'tasks') renderPlanTasks();
+  if (planState.tab === 'shift') renderPlanShift();
 }
 
 async function fetchPlanning() {
@@ -8930,22 +8972,10 @@ async function loadPlanTasks() {
   return planState.tasks;
 }
 
-async function renderPlanTasks() {
-  const kpi = document.getElementById('pt-kpi');
-  if (!planState.tasks) {
-    skelKpi('pt-kpi', 4);
-    try { await loadPlanTasks(); }
-    catch (e) {
-      console.error('loadPlanTasks:', e);
-      kpi.innerHTML = `<div class="card" style="grid-column:1/-1;color:var(--xf-red)">Ошибка: ${esc(e.message)}${/task_|get_task/i.test(e.message) ? ' — прогоните supabase_tasks.sql' : ''}</div>`;
-      return;
-    }
-  }
+/* Команда и дни из get_task_daily — общее для «Типов задач» и «Плана смены» */
+function planTaskBase() {
   const t = planState.tasks, m = planState.model;
-  const typeName = new Map(t.types.map(x => [x.code, x.name]));
   const lane = new Map(t.types.map(x => [x.code, x.lane]));
-  const tName = c => typeName.get(c) || c;
-
   // дни сотрудника: строки по типам задач + поля дня (одинаковые в строках дня)
   const empDays = new Map();
   t.daily.forEach(r => {
@@ -8993,6 +9023,24 @@ async function renderPlanTasks() {
   const totLoad = worked.reduce((s, d) => s + sumLoad(d), 0);
   const totShift = worked.reduce((s, d) => s + days.get(d).shift, 0);
   const okkPerDay = worked.reduce((s, d) => s + days.get(d).okk, 0) / nDays;
+  return { lane, empDays, byEmp, team, teamSet, days, dates, sumLoad, worked, nDays, util, totLoad, totShift, okkPerDay };
+}
+
+async function renderPlanTasks() {
+  const kpi = document.getElementById('pt-kpi');
+  if (!planState.tasks) {
+    skelKpi('pt-kpi', 4);
+    try { await loadPlanTasks(); }
+    catch (e) {
+      console.error('loadPlanTasks:', e);
+      kpi.innerHTML = `<div class="card" style="grid-column:1/-1;color:var(--xf-red)">Ошибка: ${esc(e.message)}${/task_|get_task/i.test(e.message) ? ' — прогоните supabase_tasks.sql' : ''}</div>`;
+      return;
+    }
+  }
+  const t = planState.tasks, m = planState.model;
+  const typeName = new Map(t.types.map(x => [x.code, x.name]));
+  const tName = c => typeName.get(c) || c;
+  const { lane, byEmp, team, teamSet, days, dates, sumLoad, worked, nDays, util, totLoad, totShift, okkPerDay } = planTaskBase();
 
   // нормы отдела по типам задач — свёртка групп устройств, взвешенно по числу единиц
   const dept = t.norms.filter(r => r.employee == null);
@@ -9133,6 +9181,276 @@ async function savePlanTaskMap(sel) {
     showToast('Ошибка сохранения: ' + esc(e.message), 'error');
     sel.disabled = false;
   }
+}
+
+/* ─── План смены по прогнозу ───────────────────────────────────────────────
+   Роли на день: Диагностика (диагностика, проверка после ЗАСЦ, заказ аксессуаров),
+   Логистика (приёмка, выдача, АСЦ, запчасти), ОКК. Внутри роли задачи смешиваются,
+   переключение — смена роли: у сотрудника не больше трёх отрезков (ОКК → логистика →
+   диагностика). Объём — прогноз по дню недели, пока нет живой очереди из FileMaker. */
+const PLAN_ROLES = [
+  { code: 'diag', name: 'Диагностика', color: '#6B93C4' },
+  { code: 'log', name: 'Логистика', color: '#D1A04E' },
+  { code: 'okk', name: 'ОКК', color: '#9886BE' },
+];
+const PLAN_ISSUE_CUTOFF = 15 * 60;   // отправки клиентам во вт и пт — готово к 15:00
+const PLAN_SHIP_DOW = [1, 4];        // вт, пт (planDow: пн = 0)
+const PLAN_MIN_SPEED_UNITS = 10;     // личная скорость роли — от 10 единиц, иначе 1
+const planRoleName = c => (PLAN_ROLES.find(r => r.code === c) || { name: 'Свободно' }).name;
+const planRoleColor = c => (PLAN_ROLES.find(r => r.code === c) || { color: 'var(--line, #ccc)' }).color;
+function planHM(min) { const m = Math.round(min); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; }
+
+/* Модель для плана: роли типов задач, нагрузка по дню недели, скорости, допуски */
+function buildShiftModel() {
+  const t = planState.tasks, m = planState.model;
+  const base = planTaskBase();
+  const roleOf = new Map(t.types.map(x => [x.code, x.role]));
+  // средняя нагрузка по ролям по дню недели; выдача отдельно — для срока 15:00
+  const dow = Array.from({ length: 7 }, () => ({ n: 0, diag: 0, log: 0, okk: 0, issue: 0 }));
+  base.worked.forEach(date => {
+    const d = dow[planDow(date)], day = base.days.get(date);
+    d.n++;
+    day.load.forEach((min, type) => {
+      const r = roleOf.get(type);
+      if (r === 'diag' && type !== 'diag') d.diag += min;   // проверка после ЗАСЦ, заказ — сверх поступления
+      if (r === 'log') d.log += min;
+      if (type === 'issue') d.issue += min;
+    });
+    d.okk += day.okk;
+  });
+  dow.forEach(d => { if (d.n) { d.diag /= d.n; d.log /= d.n; d.okk /= d.n; d.issue /= d.n; } });
+
+  // личная скорость по роли: время отдела на те же единицы ÷ своё время
+  const deptAvg = new Map(t.norms.filter(r => r.employee == null).map(r => [`${r.task_type}|${r.group_name}`, +r.avg_min]));
+  const sp = new Map();
+  t.norms.filter(r => r.employee != null).forEach(r => {
+    const role = roleOf.get(r.task_type), ref = deptAvg.get(`${r.task_type}|${r.group_name}`);
+    if (!role || !ref || !+r.avg_min) return;
+    const k = `${r.employee}|${role}`;
+    const x = sp.get(k) || { units: 0, own: 0, ref: 0 };
+    x.units += +r.units; x.own += +r.units * +r.avg_min; x.ref += +r.units * ref;
+    sp.set(k, x);
+  });
+  const speed = (emp, role) => {
+    const x = sp.get(`${emp}|${role}`);
+    return x && x.units >= PLAN_MIN_SPEED_UNITS && x.own > 0 ? Math.max(0.5, Math.min(1.5, x.ref / x.own)) : 1;
+  };
+  // доля ролей в работе сотрудника за период — для допусков по умолчанию и выбора логистов
+  const share = (emp, role) => {
+    const e = base.byEmp.get(emp);
+    if (!e) return 0;
+    let tot = 0, part = 0;
+    e.norm.forEach((v, type) => { tot += v; if (roleOf.get(type) === role) part += v; });
+    return tot ? part / tot : 0;
+  };
+  const access = new Map((planState.access || []).map(r => [`${r.employee}|${r.role}`, r.allowed]));
+  const allowed = (emp, role) => {
+    const v = access.get(`${emp}|${role}`);
+    if (v != null) return v;
+    return role === 'okk' ? share(emp, 'okk') >= 0.3 : base.teamSet.has(emp);
+  };
+  const util = base.totShift ? Math.max(0.3, Math.min(1, base.totLoad / base.totShift)) : 0.6;
+  const perDevice = m.overallAvg;
+  return { base, dow, speed, share, allowed, access, util, perDevice };
+}
+
+async function renderPlanShift() {
+  const kpi = document.getElementById('pd-kpi');
+  try {
+    if (!planState.tasks) { skelKpi('pd-kpi', 4); await loadPlanTasks(); }
+    if (!planState.access) {
+      const r = await sb.from('task_access').select('*');
+      if (r.error) throw new Error(r.error.message);
+      planState.access = r.data || [];
+    }
+  } catch (e) {
+    console.error('renderPlanShift:', e);
+    kpi.innerHTML = `<div class="card" style="grid-column:1/-1;color:var(--xf-red)">Ошибка: ${esc(e.message)}${/task_/i.test(e.message) ? ' — прогоните supabase_tasks.sql' : ''}</div>`;
+    return;
+  }
+  const dateEl = document.getElementById('pd-date');
+  if (!dateEl.value) dateEl.value = planIso(new Date());
+  const date = dateEl.value, month = date.slice(0, 7);
+  if (!planState.shiftSched[month]) {
+    try { planState.shiftSched[month] = await rpcWithRetry('get_work_schedule', { p_month: `${month}-01` }) || []; }
+    catch (e) { kpi.innerHTML = `<div class="card" style="grid-column:1/-1;color:var(--xf-red)">Ошибка графика: ${esc(e.message)}</div>`; return; }
+  }
+  const sm = buildShiftModel();
+  const d = planDow(date), f = sm.dow[d], dd = planState.model.dowAvg[d];
+  // поля прогноза заполняются при смене даты, дальше их можно править руками
+  if (planState.shiftInputsFor !== date) {
+    planState.shiftInputsFor = date;
+    document.getElementById('pd-diag').value = Math.round(dd.devices);
+    document.getElementById('pd-log').value = planR1(f.log / 60);
+    document.getElementById('pd-okk').value = planR1(f.okk / 60);
+  }
+  const util = document.getElementById('pd-util');
+  if (!util.value) util.value = Math.round(sm.util * 100);
+  const perDev = dd.devices ? dd.minutes / dd.devices : sm.perDevice;
+  const input = {
+    date, ship: PLAN_SHIP_DOW.includes(d),
+    util: Math.max(0.3, Math.min(1, (+util.value || 60) / 100)),
+    diag: (+document.getElementById('pd-diag').value || 0) * perDev
+      + (+document.getElementById('pd-backlog').value || 0) * sm.perDevice + f.diag,
+    log: (+document.getElementById('pd-log').value || 0) * 60,
+    okk: (+document.getElementById('pd-okk').value || 0) * 60,
+  };
+  // доля выдачи в логистике дня недели — её во вт/пт нужно закончить к 15:00
+  input.issue = input.ship && f.log ? input.log * f.issue / f.log : 0;
+  const sched = planState.shiftSched[month].filter(r => r.work_date === date);
+  planState.shiftPlan = buildShiftPlan(sm, sched, input);
+  renderShiftPlan(sm, planState.shiftPlan, input);
+}
+
+function onShiftDateChange() {
+  planState.shiftInputsFor = null;
+  renderPlanShift();
+}
+
+/* Раскладка ролей: ОКК → логистика с начала смены → остаток на диагностику */
+function buildShiftPlan(sm, sched, input) {
+  const people = sched
+    .filter(r => PLAN_ROLES.some(x => sm.allowed(r.employee, x.code)))
+    .map(r => {
+      let start = planMin(r.shift_start), end = planMin(r.shift_end);
+      if (start == null || end == null || end <= start) { start = 600; end = 600 + PLAN_SHIFT_MIN; }
+      const sp = Object.fromEntries(PLAN_ROLES.map(x => [x.code, sm.speed(r.employee, x.code)]));
+      return { emp: r.employee, start, end, cursor: start, sp, segs: [], work: 0 };
+    })
+    .sort((a, b) => a.start - b.start || a.emp.localeCompare(b.emp, 'ru'));
+  const warn = [];
+  // отрезок роли с текущего места смены: сколько работы по нормам отдела он закрывает
+  const assign = (p, role, need) => {
+    const left = p.end - p.cursor;
+    if (left <= 0 || need <= 0) return 0;
+    const rate = input.util * p.sp[role];                 // минут нормы в минуту смены
+    const wall = Math.min(left, need / rate);
+    const done = wall * rate;
+    const last = p.segs[p.segs.length - 1];
+    if (last && last.role === role) { last.to += wall; last.work += done; }
+    else p.segs.push({ role, from: p.cursor, to: p.cursor + wall, work: done });
+    p.cursor += wall; p.work += done;
+    return done;
+  };
+  const before = (seg, t) => seg.to <= t ? seg.work : seg.from >= t ? 0 : seg.work * (t - seg.from) / (seg.to - seg.from);
+
+  // 1. ОКК — тем, у кого это основная работа, затем замещающим
+  let okk = input.okk;
+  const okkPeople = people.filter(p => sm.allowed(p.emp, 'okk')).sort((a, b) => sm.share(b.emp, 'okk') - sm.share(a.emp, 'okk'));
+  okkPeople.forEach(p => { okk -= assign(p, 'okk', okk); });
+  if (okk > 1) warn.push(okkPeople.length
+    ? `ОКК: не хватает ${planR1(okk / 60)} ч — проверку надо отдать ещё кому-то с допуском`
+    : 'ОКК: в смене нет никого с допуском — отметьте замещающего в допусках ниже');
+
+  // 2. Логистика с начала смены: сначала те, у кого она относительно сильнее диагностики
+  let log = input.log, issueDone = 0;
+  const logPeople = people.filter(p => sm.allowed(p.emp, 'log') && p.cursor < p.end).sort((a, b) =>
+    (input.ship ? (b.start < PLAN_ISSUE_CUTOFF - 120) - (a.start < PLAN_ISSUE_CUTOFF - 120) : 0)
+    || (b.sp.log / b.sp.diag) - (a.sp.log / a.sp.diag)
+    || sm.share(b.emp, 'log') - sm.share(a.emp, 'log')
+    || a.start - b.start);
+  for (const p of logPeople) {
+    if (log <= 1) break;
+    log -= assign(p, 'log', log);
+    if (input.ship) issueDone += before(p.segs[p.segs.length - 1], PLAN_ISSUE_CUTOFF);
+  }
+  if (log > 1) warn.push(`Логистика: не хватает ${planR1(log / 60)} ч — некому с допуском`);
+  if (input.ship && issueDone + 1 < Math.min(input.issue, input.log)) {
+    warn.push(`Отправки клиентам: к 15:00 по плану успеваем ~${planR1(issueDone / 60)} из ${planR1(input.issue / 60)} ч — поставьте на логистику с утра ещё одного человека`);
+  }
+
+  // 3. Остаток смены — диагностика; без допуска — свободное время
+  let diag = 0;
+  people.forEach(p => {
+    if (p.cursor >= p.end) return;
+    if (sm.allowed(p.emp, 'diag')) diag += assign(p, 'diag', Infinity);
+    else { p.segs.push({ role: null, from: p.cursor, to: p.end, work: 0 }); p.cursor = p.end; }
+  });
+  // ёмкость сотрудника: что он закрыл бы за смену в своих ролях; работа диагностики —
+  // прогноз, разложенный по ёмкости пропорционально (при резерве у всех недогруз поровну)
+  const fill = diag > 0 ? Math.min(1, input.diag / diag) : 0;
+  people.forEach(p => {
+    p.cap = p.segs.reduce((s, x) => s + (x.to - x.from) * input.util * (x.role ? p.sp[x.role] : 0), 0);
+    p.segs.forEach(x => { if (x.role === 'diag') x.work *= fill; });
+    p.work = p.segs.reduce((s, x) => s + x.work, 0);
+  });
+  return { people, warn, diagCap: diag, diagNeed: input.diag, logLeft: Math.max(0, log), okkLeft: Math.max(0, okk) };
+}
+
+function renderShiftPlan(sm, plan, input) {
+  const { people } = plan;
+  const bal = plan.diagCap - plan.diagNeed;
+  const nRole = role => people.filter(p => p.segs.some(x => x.role === role)).length;
+  document.getElementById('pd-kpi').innerHTML = people.length ? `
+    <div class="kpi-card"><div class="kpi-label">В смене</div><div class="kpi-value">${people.length}</div><div class="kpi-delta neutral">${planDay(input.date)}${input.ship ? ' · отправки к 15:00' : ''}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Диагностика</div><div class="kpi-value">${planR1(plan.diagNeed / 60)} ч</div><div class="kpi-delta ${bal < -30 ? 'down' : bal > 120 ? 'up' : 'neutral'}">${bal < 0 ? `не хватает ${planR1(-bal / 60)} ч` : `ёмкость ${planR1(plan.diagCap / 60)} ч, резерв ${planR1(bal / 60)} ч`}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Логистика</div><div class="kpi-value">${planR1(input.log / 60)} ч</div><div class="kpi-delta ${plan.logLeft > 1 ? 'down' : 'neutral'}">${nRole('log')} сотр.${input.ship ? `, выдача к 15:00 ≈ ${planR1(input.issue / 60)} ч` : ''}</div></div>
+    <div class="kpi-card"><div class="kpi-label">ОКК</div><div class="kpi-value">${planR1(input.okk / 60)} ч</div><div class="kpi-delta ${plan.okkLeft > 1 ? 'down' : 'neutral'}">${people.filter(p => p.segs.some(x => x.role === 'okk')).map(p => esc(planShort(p.emp))).join(', ') || 'некому'}</div></div>`
+    : '<div class="card" style="grid-column:1/-1;color:var(--text-muted)">На эту дату в графике нет смен команды — загрузите график (Shifton) или выберите другую дату</div>';
+
+  const adv = [...plan.warn];
+  if (people.length && bal < -30) {
+    adv.push(`Диагностика: не хватает ${planR1(-bal / 60)} ч — около ${Math.round(-bal / sm.perDevice)} устр. перейдут на завтра. Если это срывает срок — вкладка «Проверка недели» подскажет, кого вызвать`);
+  } else if (people.length && bal > 120) {
+    adv.push(`Резерв ${planR1(bal / 60)} ч: можно взять задачи следующего дня или сократить смену`);
+  }
+  const advEl = document.getElementById('pd-advice');
+  advEl.style.display = adv.length ? '' : 'none';
+  advEl.innerHTML = adv.map(x => `<div style="font-size:14px;margin:4px 0">${esc(x)}</div>`).join('');
+
+  const t0 = Math.min(...people.map(p => p.start)), t1 = Math.max(...people.map(p => p.end));
+  const span = Math.max(1, t1 - t0);
+  document.getElementById('pd-tbody').innerHTML = people.map(p => {
+    const bar = p.segs.map(x => `<div title="${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}" style="position:absolute;top:0;bottom:0;left:${(x.from - t0) / span * 100}%;width:${(x.to - x.from) / span * 100}%;background:${planRoleColor(x.role)};${x.role ? '' : 'opacity:.35;'}border-radius:3px"></div>`).join('');
+    const txt = p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}`).join(' · ');
+    return `<tr>
+      <td>${esc(p.emp)}</td>
+      <td style="white-space:nowrap">${planHM(p.start)}–${planHM(p.end)}</td>
+      <td><div style="position:relative;height:14px;margin-bottom:4px">${bar}</div><div style="font-size:12px;color:var(--ink-muted)">${txt}</div></td>
+      <td class="num">${planR1(p.work / 60)}</td>
+      <td class="num">${planR1(p.cap / 60)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">Нет смен</td></tr>';
+  document.getElementById('pd-legend').innerHTML = PLAN_ROLES.map(r => `<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${r.color}"></span>${r.name}</span>`).join('');
+
+  // допуски: команда + все, у кого есть строки допусков
+  const emps = [...new Set([...sm.base.team.map(e => e.employee),
+    ...[...sm.base.byEmp.keys()].filter(e => sm.allowed(e, 'okk')),
+    ...(planState.access || []).map(r => r.employee)])];
+  document.getElementById('pd-access').innerHTML = emps.map(emp => `<tr>
+      <td>${esc(emp)}</td>
+      <td class="num">${sm.speed(emp, 'diag').toFixed(2)}</td><td class="num">${sm.speed(emp, 'log').toFixed(2)}</td>
+      ${PLAN_ROLES.map(r => {
+        const own = sm.access.has(`${emp}|${r.code}`);
+        return `<td style="text-align:center"><input type="checkbox" data-emp="${esc(emp)}" data-role="${r.code}"${sm.allowed(emp, r.code) ? ' checked' : ''} onchange="saveTaskAccess(this)" title="${own ? 'задано вручную' : 'по умолчанию'}"></td>`;
+      }).join('')}
+    </tr>`).join('');
+}
+
+async function saveTaskAccess(cb) {
+  cb.disabled = true;
+  const row = { employee: cb.dataset.emp, role: cb.dataset.role, allowed: cb.checked, updated_at: new Date().toISOString() };
+  try {
+    const { error } = await sb.from('task_access').upsert(row, { onConflict: 'employee,role' });
+    if (error) throw new Error(error.message);
+    planState.access = (planState.access || []).filter(r => !(r.employee === row.employee && r.role === row.role)).concat(row);
+    renderPlanShift();
+  } catch (e) {
+    cb.checked = !cb.checked;
+    cb.disabled = false;
+    showToast('Ошибка сохранения: ' + esc(e.message), 'error');
+  }
+}
+
+function copyShiftPlan() {
+  const plan = planState.shiftPlan;
+  if (!plan || !plan.people.length) { showToast('План пуст', 'error'); return; }
+  const date = document.getElementById('pd-date').value;
+  const lines = [`План смены ${planDay(date)}`, ...plan.people.map(p =>
+    `${p.emp}: ${p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${planRoleName(x.role)}`).join(', ')}`), ...plan.warn];
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(() => showToast('План скопирован', 'success'))
+    .catch(() => showToast('Не удалось скопировать', 'error'));
 }
 
 /* ─── Поступление ──────────────────────────────────────────────────────── */
