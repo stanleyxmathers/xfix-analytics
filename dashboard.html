@@ -1630,7 +1630,7 @@ body.presentation .slide-hint { display: none; }
             <table class="data-table" style="min-width:900px">
               <thead><tr>
                 <th>Задача</th><th class="num" title="Обращений (или действий без id сервиса) в среднем за день с данными">В день</th>
-                <th class="num">Медиана, мин</th><th class="num">Среднее, мин</th>
+                <th class="num" title="Типичная единица. У пакетных действий (регистрация, отправка пачкой) почти 0: время пачки ложится на первое действие">Медиана, мин</th><th class="num" title="Для расчёта нагрузки: сумма времени ÷ число единиц, пачки учтены верно">Среднее, мин</th>
                 <th class="num" title="Доля в нагрузке отдела по нормам">Доля нагрузки</th>
                 <th class="num">₽ за единицу</th>
                 <th class="num" title="Оплата ÷ измеренное время. Сильно выше или ниже среднего — риск, что выгодные задачи будут выбирать, а невыгодные откладывать">₽ / час</th>
@@ -9038,8 +9038,8 @@ async function renderPlanTasks() {
     return `<tr${lane.get(c) === 'okk' ? ' style="opacity:.75"' : ''}>
       <td>${esc(tName(c))}</td>
       <td class="num">${planR1((unitsDay.get(c) || 0) / nDays)}</td>
-      <td class="num"><b>${a.units ? planR1(a.med / a.units) : '—'}</b></td>
-      <td class="num">${a.units ? planR1(a.avg / a.units) : '—'}</td>
+      <td class="num">${a.units ? planR1(a.med / a.units) : '—'}</td>
+      <td class="num"><b>${a.units ? planR1(a.avg / a.units) : '—'}</b></td>
       <td class="num">${lane.get(c) === 'okk' ? '—' : planPct((normTot.get(c) || 0) / normAll)}</td>
       <td class="num">${a.units ? fmtNum(Math.round(a.rub / a.units)) : '—'}</td>
       <td class="num" style="color:${color}">${rh != null ? fmtNum(Math.round(rh)) : '—'}</td>
