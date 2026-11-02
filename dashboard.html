@@ -8377,7 +8377,7 @@ async function loadPlanWeek() {
       ...months.map(m => rpcWithRetry('get_work_schedule', { p_month: `${m}-01` })),
     ]);
     const sched = scheds.flat().filter(r => r.work_date >= start && r.work_date <= end);
-    const trips = await loadPlanTrips(start, end);
+    const trips = await loadPlanTrips(start, planAddDays(end, 7));
     planState.week = { start, end, sched, supply: supply || [], trips };
     renderPlanWeek();
   } catch (e) {
@@ -8397,20 +8397,21 @@ function planSnapPos(weekStart) {
 }
 
 /* ─── Командировки (supabase_trips.sql, присылает инструмент командировок) ──
-   Кто едет — выпадает из смены на даты командировки; партия в АСЦ собирается
-   накануне выезда. Без supabase_trips.sql — пустой список, планирование работает как раньше. */
+   Сотрудники отдела не ездят: командировка важна как факт отправки в АСЦ — Apple на
+   диагностике (iPhone, Mac, iPad, Watch) должна пройти обработку и базовую до выезда,
+   партия собирается накануне. Без supabase_trips.sql — пустой список, планирование работает как раньше. */
 async function loadPlanTrips(from, to) {
   try { return await rpcWithRetry('get_plan_trips', { p_from: from, p_to: to }) || []; }
   catch (e) { console.warn('get_plan_trips:', e.message); return []; }
 }
-// ФИО из командировки и из графика: первые два слова, без регистра и «ё»
-function planNameKey(name) { return String(name || '').toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(Boolean).slice(0, 2).join(' '); }
-function planTripPeople(t) {
-  return [t.courier_name, ...String(t.escort_name || '').split(/[,;]/)].map(planNameKey).filter(Boolean);
-}
-function planTripAway(trips, emp, date) {
-  const key = planNameKey(emp);
-  return (trips || []).find(t => t.date_from <= date && t.date_to >= date && planTripPeople(t).includes(key)) || null;
+// Apple, которую можно успеть отправить в АСЦ этой командировкой: обработка и базовая
+// диагностика — до вечера накануне выезда, иначе следующая отправка только через неделю
+const PLAN_TRIP_APPLE = /iphone|macbook|\bmac\b|ipad|watch/i;
+function planIsTripApple(it) { return PLAN_TRIP_APPLE.test(`${it.group || ''} ${it.type || ''} ${it.name || ''}`); }
+// ближайший выезд после даты: срок Apple — конец дня накануне
+function planNextTrip(trips, date) {
+  const t = (trips || []).filter(x => x.date_from > date).sort((a, b) => a.date_from < b.date_from ? -1 : 1)[0];
+  return t ? { trip: t, eve: planAddDays(t.date_from, -1) } : null;
 }
 function planTripLabel(t) {
   const route = (Array.isArray(t.routes) ? t.routes : []).map(r => [r.city || r.country, r.partner].filter(Boolean).join(' · ')).join(' → ');
@@ -8443,18 +8444,17 @@ function buildWeekDays() {
     const demand = (listMin + (useForecast ? f.minutes : 0)) * share;
     const source = past ? 'прошло' : (list.length ? (useForecast ? 'список + статистика' : 'список') : (useForecast ? 'статистика' : '—'))
       + (cut && !past ? ` (после ${String(Math.floor(cut / 60)).padStart(2, '0')}:${String(cut % 60).padStart(2, '0')})` : '');
-    const people = [], skipped = [], away = [];
+    const people = [], skipped = [];
     w.sched.filter(r => r.work_date === date).forEach(r => {
       const st = planMin(r.shift_start), en = planMin(r.shift_end);
       const sStart = st != null && en != null && en > st ? st : 600, sEnd = st != null && en != null && en > st ? en : 600 + PLAN_SHIFT_MIN;
       const len = past ? 0 : Math.max(0, sEnd - Math.max(sStart, cut));
-      if (planTripAway(w.trips, r.employee, date)) { away.push(r.employee); return; }
       if (!counted.has(r.employee)) { skipped.push(r.employee); return; }
       people.push({ employee: r.employee, start: r.shift_start, end: r.shift_end, cap: len * util * m.capSpeed(r.employee) });
     });
     // сколько даст вызванный сотрудник: 9 ч, в день выгрузки — до 21:00
     const extraMin = past ? 0 : Math.min(PLAN_SHIFT_MIN, Math.max(0, 21 * 60 - cut));
-    days.push({ date, past, devices, demand, due: i + sla, source, list, people, skipped, away, extraMin });
+    days.push({ date, past, devices, demand, due: i + sla, source, list, people, skipped, extraMin });
   }
   return { days, util, sla, snap };
 }
@@ -8468,8 +8468,10 @@ function buildInitialQueue(days, sla, backlogDev) {
     const byDue = new Map();
     diagItems.forEach(it => {
       // срок устройства: срок в статусе; без него — приём + срок отдела
-      const dueT = queueDue(it, q.snap)
+      let dueT = queueDue(it, q.snap)
         || new Date(new Date(String(it.acc || q.snap).slice(0, 10) + 'T00:00:00').getTime() + sla * 864e5);
+      const next = planIsTripApple(it) && planNextTrip(planState.week.trips, q.snap.slice(0, 10));
+      if (next) { const eve = new Date(next.eve + 'T23:59:00'); if (eve < dueT) dueT = eve; }
       const due = Math.floor((dueT - start) / 864e5);
       const b = byDue.get(due) || { day: -1, due, min: 0, dev: 0 };
       b.min += m.normFor(it.group); b.dev += 1;
@@ -8544,8 +8546,7 @@ function adviseWeek(days, sla, util, initQueue) {
     let pick = null;
     for (let i = lateIdx; i >= Math.max(first, lateIdx - Math.max(sla, 1)) && !pick; i--) {
       if (!days[i].extraMin) continue;
-      const free = m.mainEmps.filter(emp => !onDay(emp, i) && !planTripAway(planState.week.trips, emp, days[i].date))
-        .sort((a, b) => shiftsOf(a) - shiftsOf(b));
+      const free = m.mainEmps.filter(emp => !onDay(emp, i)).sort((a, b) => shiftsOf(a) - shiftsOf(b));
       if (free.length) pick = { idx: i, employee: free[0] };
     }
     if (!pick) return { extra, sim, ok: false };
@@ -8589,14 +8590,13 @@ function renderPlanWeek() {
     const ppl = d.people.length
       ? d.people.map(p => `${esc(planShort(p.employee))}${p.start ? ` <span style="color:var(--ink-muted)">${hhmm(p.start)}–${hhmm(p.end)}</span>` : ''}`).join('<br>')
       : '<span style="color:var(--xf-red)">никого</span>';
-    const awayHtml = d.away.length ? `<br><span style="font-size:12px;color:var(--ink-muted)">в командировке: ${d.away.map(n => esc(planShort(n))).join(', ')}</span>` : '';
     const skip = d.skipped.length ? `<br><span style="font-size:12px;color:var(--ink-muted)" title="Мало действий отдела за период — в ёмкость не входят">+ ${d.skipped.map(n => esc(planShort(n))).join(', ')} (не учтены)</span>` : '';
     return `<tr>
       <td>${planDay(d.date)}</td>
       <td class="num">${Math.round(d.devices)}</td>
       <td>${d.source}</td>
       <td class="num">${planR1(d.demand / 60)}</td>
-      <td>${ppl}${skip}${awayHtml}</td>
+      <td>${ppl}${skip}</td>
       <td class="num">${planR1(s.cap / 60)}</td>
       <td class="num">${Math.round(s.leftDev)}</td>
       <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}${intraNote}</td>
@@ -9472,17 +9472,15 @@ async function renderPlanShift() {
   // доля выдачи в логистике дня недели — её во вт/пт нужно закончить к 15:00
   input.issue = input.ship ? Math.min(input.log, Math.max(f.log ? input.log * f.issue / f.log : 0, qx ? qx.min.issue : 0)) : 0;
   const sched = planState.shiftSched[month].filter(r => r.work_date === date);
-  // командировки: кто в отъезде сегодня, какие партии уезжают завтра
-  if (!planState.shiftTrips[date]) planState.shiftTrips[date] = await loadPlanTrips(date, planAddDays(date, 7));
+  // командировки: Apple к ближайшему выезду, партии, которые уезжают завтра
+  if (!planState.shiftTrips[date]) planState.shiftTrips[date] = await loadPlanTrips(date, planAddDays(date, 14));
   const trips = planState.shiftTrips[date];
-  const away = sched.filter(r => planTripAway(trips, r.employee, date)).map(r => r.employee);
   const leaving = trips.filter(t => t.date_from === planAddDays(date, 1));
   // без очереди FileMaker партия считается по числу техники в командировке
   input.tripPrep = qx ? 0 : leaving.reduce((a, t) => a + (+t.devices_count || 0), 0) * shiftUnitMin('asc_prep');
   input.log += input.tripPrep;
-  planState.shiftPlan = buildShiftPlan(sm, sched.filter(r => !away.includes(r.employee)), input);
-  planState.shiftPlan.away = away;
-  renderShiftTrips(trips, date, away, leaving, qx);
+  planState.shiftPlan = buildShiftPlan(sm, sched, input);
+  renderShiftTrips(trips, date, leaving, qx, sm);
   renderShiftPlan(sm, planState.shiftPlan, input);
 }
 
@@ -9516,21 +9514,33 @@ function shiftUnitMin(task) {
   return u ? rows.reduce((a, r) => a + +r.units * +r.avg_min, 0) / u : 0;
 }
 
-function renderShiftTrips(trips, date, away, leaving, qx) {
+function renderShiftTrips(trips, date, leaving, qx, sm) {
   const el = document.getElementById('pd-trips');
-  const q = planState.queue;
+  const q = planState.queue, plan = planState.shiftPlan;
   const lines = [];
-  if (away.length) lines.push(`В командировке, в план не входят: ${away.map(n => esc(planShort(n))).join(', ')}`);
+  // Apple на диагностике к ближайшему выезду: сколько нужно сделать к вечеру накануне
+  const next = planNextTrip(trips, date);
+  if (next && next.eve >= date) {
+    const apple = qx && q ? q.items.filter(it => queueTask(it) === 'diag' && planIsTripApple(it)) : [];
+    const appleMin = apple.reduce((a, it) => a + planState.model.normFor(it.group), 0);
+    const daysLeft = Math.round((new Date(next.eve) - new Date(date)) / 864e5) + 1;   // включая сегодня
+    const today = appleMin / daysLeft;
+    const head = `<b>Выезд ${esc(planTripLabel(next.trip))} ${planDay(next.trip.date_from)}</b>: Apple (iPhone, Mac, iPad, Watch) — обработка и базовая диагностика до конца ${next.eve === date ? 'сегодняшней смены' : planDay(next.eve)}`;
+    if (!qx) lines.push(`${head}. Загрузите выгрузку FileMaker, чтобы посчитать, сколько таких устройств в очереди`);
+    else if (!apple.length) lines.push(`${head}: в очереди таких нет`);
+    else {
+      lines.push(`${head}: в очереди ${apple.length} устр., ≈ ${planR1(appleMin / 60)} ч по нормам${daysLeft > 1 ? `, сегодня — не меньше ${planR1(today / 60)} ч` : ''}. Диагностам — сначала они`);
+      if (plan && today > plan.diagCap + 1) plan.warn.push(`Apple к выезду ${planDay(next.trip.date_from)}: сегодня нужно ${planR1(today / 60)} ч диагностики, ёмкость ${planR1(plan.diagCap / 60)} ч — не успеваем, часть уедет только через неделю`);
+    }
+  }
   leaving.forEach(t => {
     // техника на отправку к партнёрам маршрута — из очереди FileMaker по полю «Аутсорс партнёр»
     const partners = (Array.isArray(t.routes) ? t.routes : []).map(r => String(r.partner || '').toLowerCase()).filter(Boolean);
     const fromQueue = qx && q ? q.items.filter(it => queueTask(it) === 'asc_prep'
       && partners.some(p => String(it.outsource || '').toLowerCase().includes(p))).length : null;
-    const n = fromQueue != null && fromQueue > 0 ? `${fromQueue} устр. в «На отправку» к партнёрам маршрута` : t.devices_count ? `${t.devices_count} устр. по командировке` : 'число техники не указано';
+    const n = fromQueue ? `${fromQueue} устр. в «На отправку» к партнёрам маршрута` : t.devices_count ? `${t.devices_count} устр. по командировке` : 'число техники не указано';
     lines.push(`<b>Завтра выезд</b> ${esc(planTripLabel(t))}: партию собрать сегодня до конца смены — ${n}`);
   });
-  trips.filter(t => t.date_from > planAddDays(date, 1)).slice(0, 3).forEach(t =>
-    lines.push(`Скоро: ${esc(planTripLabel(t))} с ${planDay(t.date_from)}${t.devices_count ? `, ${t.devices_count} устр.` : ''}`));
   el.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
   el.style.display = lines.length ? '' : 'none';
 }
@@ -9695,8 +9705,7 @@ function copyShiftPlan() {
   if (!plan || !plan.people.length) { showToast('План пуст', 'error'); return; }
   const date = document.getElementById('pd-date').value;
   const lines = [`План смены ${planDay(date)}`, ...plan.people.map(p =>
-    `${p.emp}: ${p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${planRoleName(x.role)}`).join(', ')}`),
-    ...(plan.away && plan.away.length ? [`В командировке: ${plan.away.join(', ')}`] : []), ...plan.warn];
+    `${p.emp}: ${p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${planRoleName(x.role)}`).join(', ')}`), ...plan.warn];
   navigator.clipboard.writeText(lines.join('\n'))
     .then(() => showToast('План скопирован', 'success'))
     .catch(() => showToast('Не удалось скопировать', 'error'));
