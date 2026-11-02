@@ -1643,6 +1643,7 @@ body.presentation .slide-hint { display: none; }
             <label title="Часы проверок ОКК по нормам: средняя нагрузка этого дня недели">ОКК, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-okk" onchange="renderPlanShift()"></label>
           </div>
           <div class="section-sub" id="pd-queue-note" style="margin-top:12px"></div>
+          <div class="section-sub" id="pd-trips" style="margin-top:6px;display:none"></div>
           <div class="kpi-grid" id="pd-kpi" style="margin-top:16px"></div>
           <div class="card" id="pd-advice" style="margin-bottom:16px;display:none"></div>
           <div class="card" style="overflow-x:auto;margin-bottom:16px">
@@ -8182,7 +8183,7 @@ const planState = {
   tab: 'week', loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
   model: null, week: null, extraEmps: new Set(), queue: null, tasks: null,
-  access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null, statusMap: null,
+  access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null, statusMap: null, shiftTrips: {},
 };
 
 function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -8210,6 +8211,7 @@ function reloadPlanning() {
   planState.tasks = null;
   planState.access = null;
   planState.shiftSched = {};
+  planState.shiftTrips = {};
   loadPlanning();
 }
 
@@ -8375,7 +8377,8 @@ async function loadPlanWeek() {
       ...months.map(m => rpcWithRetry('get_work_schedule', { p_month: `${m}-01` })),
     ]);
     const sched = scheds.flat().filter(r => r.work_date >= start && r.work_date <= end);
-    planState.week = { start, end, sched, supply: supply || [] };
+    const trips = await loadPlanTrips(start, end);
+    planState.week = { start, end, sched, supply: supply || [], trips };
     renderPlanWeek();
   } catch (e) {
     console.error('loadPlanWeek:', e);
@@ -8391,6 +8394,27 @@ function planSnapPos(weekStart) {
   const date = q.snap.slice(0, 10);
   const idx = Math.round((new Date(date + 'T00:00:00') - new Date(weekStart + 'T00:00:00')) / 864e5);
   return idx < 0 ? { idx: 0, min: 0 } : { idx, min: planMin(q.snap.slice(11, 16)) || 0 };
+}
+
+/* ─── Командировки (supabase_trips.sql, присылает инструмент командировок) ──
+   Кто едет — выпадает из смены на даты командировки; партия в АСЦ собирается
+   накануне выезда. Без supabase_trips.sql — пустой список, планирование работает как раньше. */
+async function loadPlanTrips(from, to) {
+  try { return await rpcWithRetry('get_plan_trips', { p_from: from, p_to: to }) || []; }
+  catch (e) { console.warn('get_plan_trips:', e.message); return []; }
+}
+// ФИО из командировки и из графика: первые два слова, без регистра и «ё»
+function planNameKey(name) { return String(name || '').toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(Boolean).slice(0, 2).join(' '); }
+function planTripPeople(t) {
+  return [t.courier_name, ...String(t.escort_name || '').split(/[,;]/)].map(planNameKey).filter(Boolean);
+}
+function planTripAway(trips, emp, date) {
+  const key = planNameKey(emp);
+  return (trips || []).find(t => t.date_from <= date && t.date_to >= date && planTripPeople(t).includes(key)) || null;
+}
+function planTripLabel(t) {
+  const route = (Array.isArray(t.routes) ? t.routes : []).map(r => [r.city || r.country, r.partner].filter(Boolean).join(' · ')).join(' → ');
+  return `${t.trip_number ? `№${t.trip_number} ` : ''}${route || t.title || ''}`.trim();
 }
 
 /* Дни недели: поступление (список и/или прогноз) и люди в смене с ёмкостью в минутах */
@@ -8419,17 +8443,18 @@ function buildWeekDays() {
     const demand = (listMin + (useForecast ? f.minutes : 0)) * share;
     const source = past ? 'прошло' : (list.length ? (useForecast ? 'список + статистика' : 'список') : (useForecast ? 'статистика' : '—'))
       + (cut && !past ? ` (после ${String(Math.floor(cut / 60)).padStart(2, '0')}:${String(cut % 60).padStart(2, '0')})` : '');
-    const people = [], skipped = [];
+    const people = [], skipped = [], away = [];
     w.sched.filter(r => r.work_date === date).forEach(r => {
       const st = planMin(r.shift_start), en = planMin(r.shift_end);
       const sStart = st != null && en != null && en > st ? st : 600, sEnd = st != null && en != null && en > st ? en : 600 + PLAN_SHIFT_MIN;
       const len = past ? 0 : Math.max(0, sEnd - Math.max(sStart, cut));
+      if (planTripAway(w.trips, r.employee, date)) { away.push(r.employee); return; }
       if (!counted.has(r.employee)) { skipped.push(r.employee); return; }
       people.push({ employee: r.employee, start: r.shift_start, end: r.shift_end, cap: len * util * m.capSpeed(r.employee) });
     });
     // сколько даст вызванный сотрудник: 9 ч, в день выгрузки — до 21:00
     const extraMin = past ? 0 : Math.min(PLAN_SHIFT_MIN, Math.max(0, 21 * 60 - cut));
-    days.push({ date, past, devices, demand, due: i + sla, source, list, people, skipped, extraMin });
+    days.push({ date, past, devices, demand, due: i + sla, source, list, people, skipped, away, extraMin });
   }
   return { days, util, sla, snap };
 }
@@ -8519,7 +8544,8 @@ function adviseWeek(days, sla, util, initQueue) {
     let pick = null;
     for (let i = lateIdx; i >= Math.max(first, lateIdx - Math.max(sla, 1)) && !pick; i--) {
       if (!days[i].extraMin) continue;
-      const free = m.mainEmps.filter(emp => !onDay(emp, i)).sort((a, b) => shiftsOf(a) - shiftsOf(b));
+      const free = m.mainEmps.filter(emp => !onDay(emp, i) && !planTripAway(planState.week.trips, emp, days[i].date))
+        .sort((a, b) => shiftsOf(a) - shiftsOf(b));
       if (free.length) pick = { idx: i, employee: free[0] };
     }
     if (!pick) return { extra, sim, ok: false };
@@ -8563,13 +8589,14 @@ function renderPlanWeek() {
     const ppl = d.people.length
       ? d.people.map(p => `${esc(planShort(p.employee))}${p.start ? ` <span style="color:var(--ink-muted)">${hhmm(p.start)}–${hhmm(p.end)}</span>` : ''}`).join('<br>')
       : '<span style="color:var(--xf-red)">никого</span>';
+    const awayHtml = d.away.length ? `<br><span style="font-size:12px;color:var(--ink-muted)">в командировке: ${d.away.map(n => esc(planShort(n))).join(', ')}</span>` : '';
     const skip = d.skipped.length ? `<br><span style="font-size:12px;color:var(--ink-muted)" title="Мало действий отдела за период — в ёмкость не входят">+ ${d.skipped.map(n => esc(planShort(n))).join(', ')} (не учтены)</span>` : '';
     return `<tr>
       <td>${planDay(d.date)}</td>
       <td class="num">${Math.round(d.devices)}</td>
       <td>${d.source}</td>
       <td class="num">${planR1(d.demand / 60)}</td>
-      <td>${ppl}${skip}</td>
+      <td>${ppl}${skip}${awayHtml}</td>
       <td class="num">${planR1(s.cap / 60)}</td>
       <td class="num">${Math.round(s.leftDev)}</td>
       <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}${intraNote}</td>
@@ -9445,7 +9472,17 @@ async function renderPlanShift() {
   // доля выдачи в логистике дня недели — её во вт/пт нужно закончить к 15:00
   input.issue = input.ship ? Math.min(input.log, Math.max(f.log ? input.log * f.issue / f.log : 0, qx ? qx.min.issue : 0)) : 0;
   const sched = planState.shiftSched[month].filter(r => r.work_date === date);
-  planState.shiftPlan = buildShiftPlan(sm, sched, input);
+  // командировки: кто в отъезде сегодня, какие партии уезжают завтра
+  if (!planState.shiftTrips[date]) planState.shiftTrips[date] = await loadPlanTrips(date, planAddDays(date, 7));
+  const trips = planState.shiftTrips[date];
+  const away = sched.filter(r => planTripAway(trips, r.employee, date)).map(r => r.employee);
+  const leaving = trips.filter(t => t.date_from === planAddDays(date, 1));
+  // без очереди FileMaker партия считается по числу техники в командировке
+  input.tripPrep = qx ? 0 : leaving.reduce((a, t) => a + (+t.devices_count || 0), 0) * shiftUnitMin('asc_prep');
+  input.log += input.tripPrep;
+  planState.shiftPlan = buildShiftPlan(sm, sched.filter(r => !away.includes(r.employee)), input);
+  planState.shiftPlan.away = away;
+  renderShiftTrips(trips, date, away, leaving, qx);
   renderShiftPlan(sm, planState.shiftPlan, input);
 }
 
@@ -9454,12 +9491,7 @@ async function renderPlanShift() {
 function shiftQueue(date, ship) {
   const q = planState.queue;
   if (!q || !q.fm || !q.items.length || q.snap.slice(0, 10) > date) return null;
-  const dept = planState.tasks.norms.filter(r => r.employee == null);
-  const unitMin = task => {
-    const rows = dept.filter(r => r.task_type === task);
-    const u = rows.reduce((a, r) => a + +r.units, 0);
-    return u ? rows.reduce((a, r) => a + +r.units * +r.avg_min, 0) / u : 0;
-  };
+  const unitMin = shiftUnitMin;
   const tasks = Object.keys(QUEUE_TASK_NAMES);
   const n = Object.fromEntries(tasks.map(t => [t, 0])), urgent = Object.fromEntries(tasks.map(t => [t, 0]));
   const dayEnd = new Date(date + 'T23:59:59');
@@ -9475,6 +9507,32 @@ function shiftQueue(date, ship) {
   const min = Object.fromEntries(tasks.map(t => [t, n[t] * (t === 'diag' ? 0 : unitMin(t))]));
   const logMin = min.asc_prep + min.asc_receive + (ship ? min.issue : 0);
   return { snap: q.snap, n, urgent, min, logMin, express, late };
+}
+
+// среднее время отдела на единицу задачи (по всем группам)
+function shiftUnitMin(task) {
+  const rows = planState.tasks.norms.filter(r => r.employee == null && r.task_type === task);
+  const u = rows.reduce((a, r) => a + +r.units, 0);
+  return u ? rows.reduce((a, r) => a + +r.units * +r.avg_min, 0) / u : 0;
+}
+
+function renderShiftTrips(trips, date, away, leaving, qx) {
+  const el = document.getElementById('pd-trips');
+  const q = planState.queue;
+  const lines = [];
+  if (away.length) lines.push(`В командировке, в план не входят: ${away.map(n => esc(planShort(n))).join(', ')}`);
+  leaving.forEach(t => {
+    // техника на отправку к партнёрам маршрута — из очереди FileMaker по полю «Аутсорс партнёр»
+    const partners = (Array.isArray(t.routes) ? t.routes : []).map(r => String(r.partner || '').toLowerCase()).filter(Boolean);
+    const fromQueue = qx && q ? q.items.filter(it => queueTask(it) === 'asc_prep'
+      && partners.some(p => String(it.outsource || '').toLowerCase().includes(p))).length : null;
+    const n = fromQueue != null && fromQueue > 0 ? `${fromQueue} устр. в «На отправку» к партнёрам маршрута` : t.devices_count ? `${t.devices_count} устр. по командировке` : 'число техники не указано';
+    lines.push(`<b>Завтра выезд</b> ${esc(planTripLabel(t))}: партию собрать сегодня до конца смены — ${n}`);
+  });
+  trips.filter(t => t.date_from > planAddDays(date, 1)).slice(0, 3).forEach(t =>
+    lines.push(`Скоро: ${esc(planTripLabel(t))} с ${planDay(t.date_from)}${t.devices_count ? `, ${t.devices_count} устр.` : ''}`));
+  el.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
+  el.style.display = lines.length ? '' : 'none';
 }
 
 function renderShiftQueueNote(qx, date) {
@@ -9574,7 +9632,7 @@ function renderShiftPlan(sm, plan, input) {
   document.getElementById('pd-kpi').innerHTML = people.length ? `
     <div class="kpi-card"><div class="kpi-label">В смене</div><div class="kpi-value">${people.length}</div><div class="kpi-delta neutral">${planDay(input.date)}${input.ship ? ' · отправки к 15:00' : ''}</div></div>
     <div class="kpi-card"><div class="kpi-label">Диагностика</div><div class="kpi-value">${planR1(plan.diagNeed / 60)} ч</div><div class="kpi-delta ${bal < -30 ? 'down' : bal > 120 ? 'up' : 'neutral'}">${bal < 0 ? `не хватает ${planR1(-bal / 60)} ч` : `ёмкость ${planR1(plan.diagCap / 60)} ч, резерв ${planR1(bal / 60)} ч`}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Логистика</div><div class="kpi-value">${planR1(input.log / 60)} ч</div><div class="kpi-delta ${plan.logLeft > 1 ? 'down' : 'neutral'}">${nRole('log')} сотр.${input.ship ? `, выдача к 15:00 ≈ ${planR1(input.issue / 60)} ч` : ''}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Логистика</div><div class="kpi-value">${planR1(input.log / 60)} ч</div><div class="kpi-delta ${plan.logLeft > 1 ? 'down' : 'neutral'}">${nRole('log')} сотр.${input.ship ? `, выдача к 15:00 ≈ ${planR1(input.issue / 60)} ч` : ''}${input.tripPrep ? `, партия в АСЦ ≈ ${planR1(input.tripPrep / 60)} ч` : ''}</div></div>
     <div class="kpi-card"><div class="kpi-label">ОКК</div><div class="kpi-value">${planR1(input.okk / 60)} ч</div><div class="kpi-delta ${plan.okkLeft > 1 ? 'down' : 'neutral'}">${people.filter(p => p.segs.some(x => x.role === 'okk')).map(p => esc(planShort(p.emp))).join(', ') || 'некому'}</div></div>`
     : '<div class="card" style="grid-column:1/-1;color:var(--text-muted)">На эту дату в графике нет смен команды — загрузите график (Shifton) или выберите другую дату</div>';
 
@@ -9637,7 +9695,8 @@ function copyShiftPlan() {
   if (!plan || !plan.people.length) { showToast('План пуст', 'error'); return; }
   const date = document.getElementById('pd-date').value;
   const lines = [`План смены ${planDay(date)}`, ...plan.people.map(p =>
-    `${p.emp}: ${p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${planRoleName(x.role)}`).join(', ')}`), ...plan.warn];
+    `${p.emp}: ${p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${planRoleName(x.role)}`).join(', ')}`),
+    ...(plan.away && plan.away.length ? [`В командировке: ${plan.away.join(', ')}`] : []), ...plan.warn];
   navigator.clipboard.writeText(lines.join('\n'))
     .then(() => showToast('План скопирован', 'success'))
     .catch(() => showToast('Не удалось скопировать', 'error'));
