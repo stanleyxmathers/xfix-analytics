@@ -599,6 +599,93 @@ body.presentation .slide-hint { display: none; }
 .insight-meta { font-size: 13px; color: var(--ink-muted); margin-top: 2px; }
 
 /* Планирование: панель параметров */
+/* ─── Планирование ─────────────────────────────────────────────── */
+.pl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.pl-head .tabs { margin-bottom: 0; width: auto; flex-wrap: wrap; }
+.pl-sources { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.pl-chip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: var(--radius-pill); background: var(--glass); border: 1px solid var(--hairline); font: inherit; font-size: 12px; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+.pl-chip:hover { border-color: var(--green-edge); }
+.pl-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-muted); flex-shrink: 0; }
+.pl-chip.ok i { background: var(--green-500); }
+.pl-chip.old i { background: var(--warn); }
+.pl-chip.off { color: var(--ink-muted); }
+.pl-toolbar { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.pl-step { display: inline-flex; align-items: center; gap: 4px; }
+.pl-arrow { width: 32px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); background: var(--glass); color: var(--ink-soft); font-size: 18px; line-height: 1; cursor: pointer; }
+.pl-arrow:hover { color: var(--ink); background: var(--glass-strong); }
+.pl-input { height: 34px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); background: var(--glass-strong); font: inherit; font-size: 14px; color: var(--ink); }
+.pl-input:focus { outline: none; box-shadow: var(--shadow-focus); border-color: var(--green-edge); }
+.pl-num { width: 72px; text-align: right; font-variant-numeric: tabular-nums; }
+.pl-volume { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; color: var(--ink-muted); }
+.pl-inline { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-muted); }
+.pl-meta { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+.pl-meta:empty { display: none; }
+.pl-meta b { color: var(--ink-soft); font-weight: 600; }
+.pl-btn-sm { min-height: 30px; padding: 4px 12px; font-size: 13px; }
+.pl-alerts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.pl-alerts:empty { display: none; }
+.pl-alert { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-radius: var(--radius-md); background: var(--info-tint); color: var(--ink); font-size: 14px; line-height: 1.45; }
+.pl-alert::before { content: ''; flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--info-text); }
+.pl-alert.warn { background: var(--warn-tint); }
+.pl-alert.warn::before { background: var(--warn); }
+.pl-alert.bad { background: var(--danger-tint); }
+.pl-alert.bad::before { background: var(--danger); }
+.pl-alert.ok { background: var(--green-tint); }
+.pl-alert.ok::before { background: var(--green-500); }
+.pl-alert b { font-weight: 600; }
+.pl-alert .btn { min-height: 26px; padding: 2px 10px; font-size: 12px; }
+.pl-card { padding: 18px 20px; margin-bottom: 14px; }
+.pl-card .card-title { font-size: 15px; margin-bottom: 10px; }
+.pl-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.pl-grid2 > .card { min-width: 0; }
+.pl-table td, .pl-table th { padding: 8px 10px; }
+.pl-table td { font-size: 14px; }
+.pl-empty { text-align: center; color: var(--ink-muted); padding: 28px !important; }
+.pl-sub-txt { display: block; font-size: 12px; color: var(--ink-muted); }
+.pl-seg { display: inline-flex; padding: 3px; border-radius: var(--radius-pill); background: var(--bg-hover); gap: 2px; flex-wrap: wrap; }
+.pl-seg button { border: 0; background: none; padding: 6px 14px; border-radius: var(--radius-pill); font: inherit; font-size: 13px; color: var(--ink-muted); cursor: pointer; }
+.pl-seg button.active { background: var(--glass-strong); color: var(--ink); font-weight: 600; box-shadow: var(--shadow-control); }
+.pl-summary { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14px; color: var(--ink-soft); list-style: none; }
+.pl-summary::-webkit-details-marker { display: none; }
+.pl-summary::before { content: '▸'; color: var(--ink-muted); }
+details[open] > .pl-summary::before { content: '▾'; }
+.pl-summary > span { flex: 1; }
+.pl-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.pl-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.pl-hint { font-size: 12px; color: var(--ink-muted); margin-top: 10px; line-height: 1.5; }
+.pl-hint a { color: var(--green-text); }
+/* роли по времени */
+.pl-gantt { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 104px; column-gap: 14px; row-gap: 8px; align-items: center; }
+.pl-gh { position: relative; height: 16px; font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.pl-gh span { position: absolute; transform: translateX(-50%); }
+.pl-gname { font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-track { position: relative; height: 30px; border-radius: 6px; background-color: var(--bg-hover); background-image: linear-gradient(to right, var(--hairline) 1px, transparent 1px); background-size: calc(100% / var(--h)) 100%; }
+.pl-bar-seg { position: absolute; top: 3px; bottom: 3px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; box-sizing: border-box; border-left: 3px solid; }
+.pl-load { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+.pl-meter { height: 4px; border-radius: 2px; background: var(--bg-hover); margin-top: 5px; overflow: hidden; }
+.pl-meter i { display: block; height: 100%; border-radius: 2px; background: var(--green-500); }
+.pl-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 12px; color: var(--ink-muted); }
+.pl-legend:empty { display: none; }
+.pl-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pl-legend i { width: 10px; height: 10px; border-radius: 3px; }
+/* нагрузка против ёмкости */
+.pl-barcell { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+.pl-bar { position: relative; flex: 1; height: 10px; }
+.pl-bar > i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 5px; }
+.pl-bar .cap { background: var(--bg-hover); }
+.pl-bar .use { background: var(--green-500); }
+.pl-bar .over { background: var(--danger); border-radius: 0 5px 5px 0; }
+.pl-barcell b { min-width: 76px; text-align: right; font-weight: 500; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.pl-drop { display: none; position: fixed; inset: 0; z-index: 300; background: var(--overlay); align-items: center; justify-content: center; text-align: center; color: #fff; font-size: 20px; font-weight: 600; pointer-events: none; }
+.pl-drop small { font-size: 14px; font-weight: 400; opacity: .85; }
+.pl-drop.on { display: flex; }
+@media (max-width: 720px) {
+  .pl-sources { margin-left: 0; width: 100%; }
+  .pl-gantt { grid-template-columns: 1fr; row-gap: 4px; }
+  .pl-gh { display: none; }
+  .pl-gname { margin-top: 8px; }
+  .pl-load { text-align: left; }
+}
 .plan-controls { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
 .plan-controls > label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-muted); min-width: 140px; }
 .plan-controls > label .settings-input { min-height: 40px; padding: 8px 12px; }
@@ -1468,245 +1555,231 @@ body.presentation .slide-hint { display: none; }
 
       <!-- ─ Планирование ─────────────────────────────────────────────────── -->
       <div class="page" id="page-planning">
-        <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div class="tabs" style="display:inline-flex;width:auto;margin-bottom:0;flex-wrap:wrap">
-            <button class="tab active plan-tab" data-plan="week" onclick="switchPlanTab('week',this)">Проверка недели</button>
-            <button class="tab plan-tab" data-plan="people" onclick="switchPlanTab('people',this)">Сотрудники</button>
-            <button class="tab plan-tab" data-plan="norms" onclick="switchPlanTab('norms',this)">Нормы устройств</button>
-            <button class="tab plan-tab" data-plan="intake" onclick="switchPlanTab('intake',this)">Поступление</button>
-            <button class="tab plan-tab" data-plan="shift" onclick="switchPlanTab('shift',this)">План смены</button>
-            <button class="tab plan-tab" data-plan="tasks" onclick="switchPlanTab('tasks',this)">Типы задач</button>
+        <div class="pl-head">
+          <div class="tabs pl-tabs">
+            <button class="tab active plan-tab" data-plan="shift" onclick="switchPlanTab('shift',this)">Сегодня</button>
+            <button class="tab plan-tab" data-plan="week" onclick="switchPlanTab('week',this)">Неделя</button>
+            <button class="tab plan-tab" data-plan="queue" onclick="switchPlanTab('queue',this)">Очередь</button>
+            <button class="tab plan-tab" data-plan="analytics" onclick="switchPlanTab('analytics',this)">Аналитика</button>
+            <button class="tab plan-tab" data-plan="settings" onclick="switchPlanTab('settings',this)">Настройки</button>
           </div>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-muted)">Статистика за
-            <select class="settings-input" id="plan-weeks" style="width:auto;min-height:36px;padding:6px 10px" onchange="reloadPlanning()">
-              <option value="4">4 недели</option>
-              <option value="8">8 недель</option>
-              <option value="12" selected>12 недель</option>
-              <option value="26">полгода</option>
-            </select>
+          <div class="pl-sources" id="pl-sources"></div>
+          <label class="btn btn-primary" title="Выгрузка FileMaker (техника в работе) или список ожидаемых поставок — тип файла определяется сам. Можно просто перетащить файл на страницу">
+            <input type="file" id="pl-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="planImportInput(this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Загрузить файл
           </label>
         </div>
-        <div class="section-sub" id="plan-range-note" style="margin:-6px 0 14px"></div>
+        <div class="pl-meta" id="plan-range-note" style="margin:-6px 0 12px"></div>
+        <div class="pl-drop" id="pl-drop"><div>Отпустите файл<br><small>выгрузка FileMaker или список поставок</small></div></div>
 
-        <!-- Проверка недели -->
-        <div class="plan-view" id="plan-week">
-          <div class="section-header">
-            <div><div class="section-title">Сработает ли график</div><div class="section-sub">Ожидаемые поставки + обычный поток по статистике против смен из графика. Нагрузка — по среднему времени отдела на каждый тип устройства</div></div>
+        <!-- Сегодня: роли по людям на день -->
+        <div class="plan-view" id="plan-shift">
+          <div class="pl-toolbar">
+            <div class="pl-step">
+              <button class="pl-arrow" onclick="stepShiftDate(-1)" aria-label="Предыдущий день">‹</button>
+              <input type="date" class="pl-input" id="pd-date" onchange="onShiftDateChange()">
+              <button class="pl-arrow" onclick="stepShiftDate(1)" aria-label="Следующий день">›</button>
+            </div>
+            <div class="pl-volume" title="Объём дня по нормам: прогноз по дню недели, не меньше того, что лежит в очереди FileMaker. Можно поправить под факт">
+              <span>Диагностика</span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-diag" onchange="renderPlanShift()" title="Поступит за день, устр.">
+              <span>+ очередь</span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-backlog" value="0" onchange="renderPlanShift()" title="Ждут диагностики на начало дня, устр.">
+              <span>устр. · Логистика</span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-log" onchange="renderPlanShift()">
+              <span>ч · ОКК</span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-okk" onchange="renderPlanShift()">
+              <span>ч</span>
+            </div>
+            <button class="btn btn-ghost" style="margin-left:auto" onclick="copyShiftPlan()" title="План текстом — для чата смены">Скопировать план</button>
           </div>
-          <div class="card plan-controls">
-            <label>Неделя с<input type="date" class="settings-input" id="pw-start" onchange="loadPlanWeek()"></label>
-            <label title="Устройств, которые на начало недели ещё ждут базовой диагностики">Хвост на начало, устр.<input type="number" min="0" step="1" class="settings-input" id="pw-backlog" value="0" onchange="renderPlanWeek()"></label>
-            <label title="Доля смены, которая уходит на нормированную работу с устройствами. По умолчанию — факт отдела за период статистики">Загрузка смены, %<input type="number" min="30" max="100" step="1" class="settings-input" id="pw-util" onchange="renderPlanWeek()"></label>
-            <label title="Устройство, принятое в день D, должно пройти базовую диагностику не позже D + срок">Срок, дней<input type="number" min="0" max="5" step="1" class="settings-input" id="pw-sla" value="1" onchange="renderPlanWeek()"></label>
-            <label>Ожидаемые поставки
-              <select class="settings-input" id="pw-mode" onchange="renderPlanWeek()">
-                <option value="replace">Список вместо прогноза в дни поставок</option>
-                <option value="add">Список сверх обычного потока</option>
-                <option value="only">Только список, без прогноза</option>
-              </select>
-            </label>
+          <div class="pl-meta" id="pd-queue-note" style="margin:-4px 0 12px"></div>
+          <div class="kpi-grid compact" id="pd-kpi"></div>
+          <div class="pl-alerts" id="pd-trips"></div>
+          <div class="pl-alerts" id="pd-advice"></div>
+          <div class="card pl-card">
+            <div class="pl-gantt" id="pd-gantt"></div>
+            <div class="pl-legend" id="pd-legend"></div>
           </div>
-          <div class="card plan-controls" style="margin-top:12px">
-            <div style="font-size:13px;color:var(--ink-muted);flex:1;min-width:240px" id="pw-supply-info">Список ожидаемых устройств не загружен — неделя считается по статистике</div>
-            <button class="btn btn-ghost" onclick="downloadSupplyTemplate()" title="Пустой шаблон Excel: дата, устройство, количество, накладная, комментарий">Шаблон</button>
-            <label class="btn btn-ghost" style="cursor:pointer" title="Excel: колонки «дата», «устройство» (модель или группа), необязательно «количество», «накладная», «комментарий». Даты из файла заменяют ранее загруженные">
-              <input type="file" id="pw-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importSupplyFile(this)">
-              Загрузить ожидаемые поставки
-            </label>
-            <button class="btn btn-ghost" onclick="clearWeekSupply()" title="Удалить ожидаемые поставки этой недели">Очистить</button>
+        </div>
+
+        <!-- Неделя: хватит ли смен -->
+        <div class="plan-view" id="plan-week" style="display:none">
+          <div class="pl-toolbar">
+            <div class="pl-step">
+              <button class="pl-arrow" onclick="stepPlanWeek(-1)" aria-label="Предыдущая неделя">‹</button>
+              <input type="date" class="pl-input" id="pw-start" onchange="loadPlanWeek()" title="Неделя с понедельника">
+              <button class="pl-arrow" onclick="stepPlanWeek(1)" aria-label="Следующая неделя">›</button>
+            </div>
+            <span class="pl-meta" id="pw-queue-info"></span>
           </div>
-          <div class="card plan-controls" style="margin-top:12px">
-            <div style="font-size:13px;color:var(--ink-muted);flex:1;min-width:240px" id="pw-queue-info">Техника в работе не загружена</div>
-            <label title="Когда сделана выгрузка: от этого момента отсчитывается остаток времени в статусе">Выгрузка на<input type="datetime-local" class="settings-input" id="pw-snap" onchange="onQueueSnapChange()" disabled></label>
-            <label class="btn btn-ghost" style="cursor:pointer" title="Excel: дата время получения, наименование техники, остаток времени до истечения срока в статусе. Заменяет «Хвост на начало»">
-              <input type="file" id="pw-queue-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importQueueFile(this)">
-              Загрузить технику в работе
-            </label>
-            <button class="btn btn-ghost" onclick="clearQueue()" title="Убрать технику в работе из расчёта">Очистить</button>
-          </div>
-          <div class="card" id="pw-queue-card" style="margin-top:12px;overflow-x:auto;display:none">
-            <div class="card-title">Техника в работе по типам</div>
-            <table class="data-table">
-              <thead><tr><th>Группа</th><th class="num">Устройств</th><th class="num">Мин. на устройство</th><th class="num" title="Остаток времени в статусе у самого срочного устройства группы на момент выгрузки">Ближайший срок, ч от выгрузки</th></tr></thead>
-              <tbody id="pw-queue-tbody"></tbody>
-            </table>
-          </div>
-          <div class="card" id="pw-status-card" style="margin-top:12px;overflow-x:auto;display:none">
-            <div class="card-title">Статусы из FileMaker</div>
-            <div class="section-sub" style="margin-bottom:8px">Какая задача отдела у устройства в каждом статусе. В «Проверку недели» идут устройства с задачей «Диагностика», остальные — в «План смены». «К заказу» — задача отдела только для аксессуаров, «К выдаче» — только для выдачи через ТК (если в выгрузке есть поля доставки)</div>
-            <table class="data-table">
-              <thead><tr><th>Статус</th><th class="num">Устройств</th><th class="num" title="Если меньше общего числа — часть устройств статуса не задача отдела (не аксессуар, самовывоз)">Из них задач</th><th class="num">Срок истёк</th><th>Задача отдела</th></tr></thead>
-              <tbody id="pw-status-tbody"></tbody>
-            </table>
-          </div>
-          <div class="kpi-grid" id="pw-kpi" style="margin-top:16px"></div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">Нагрузка и ёмкость смен по дням</div>
-            <div class="chart-wrap"><canvas id="pw-chart"></canvas></div>
-          </div>
-          <div class="card" id="pw-advice" style="margin-bottom:16px;display:none"></div>
-          <div class="card" style="overflow-x:auto">
-            <table class="data-table" style="min-width:880px">
+          <div class="kpi-grid compact" id="pw-kpi"></div>
+          <div class="pl-alerts" id="pw-advice"></div>
+          <div class="card pl-card" style="overflow-x:auto">
+            <table class="data-table pl-table" style="min-width:640px">
               <thead><tr>
-                <th>День</th><th class="num">Устройств</th><th>Откуда</th><th class="num">Нагрузка, ч</th>
-                <th>В смене</th><th class="num">Ёмкость, ч</th><th class="num">Хвост, устр.</th><th>Статус</th>
+                <th>День</th><th class="num" title="Поступит на диагностику: список поставок или статистика">Поступит</th>
+                <th title="Работа в очереди на день против ёмкости смен, часов по нормам. Красное — не помещается">Нагрузка / ёмкость, ч</th>
+                <th class="num">В смене</th><th class="num" title="Устройств осталось на конец дня">Хвост</th><th>Статус</th>
               </tr></thead>
-              <tbody id="pw-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка…</td></tr></tbody>
+              <tbody id="pw-tbody"><tr><td colspan="6" class="pl-empty">Загрузка…</td></tr></tbody>
             </table>
           </div>
-          <div class="card" id="pw-supply-card" style="margin-top:16px;overflow-x:auto;display:none">
-            <div class="card-title">Ожидаемые устройства недели</div>
-            <table class="data-table">
-              <thead><tr><th>Дата</th><th>Как в файле</th><th>Группа</th><th class="num">Кол-во</th><th>Накладная</th><th>Комментарий</th></tr></thead>
-              <tbody id="pw-supply-tbody"></tbody>
-            </table>
+          <details class="card pl-card" id="pw-supply-card" style="display:none">
+            <summary class="pl-summary"><span id="pw-supply-info"></span><button class="btn btn-ghost pl-btn-sm" onclick="event.preventDefault();clearWeekSupply()">Удалить список недели</button></summary>
+            <div style="overflow-x:auto;margin-top:10px">
+              <table class="data-table pl-table">
+                <thead><tr><th>Дата</th><th>Как в файле</th><th>Группа</th><th class="num">Кол-во</th><th>Накладная</th></tr></thead>
+                <tbody id="pw-supply-tbody"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+
+        <!-- Очередь: что лежит в FileMaker -->
+        <div class="plan-view" id="plan-queue" style="display:none">
+          <div class="pl-toolbar">
+            <span class="pl-meta" id="pq-meta"></span>
+            <label class="pl-inline" title="Когда сделана выгрузка — от этого момента считаются сроки">выгрузка на <input type="datetime-local" class="pl-input" id="pw-snap" onchange="onQueueSnapChange()"></label>
+            <button class="btn btn-ghost pl-btn-sm" onclick="clearQueue()">Очистить</button>
+          </div>
+          <div class="kpi-grid compact" id="pq-kpi"></div>
+          <div class="pl-grid2">
+            <div class="card pl-card">
+              <div class="card-title">Задачи отдела</div>
+              <table class="data-table pl-table"><thead><tr><th>Задача</th><th class="num">Устр.</th><th class="num">Срок сегодня</th><th class="num">Истёк</th><th class="num">Часов</th></tr></thead><tbody id="pq-tasks"></tbody></table>
+            </div>
+            <div class="card pl-card">
+              <div class="card-title">На диагностике по типам</div>
+              <table class="data-table pl-table"><thead><tr><th>Группа</th><th class="num">Устр.</th><th class="num" title="Минут на устройство по нормам отдела">Мин.</th><th class="num" title="Часов до ближайшего срока в статусе">До срока, ч</th></tr></thead><tbody id="pw-queue-tbody"></tbody></table>
+            </div>
+          </div>
+          <div class="card pl-card" style="overflow-x:auto">
+            <div class="card-title">Срочное: срок в статусе истёк или истекает сегодня</div>
+            <table class="data-table pl-table" style="min-width:560px"><thead><tr><th>Срок</th><th>Задача</th><th>Устройство</th><th>Статус</th><th>Ответственный</th></tr></thead><tbody id="pq-urgent"></tbody></table>
           </div>
         </div>
 
-        <!-- Сотрудники -->
-        <div class="plan-view" id="plan-people" style="display:none">
-          <div class="section-header">
-            <div><div class="section-title">Продуктивность сотрудников</div><div class="section-sub">Условные часы — устройства, пересчитанные по среднему времени отдела на такое действие с таким устройством: сравнимы между людьми независимо от состава техники</div></div>
-            <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center;white-space:nowrap"><input type="checkbox" id="plan-all-emps" onchange="renderPlanPeople()"> все, кто делал действия отдела</label>
+        <!-- Аналитика: справка по людям, нормам, задачам, поступлению -->
+        <div class="plan-view" id="plan-analytics" style="display:none">
+          <div class="pl-toolbar">
+            <div class="pl-seg" id="pa-seg">
+              <button data-sub="people" class="active" onclick="switchPlanSub('people')">Сотрудники</button>
+              <button data-sub="norms" onclick="switchPlanSub('norms')">Нормы</button>
+              <button data-sub="tasks" onclick="switchPlanSub('tasks')">Задачи</button>
+              <button data-sub="intake" onclick="switchPlanSub('intake')">Поступление</button>
+            </div>
+            <span class="pl-meta" id="pa-range"></span>
           </div>
-          <div class="kpi-grid" id="pp-kpi"></div>
-          <div class="card" style="overflow-x:auto;margin-bottom:16px">
-            <table class="data-table" style="min-width:1100px">
-              <thead><tr>
-                <th>Сотрудник</th><th class="num">Смен</th><th class="num" title="Разных устройств с действиями отдела за смену">Устр. / смена</th>
-                <th class="num">₽ / смена</th><th class="num" title="Условные часы работы за смену">Усл. ч / смена</th>
-                <th class="num" title="Условные часы ÷ длина смены (по графику, без графика — от первого до последнего действия)">Загрузка</th>
-                <th class="num" title="Время отдела на те же устройства ÷ время сотрудника. Больше 1 — быстрее отдела">Скорость</th>
-                <th class="num" title="Перерывы больше 40 мин между действиями, ч за смену">Простой, ч</th>
-                <th class="num" title="Работа после конца смены по графику, ч за смену">После смены, ч</th>
-                <th class="num" title="Смены по графику без единого действия">Пустых смен</th>
-                <th class="num" title="Доля обращений с расширенной диагностикой / из них найдена неисправность">РТ / находки</th>
-                <th class="num" title="Базовая диагностика не позже следующего дня после приёма">Базовая ≤ 1 дн.</th>
-                <th class="num">Повторов</th>
-              </tr></thead>
-              <tbody id="pp-tbody"></tbody>
-            </table>
+
+          <div class="plan-sub" id="plan-people">
+            <div class="kpi-grid compact" id="pp-kpi"></div>
+            <div class="card pl-card" style="overflow-x:auto">
+              <label class="pl-meta" style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="plan-all-emps" onchange="renderPlanPeople()"> показать всех, кто делал действия отдела</label>
+              <table class="data-table pl-table" style="min-width:760px">
+                <thead><tr>
+                  <th>Сотрудник</th><th class="num">Смен</th>
+                  <th class="num" title="Разных устройств за смену">Устр. / смена</th>
+                  <th title="Нормированные часы ÷ длина смены">Загрузка</th>
+                  <th class="num" title="Время отдела на те же устройства ÷ время сотрудника. Больше 1 — быстрее отдела">Скорость</th>
+                  <th class="num" title="Перерывы больше 40 мин между действиями, ч за смену">Простой, ч</th>
+                  <th class="num" title="Работа после конца смены, ч за смену">После смены, ч</th>
+                  <th class="num" title="Базовая диагностика не позже следующего дня после приёма">Базовая ≤ 1 дн.</th>
+                </tr></thead>
+                <tbody id="pp-tbody"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="card">
-            <div class="card-title">Условные часы за смену по неделям</div>
-            <div class="chart-wrap"><canvas id="pp-chart"></canvas></div>
+
+          <div class="plan-sub" id="plan-norms" style="display:none">
+            <div class="card pl-card" style="overflow-x:auto">
+              <table class="data-table pl-table" id="pn-table"><thead id="pn-thead"></thead><tbody id="pn-tbody"></tbody></table>
+              <div class="pl-hint">Минут на обращение: медиана — типичное, среднее — для расчёта нагрузки. Личные: зелёным — быстрее отдела на 20%+, красным — медленнее. Группы меньше 15 обращений берут среднее по вендору.</div>
+            </div>
+          </div>
+
+          <div class="plan-sub" id="plan-tasks" style="display:none">
+            <div class="kpi-grid compact" id="pt-kpi"></div>
+            <div class="card pl-card" style="overflow-x:auto">
+              <table class="data-table pl-table" style="min-width:760px">
+                <thead><tr>
+                  <th>Задача</th><th class="num" title="Единиц в среднем за день">В день</th>
+                  <th class="num" title="Типичная единица; у пакетных действий почти 0">Медиана, мин</th><th class="num" title="Для расчёта нагрузки">Среднее, мин</th>
+                  <th class="num">Доля нагрузки</th><th class="num">₽ / ед.</th>
+                  <th class="num" title="Оплата ÷ измеренное время. Сильно выше или ниже среднего — риск выбора «выгодных» задач">₽ / час</th>
+                  <th>Кто делает</th>
+                </tr></thead>
+                <tbody id="pt-types"></tbody>
+              </table>
+            </div>
+            <div class="card pl-card">
+              <div class="card-title">Нагрузка по нормам и часы смен <span class="pl-meta" id="pt-load-note"></span></div>
+              <div class="chart-wrap"><canvas id="pt-chart"></canvas></div>
+            </div>
+            <div class="card pl-card" style="overflow-x:auto">
+              <div class="card-title">Кто чем занят — доля времени</div>
+              <table class="data-table pl-table" id="pt-matrix"><thead id="pt-matrix-head"></thead><tbody id="pt-matrix-body"></tbody></table>
+            </div>
+          </div>
+
+          <div class="plan-sub" id="plan-intake" style="display:none">
+            <div class="kpi-grid compact" id="pi-kpi"></div>
+            <div class="pl-grid2">
+              <div class="card pl-card"><div class="card-title">В среднем по дням недели</div><div class="chart-wrap"><canvas id="pi-dow"></canvas></div></div>
+              <div class="card pl-card"><div class="card-title">Принято по дням</div><div class="chart-wrap"><canvas id="pi-daily"></canvas></div></div>
+            </div>
+            <div class="card pl-card" style="overflow-x:auto">
+              <div class="card-title">Через сколько дней после приёма</div>
+              <table class="data-table pl-table"><thead><tr><th>Этап</th><th class="num">В день приёма</th><th class="num">+1 день</th><th class="num">+2 дня</th><th class="num">+3–6 дней</th><th class="num">7 и больше</th></tr></thead>
+                <tbody id="pi-lag"></tbody></table>
+            </div>
           </div>
         </div>
 
-        <!-- Нормы -->
-        <div class="plan-view" id="plan-norms" style="display:none">
-          <div class="section-header">
-            <div><div class="section-title">Время на устройство</div><div class="section-sub">Минуты диагноста на обращение: обработка, базовая, РТ, услуги. Время действия — интервал от предыдущего действия сотрудника, перерывы больше 40 мин не считаются. Медиана — типичное обращение, среднее — для расчёта нагрузки</div></div>
+        <!-- Настройки: разово -->
+        <div class="plan-view" id="plan-settings" style="display:none">
+          <div class="card pl-card">
+            <div class="card-title">Расчёт</div>
+            <div class="pl-form">
+              <label>Статистика за
+                <select class="pl-input" id="plan-weeks" onchange="reloadPlanning()">
+                  <option value="4">4 недели</option><option value="8">8 недель</option>
+                  <option value="12" selected>12 недель</option><option value="26">полгода</option>
+                </select>
+              </label>
+              <label title="Доля смены на нормированную работу. По умолчанию — факт отдела">Загрузка смены, %<input type="number" min="30" max="100" step="1" class="pl-input" id="pw-util" onchange="planParamsChanged()"></label>
+              <label title="Устройство, принятое в день D, проходит базовую не позже D + срок">Срок диагностики, дней<input type="number" min="0" max="5" step="1" class="pl-input" id="pw-sla" value="1" onchange="planParamsChanged()"></label>
+              <label title="Без выгрузки FileMaker: сколько устройств ждут диагностики на начало недели">Хвост на начало недели, устр.<input type="number" min="0" step="1" class="pl-input" id="pw-backlog" value="0" onchange="planParamsChanged()"></label>
+              <label>Список поставок
+                <select class="pl-input" id="pw-mode" onchange="planParamsChanged()">
+                  <option value="replace">вместо прогноза</option>
+                  <option value="add">сверх прогноза</option>
+                  <option value="only">только список</option>
+                </select>
+              </label>
+            </div>
+            <div class="pl-hint">Файлы: выгрузка FileMaker — скрипт «XFIX выгрузка очереди»; список поставок — <a href="#" onclick="event.preventDefault();downloadSupplyTemplate()">шаблон Excel</a>. Оба грузятся кнопкой «Загрузить файл».</div>
           </div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="chart-wrap"><canvas id="pn-chart"></canvas></div>
-          </div>
-          <div class="card" style="overflow-x:auto">
-            <table class="data-table" id="pn-table"><thead id="pn-thead"></thead><tbody id="pn-tbody"></tbody></table>
-            <div class="section-sub" style="margin-top:12px">Личные нормы: зелёным — быстрее отдела на 20% и больше, красным — медленнее на 20% и больше. Группы, где меньше 15 обращений, в расчёте нагрузки берут среднее по вендору.</div>
-          </div>
-        </div>
-
-        <!-- Поступление -->
-        <div class="plan-view" id="plan-intake" style="display:none">
-          <div class="section-header">
-            <div><div class="section-title">Поступление техники</div><div class="section-sub">Устройства по дате и времени приёма в ремонт (только те, по которым отдел делал действия). Последние 3 дня периода в средние не входят — они ещё не обработаны</div></div>
-          </div>
-          <div class="kpi-grid" id="pi-kpi"></div>
-          <div class="charts-grid">
-            <div class="card"><div class="card-title">В среднем по дням недели</div><div class="chart-wrap"><canvas id="pi-dow"></canvas></div></div>
-            <div class="card"><div class="card-title">По часу приёма, доля</div><div class="chart-wrap"><canvas id="pi-hour"></canvas></div></div>
-          </div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">Принято по дням</div>
-            <div class="chart-wrap"><canvas id="pi-daily"></canvas></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Через сколько дней после приёма</div>
-            <table class="data-table"><thead><tr><th>Этап</th><th class="num">В день приёма</th><th class="num">+1 день</th><th class="num">+2 дня</th><th class="num">+3–6 дней</th><th class="num">7 и больше</th></tr></thead>
-              <tbody id="pi-lag"></tbody></table>
-          </div>
-        </div>
-
-        <!-- План смены: роли по людям на день, по прогнозу -->
-        <div class="plan-view" id="plan-shift" style="display:none">
-          <div class="section-header">
-            <div><div class="section-title">План смены</div><div class="section-sub">Кто на какой роли в течение дня. Объём — прогноз по дню недели (поступление и средняя нагрузка за период статистики), поля можно поправить под факт. Логистика ставится с начала смены тем, у кого она получается лучше относительно диагностики; во вторник и пятницу отправки клиентам — к 15:00</div></div>
-            <button class="btn btn-ghost" onclick="copyShiftPlan()" title="Скопировать план текстом — для чата смены">Скопировать план</button>
-          </div>
-          <div class="card plan-controls">
-            <label>Дата<input type="date" class="settings-input" id="pd-date" onchange="onShiftDateChange()"></label>
-            <label title="Доля смены на нормированную работу. По умолчанию — факт команды за период статистики">Загрузка смены, %<input type="number" min="30" max="100" step="1" class="settings-input" id="pd-util" onchange="renderPlanShift()"></label>
-            <label title="Устройств на диагностику за день: прогноз поступления по дню недели">Диагностика, устр.<input type="number" min="0" step="1" class="settings-input" id="pd-diag" onchange="renderPlanShift()"></label>
-            <label title="Устройств, которые на начало дня ещё ждут диагностики">Хвост, устр.<input type="number" min="0" step="1" class="settings-input" id="pd-backlog" value="0" onchange="renderPlanShift()"></label>
-            <label title="Часы логистики по нормам: средняя нагрузка этого дня недели">Логистика, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-log" onchange="renderPlanShift()"></label>
-            <label title="Часы проверок ОКК по нормам: средняя нагрузка этого дня недели">ОКК, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-okk" onchange="renderPlanShift()"></label>
-          </div>
-          <div class="section-sub" id="pd-queue-note" style="margin-top:12px"></div>
-          <div class="section-sub" id="pd-trips" style="margin-top:6px;display:none"></div>
-          <div class="kpi-grid" id="pd-kpi" style="margin-top:16px"></div>
-          <div class="card" id="pd-advice" style="margin-bottom:16px;display:none"></div>
-          <div class="card" style="overflow-x:auto;margin-bottom:16px">
-            <table class="data-table" style="min-width:860px">
-              <thead><tr>
-                <th>Сотрудник</th><th>Смена</th><th style="width:42%">Роли</th>
-                <th class="num" title="Работа по нормам отдела, с учётом личной скорости">Работы, ч</th>
-                <th class="num" title="Длина смены × загрузка × личная скорость">Ёмкость, ч</th>
-              </tr></thead>
-              <tbody id="pd-tbody"></tbody>
-            </table>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink-muted)" id="pd-legend"></div>
-          </div>
-          <div class="card" style="overflow-x:auto">
+          <div class="card pl-card" style="overflow-x:auto">
             <div class="card-title">Допуски к ролям</div>
-            <div class="section-sub" style="margin-bottom:8px">Снимите галочку, если сотрудник пока не делает эту роль (стажёры). По умолчанию диагностика и логистика открыты всем в команде, ОКК — тем, у кого проверки ОКК основная работа. Замещающего ОКК отметьте вручную</div>
-            <table class="data-table" style="min-width:520px">
-              <thead><tr><th>Сотрудник</th><th class="num">Скорость: диагностика</th><th class="num">логистика</th><th style="text-align:center">Диагностика</th><th style="text-align:center">Логистика</th><th style="text-align:center">ОКК</th></tr></thead>
+            <table class="data-table pl-table" style="min-width:520px">
+              <thead><tr><th>Сотрудник</th><th class="num" title="Личная скорость: больше 1 — быстрее отдела">Скорость диаг.</th><th class="num">Скорость лог.</th><th style="text-align:center">Диагностика</th><th style="text-align:center">Логистика</th><th style="text-align:center">ОКК</th></tr></thead>
               <tbody id="pd-access"></tbody>
             </table>
+            <div class="pl-hint">По умолчанию диагностика и логистика открыты всем в команде, ОКК — тем, у кого это основная работа. Стажёров и замещающего ОКК отметьте вручную.</div>
           </div>
-        </div>
-
-        <!-- Типы задач объединённого отдела -->
-        <div class="plan-view" id="plan-tasks" style="display:none">
-          <div class="section-header">
-            <div><div class="section-title">Задачи объединённого отдела</div><div class="section-sub">Диагностика, логистика и ОКК вместе. Время задачи — интервалы между действиями сотрудника, как в нормах устройств; тип задачи — по разметке действий внизу страницы</div></div>
+          <div class="card pl-card" style="overflow-x:auto">
+            <div class="card-title">Статусы FileMaker</div>
+            <table class="data-table pl-table"><thead><tr><th>Статус</th><th class="num">Устр.</th><th>Задача отдела</th></tr></thead><tbody id="pw-status-tbody"></tbody></table>
+            <div class="pl-hint">«К заказу» — задача отдела только для аксессуаров, «К выдаче» — только для отправки через ТК.</div>
           </div>
-          <div class="kpi-grid" id="pt-kpi"></div>
-          <div class="card" style="overflow-x:auto;margin-bottom:16px">
-            <div class="card-title">Нормы и оплата по типам задач</div>
-            <table class="data-table" style="min-width:900px">
-              <thead><tr>
-                <th>Задача</th><th class="num" title="Обращений (или действий без id сервиса) в среднем за день с данными">В день</th>
-                <th class="num" title="Типичная единица. У пакетных действий (регистрация, отправка пачкой) почти 0: время пачки ложится на первое действие">Медиана, мин</th><th class="num" title="Для расчёта нагрузки: сумма времени ÷ число единиц, пачки учтены верно">Среднее, мин</th>
-                <th class="num" title="Доля в нагрузке отдела по нормам">Доля нагрузки</th>
-                <th class="num">₽ за единицу</th>
-                <th class="num" title="Оплата ÷ измеренное время. Сильно выше или ниже среднего — риск, что выгодные задачи будут выбирать, а невыгодные откладывать">₽ / час</th>
-                <th>Кто делает</th>
-              </tr></thead>
-              <tbody id="pt-types"></tbody>
-            </table>
-          </div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-title">Нагрузка по нормам против часов смен</div>
-            <div class="section-sub" style="margin-bottom:8px" id="pt-load-note"></div>
-            <div class="chart-wrap"><canvas id="pt-chart"></canvas></div>
-          </div>
-          <div class="card" style="overflow-x:auto;margin-bottom:16px">
-            <div class="card-title">Кто чем занят — доля нормированного времени сотрудника</div>
-            <table class="data-table" id="pt-matrix"><thead id="pt-matrix-head"></thead><tbody id="pt-matrix-body"></tbody></table>
-          </div>
-          <div class="card" style="overflow-x:auto">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px">
-              <div class="card-title" style="margin:0">Разметка действий по типам задач</div>
+          <div class="card pl-card" style="overflow-x:auto">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <div class="card-title" style="margin:0">Разметка действий по задачам</div>
               <div style="display:flex;gap:16px;flex-wrap:wrap">
-                <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" id="pt-map-unmapped" onchange="renderPlanTaskMap()"> только неразмеченные</label>
-                <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center" title="Действия, которые делали только сотрудники вне команды (инженеры, сопровождение…), в расчёт не идут"><input type="checkbox" id="pt-map-all" onchange="renderPlanTaskMap()"> и действия вне команды</label>
+                <label class="pl-meta" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="pt-map-unmapped" onchange="renderPlanTaskMap()"> только неразмеченные</label>
+                <label class="pl-meta" style="display:flex;gap:6px;align-items:center" title="Действия, которые делали только сотрудники вне команды, в расчёт не идут"><input type="checkbox" id="pt-map-all" onchange="renderPlanTaskMap()"> и вне команды</label>
               </div>
             </div>
-            <div class="section-sub" style="margin-bottom:8px">Тип задачи задаётся для пары «тип действия + отдел». «По умолчанию» — общая разметка для всех отделов; неразмеченная логистика попадает в «Логистика, не размечено». Колонка «Отдел» — отдел типа действия из выгрузки; в расчёт идут только действия сотрудников команды (по умолчанию — отделы Диагносты, Логистика, ОКК; отдел сотрудника — из Настройки → Сотрудники или самый частый в его действиях), и цифры в таблице — по ним</div>
-            <table class="data-table" style="min-width:760px">
-              <thead><tr><th>Действие</th><th>Отдел</th><th class="num">Действий команды</th><th class="num">Сотр.</th><th class="num">₽</th><th>Тип задачи</th></tr></thead>
+            <table class="data-table pl-table" style="min-width:680px">
+              <thead><tr><th>Действие</th><th>Отдел</th><th class="num">Действий</th><th class="num">Сотр.</th><th class="num">₽</th><th>Задача</th></tr></thead>
               <tbody id="pt-map"></tbody>
             </table>
           </div>
@@ -8180,7 +8253,7 @@ const PLAN_SMALL_GROUP = 15;     // в группе меньше обращен�
 const PLAN_SHIFT_MIN = 540;      // смена без времени в графике — 9 ч
 const PLAN_DOW = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
 const planState = {
-  tab: 'week', loaded: false, loading: null, from: null, to: null,
+  tab: 'shift', sub: 'people', trips: null, loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
   model: null, week: null, extraEmps: new Set(), queue: null, tasks: null,
   access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null, statusMap: null, shiftTrips: {},
@@ -8204,6 +8277,14 @@ function switchPlanTab(tab, el) {
   loadPlanning();
 }
 
+function switchPlanSub(sub) {
+  planState.sub = sub;
+  document.querySelectorAll('#pa-seg button').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
+  document.querySelectorAll('.plan-sub').forEach(v => v.style.display = 'none');
+  document.getElementById('plan-' + sub).style.display = '';
+  loadPlanning();
+}
+
 function reloadPlanning() {
   planState.loaded = false;
   planState.loading = null;
@@ -8215,12 +8296,20 @@ function reloadPlanning() {
   loadPlanning();
 }
 
+// Параметры расчёта (Настройки) — перерисовать то, что открыто
+function planParamsChanged() {
+  if (planState.week) renderPlanWeek();
+  if (planState.tab !== 'week' && planState.tab !== 'settings') loadPlanning();
+}
+
 async function loadPlanning() {
   const note = document.getElementById('plan-range-note');
   if (!sb) { note.textContent = 'Supabase не настроен — заполните Настройки → Подключение'; return; }
+  if (planState.queue === null) planState.queue = loadQueueLocal();
+  initPlanDrop();
   if (!planState.loaded) {
     note.textContent = 'Загрузка статистики…';
-    skelKpi('pw-kpi', 4); skelKpi('pp-kpi', 4); skelKpi('pi-kpi', 4);
+    skelKpi('pd-kpi', 4);
     if (!planState.loading) planState.loading = fetchPlanning();
     try {
       await planState.loading;
@@ -8232,13 +8321,97 @@ async function loadPlanning() {
     }
   }
   const m = planState.model;
-  note.textContent = `Статистика: ${planDay(m.dataFrom)} — ${planDay(m.dataTo)} · ${m.mainEmps.length} сотр. отдела · ${fmtNum(m.totalServices)} обращений с измеренным временем`;
-  if (planState.tab === 'week') { if (!planState.week) await loadPlanWeek(); else renderPlanWeek(); }
-  if (planState.tab === 'people') renderPlanPeople();
-  if (planState.tab === 'norms') renderPlanNorms();
-  if (planState.tab === 'intake') renderPlanIntake();
-  if (planState.tab === 'tasks') renderPlanTasks();
-  if (planState.tab === 'shift') renderPlanShift();
+  note.textContent = '';
+  const util = document.getElementById('pw-util');
+  if (!util.value) util.value = Math.round(m.util * 100);
+  document.getElementById('pa-range').textContent = `${planDay(m.dataFrom)} — ${planDay(m.dataTo)} · ${m.mainEmps.length} сотр. · ${fmtNum(m.totalServices)} обращений`;
+  await loadStatusMap();
+  renderPlanSources();
+  const tab = planState.tab;
+  if (tab === 'shift') await renderPlanShift();
+  if (tab === 'week') { if (!planState.week) await loadPlanWeek(); else renderPlanWeek(); }
+  if (tab === 'queue') renderPlanQueue();
+  if (tab === 'settings') await renderPlanSettings();
+  if (tab === 'analytics') {
+    const sub = planState.sub;
+    if (sub === 'people') renderPlanPeople();
+    if (sub === 'norms') renderPlanNorms();
+    if (sub === 'tasks') renderPlanTasks();
+    if (sub === 'intake') renderPlanIntake();
+  }
+}
+
+/* Что загружено: очередь FileMaker и ближайшие командировки — метки в шапке */
+async function renderPlanSources() {
+  const el = document.getElementById('pl-sources');
+  const q = planState.queue, today = planIso(new Date());
+  const chips = [];
+  if (q && q.items && q.items.length) {
+    const fresh = q.snap.slice(0, 10) === today;
+    chips.push(`<button class="pl-chip ${fresh ? 'ok' : 'old'}" onclick="switchPlanTab('queue')" title="${fresh ? 'Выгрузка сегодняшняя' : 'Выгрузка не сегодняшняя — загрузите свежую'}"><i></i>Очередь ${planDay(q.snap.slice(0, 10))} ${q.snap.slice(11, 16)} · ${q.items.length}</button>`);
+  } else {
+    chips.push(`<button class="pl-chip off" onclick="document.getElementById('pl-file').click()" title="Загрузите выгрузку FileMaker"><i></i>Очередь не загружена</button>`);
+  }
+  if (!planState.trips) planState.trips = await loadPlanTrips(today, planAddDays(today, 14));
+  const next = planNextTrip(planState.trips, planAddDays(today, -1));
+  chips.push(next
+    ? `<span class="pl-chip ok" title="${esc(planTripLabel(next.trip))}"><i></i>Выезд ${planDay(next.trip.date_from)}</span>`
+    : `<span class="pl-chip off" title="Командировок на 2 недели вперёд нет"><i></i>Выездов нет</span>`);
+  el.innerHTML = chips.join('');
+}
+
+/* ─── Импорт одним файлом: выгрузка FileMaker или список поставок ────────── */
+function planImportInput(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (file) planImportFile(file);
+}
+async function planImportFile(file) {
+  if (!planState.loaded) {
+    if (!planState.loading) { showToast('Сначала дождитесь загрузки статистики', 'error'); return; }
+    await planState.loading;
+  }
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
+    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+    const head = grid.slice(0, 15).map(r => (r || []).map(c => normHeader(c).replace(/^service::/, '')));
+    const isFm = head.some(h => h.includes('статус') && h.includes(FM_QUEUE_COLS.name));
+    let supply = null;
+    if (!isFm) { try { supply = parseSupplyGrid(grid); } catch (e) { supply = null; } }
+    if (isFm || !supply) await importQueueGrid(grid, file);
+    else await importSupplyRows(supply);
+  } catch (e) {
+    console.error('planImportFile:', e);
+    showToast('Не удалось загрузить: ' + e.message, 'error');
+  }
+}
+// Перетаскивание файла на страницу «Планирование»
+function initPlanDrop() {
+  if (initPlanDrop.done) return;
+  initPlanDrop.done = true;
+  const page = document.getElementById('page-planning'), drop = document.getElementById('pl-drop');
+  const active = () => page.classList.contains('active');
+  let depth = 0;
+  window.addEventListener('dragenter', e => { if (active() && e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { depth++; drop.classList.add('on'); } });
+  window.addEventListener('dragleave', () => { if (depth > 0 && --depth === 0) drop.classList.remove('on'); });
+  window.addEventListener('dragover', e => { if (active()) e.preventDefault(); });
+  window.addEventListener('drop', e => {
+    if (!active()) return;
+    e.preventDefault(); depth = 0; drop.classList.remove('on');
+    const file = e.dataTransfer && e.dataTransfer.files[0];
+    if (file) planImportFile(file);
+  });
+}
+
+function stepShiftDate(n) {
+  const el = document.getElementById('pd-date');
+  el.value = planAddDays(el.value || planIso(new Date()), n);
+  onShiftDateChange();
+}
+function stepPlanWeek(n) {
+  const el = document.getElementById('pw-start');
+  el.value = planAddDays(planMonday(el.value || planIso(new Date())), 7 * n);
+  loadPlanWeek();
 }
 
 async function fetchPlanning() {
@@ -8362,14 +8535,10 @@ function buildPlanModel() {
 async function loadPlanWeek() {
   const input = document.getElementById('pw-start');
   if (!input.value) input.value = planMonday(planIso(new Date()));
-  if (planState.queue === null) planState.queue = loadQueueLocal();
-  await loadStatusMap();
   const start = planMonday(input.value);
   input.value = start;
   const end = planAddDays(start, 6);
-  const util = document.getElementById('pw-util');
-  if (!util.value) util.value = Math.round(planState.model.util * 100);
-  document.getElementById('pw-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px">Загрузка графика…</td></tr>';
+  document.getElementById('pw-tbody').innerHTML = '<tr><td colspan="6" class="pl-empty">Загрузка графика…</td></tr>';
   try {
     const months = [...new Set([start.slice(0, 7), end.slice(0, 7)])];
     const [supply, ...scheds] = await Promise.all([
@@ -8382,7 +8551,7 @@ async function loadPlanWeek() {
     renderPlanWeek();
   } catch (e) {
     console.error('loadPlanWeek:', e);
-    document.getElementById('pw-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--xf-red);padding:40px">Ошибка: ${esc(e.message)}${/expected_supply/i.test(e.message) ? ' — прогоните supabase_planning.sql' : ''}</td></tr>`;
+    document.getElementById('pw-tbody').innerHTML = `<tr><td colspan="6" class="pl-empty" style="color:var(--xf-red)">Ошибка: ${esc(e.message)}${/expected_supply/i.test(e.message) ? ' — прогоните supabase_planning.sql' : ''}</td></tr>`;
   }
 }
 
@@ -8540,7 +8709,7 @@ function intradayCheck(days, snap, util) {
   let need = 0;
   const late = [];
   items.forEach(x => { need += m.normFor(x.it.group); if (need > capUntil(x.t) + 1) late.push(x); });
-  const hm = t => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.round(t % 60)).padStart(2, '0')}`;
+  const hm = t => t < 0 ? 'уже истёк' : `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.round(t % 60)).padStart(2, '0')}`;
   return { n: items.length, late: late.length, first: late.length ? hm(late[0].t) : null, last: hm(items[items.length - 1].t), idx: snap.idx };
 }
 
@@ -8587,94 +8756,68 @@ function renderPlanWeek() {
   const lateDays = sim.filter(s => s.status === 'late').length;
   const end = sim[sim.length - 1];
   document.getElementById('pw-kpi').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Ждём устройств</div><div class="kpi-value">${Math.round(totDev)}</div><div class="kpi-delta neutral">${w.supply.length ? `в списке ${w.supply.reduce((s, r) => s + +r.qty, 0)}` : 'только статистика'}</div></div>
     <div class="kpi-card"><div class="kpi-label">Нагрузка / ёмкость</div><div class="kpi-value ${totDemand > totCap ? 'danger' : ''}">${Math.round(totDemand / 60)} / ${Math.round(totCap / 60)} ч</div><div class="kpi-delta neutral">загрузка смены ${Math.round(util * 100)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Дней со срывом срока</div><div class="kpi-value ${lateDays ? 'danger' : 'accent'}">${lateDays}</div><div class="kpi-delta neutral">${planState.queue && planState.queue.items.length ? `в работе ${planState.queue.items.length} устр. со своим сроком` : `срок ${sla} дн. после приёма`}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Хвост на конец недели</div><div class="kpi-value">${Math.round(end.leftDev)} устр.</div><div class="kpi-delta neutral">${planR1(end.left / 60)} ч работы</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Дней со срывом</div><div class="kpi-value ${lateDays ? 'danger' : 'accent'}">${lateDays}</div><div class="kpi-delta neutral">срок ${sla} дн. после приёма</div></div>
+    <div class="kpi-card"><div class="kpi-label">Поступит</div><div class="kpi-value">${Math.round(totDev)}</div><div class="kpi-delta neutral">${w.supply.length ? `в списке поставок ${w.supply.reduce((s, r) => s + +r.qty, 0)}` : 'по статистике'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Хвост в конце</div><div class="kpi-value">${Math.round(end.leftDev)}</div><div class="kpi-delta neutral">${planR1(end.left / 60)} ч работы</div></div>`;
 
-  const badge = s => s === 'past' ? '<span class="zone-badge" style="background:var(--bg-hover);color:var(--ink-muted)">прошло</span>'
+  const badge = s => s === 'past' ? '<span class="pl-meta">прошло</span>'
     : s === 'late' ? '<span class="zone-badge zone-critical">срыв срока</span>'
     : s === 'tight' ? '<span class="zone-badge zone-elevated">впритык</span>' : '<span class="zone-badge zone-normal">успеваем</span>';
+  // полоса дня: ёмкость — подложка, работа — заливка, не поместившееся — красным
+  const scale = Math.max(1, ...sim.map((s, i) => days[i].past ? 0 : Math.max(s.cap, s.pending)));
+  const bar = s => {
+    const use = Math.min(s.pending, s.cap), over = Math.max(0, s.pending - s.cap);
+    return `<div class="pl-barcell"><div class="pl-bar"><i class="cap" style="width:${s.cap / scale * 100}%"></i><i class="use" style="width:${use / scale * 100}%"></i>${over > 1 ? `<i class="over" style="left:${s.cap / scale * 100}%;width:${over / scale * 100}%"></i>` : ''}</div><b>${planR1(s.pending / 60)} / ${planR1(s.cap / 60)}</b></div>`;
+  };
   document.getElementById('pw-tbody').innerHTML = days.map((d, i) => {
     const s = sim[i];
-    if (d.past) return `<tr style="opacity:.55"><td>${planDay(d.date)}</td><td class="num">—</td><td>прошло</td><td class="num">—</td><td>${d.people.map(p => esc(planShort(p.employee))).join('<br>') || '—'}</td><td class="num">—</td><td class="num">—</td><td>${badge('past')}</td></tr>`;
-    const intraNote = intra && intra.idx === i && intra.late ? `<div style="font-size:12px;color:var(--danger);margin-top:4px">по сроку в статусе не успеваем ${intra.late} из ${intra.n} устр., первое — к ${intra.first}</div>` : '';
-    const ppl = d.people.length
-      ? d.people.map(p => `${esc(planShort(p.employee))}${p.start ? ` <span style="color:var(--ink-muted)">${hhmm(p.start)}–${hhmm(p.end)}</span>` : ''}`).join('<br>')
-      : '<span style="color:var(--xf-red)">никого</span>';
-    const skip = d.skipped.length ? `<br><span style="font-size:12px;color:var(--ink-muted)" title="Мало действий отдела за период — в ёмкость не входят">+ ${d.skipped.map(n => esc(planShort(n))).join(', ')} (не учтены)</span>` : '';
+    const ppl = d.people.map(p => `${p.employee}${p.start ? ` ${hhmm(p.start)}–${hhmm(p.end)}` : ''}`).join('\n');
+    if (d.past) return `<tr style="opacity:.5"><td>${planDay(d.date)}</td><td class="num">—</td><td></td><td class="num">${d.people.length || '—'}</td><td class="num">—</td><td>${badge('past')}</td></tr>`;
+    const note = intra && intra.idx === i && intra.late ? `<span class="pl-sub-txt" style="color:var(--danger)">не успеваем ${intra.late} из ${intra.n} к сроку в статусе</span>`
+      : s.lateMin > 1 ? `<span class="pl-sub-txt">${Math.round(s.lateDev)} устр. позже срока</span>` : '';
     return `<tr>
-      <td>${planDay(d.date)}</td>
+      <td style="white-space:nowrap">${planDay(d.date)}${d.list.length ? '<span class="pl-sub-txt">поставка</span>' : ''}</td>
       <td class="num">${Math.round(d.devices)}</td>
-      <td>${d.source}</td>
-      <td class="num">${planR1(d.demand / 60)}</td>
-      <td>${ppl}${skip}</td>
-      <td class="num">${planR1(s.cap / 60)}</td>
+      <td>${bar(s)}</td>
+      <td class="num" title="${esc(ppl)}">${d.people.length || '<span style="color:var(--danger)">0</span>'}</td>
       <td class="num">${Math.round(s.leftDev)}</td>
-      <td>${badge(s.status)}${s.lateMin > 1 ? `<div style="font-size:12px;color:var(--ink-muted);margin-top:4px">${Math.round(s.lateDev)} устр. позже срока</div>` : ''}${intraNote}</td>
+      <td>${badge(s.status)}${note}</td>
     </tr>`;
   }).join('');
 
   // вывод: справляется ли график и кого вызвать
   const box = document.getElementById('pw-advice');
-  const toggleBtn = (n, verb) => `<button class="btn btn-ghost" style="min-height:28px;padding:2px 10px;font-size:12px" data-emp="${esc(n)}" onclick="togglePlanExtra(this.dataset.emp)">${verb} ${esc(planShort(n))}</button>`;
-  const skippedAll = [...new Set(days.flatMap(d => d.skipped))];
-  const skippedHtml = skippedAll.length
-    ? `<div style="font-size:13px;color:var(--ink-muted);margin-top:10px">В графике есть сотрудники с малым числом действий отдела за период — в ёмкость не входят: ${skippedAll.map(n => toggleBtn(n, 'учесть')).join(' ')}</div>`
-    : '';
-  const extraOn = [...planState.extraEmps];
-  const extraHtml = extraOn.length
-    ? `<div style="font-size:13px;color:var(--ink-muted);margin-top:10px">Учтены вручную (скорость как у отдела): ${extraOn.map(n => toggleBtn(n, 'убрать')).join(' ')}</div>`
-    : '';
-  let html;
-  const intraHtml = intra && intra.late
-    ? `<div style="font-size:14px;color:var(--danger);margin-top:8px">${planDay(days[intra.idx].date)}: у ${intra.n} устройств в работе срок в статусе истекает до ${intra.last}. Тем, кто в смене, не успеть ${intra.late} из них — первое к ${intra.first}. Помочь может только выход сотрудника с утра или перераспределение задач внутри смены.</div>`
-    : intra ? `<div style="font-size:14px;color:var(--ink-soft);margin-top:8px">${planDay(days[intra.idx].date)}: ${intra.n} устр. со сроком в статусе до ${intra.last} — успеваем по часам.</div>` : '';
-  if (dayLate === 0 && intra && intra.late) {
-    html = `<div class="card-title" style="margin-bottom:6px">По дням успеваем, но не к срокам в статусе</div>`;
+  const toggleBtn = (n, verb) => `<button class="btn btn-ghost" data-emp="${esc(n)}" onclick="togglePlanExtra(this.dataset.emp)">${verb} ${esc(planShort(n))}</button>`;
+  const alerts = [];
+  if (dayLate === 0 && !(intra && intra.late)) {
+    alerts.push(`<div class="pl-alert ok"><div><b>График справляется.</b> ${sim.some(s => s.status === 'tight') ? 'Есть дни впритык — непредвиденная поставка или отсутствие сотрудника даст хвост.' : 'Всё поступившее проходит базовую в срок.'}</div></div>`);
   } else if (dayLate === 0) {
-    html = `<div class="card-title" style="margin-bottom:6px">График справляется</div><div style="font-size:14px;color:var(--ink-soft)">При загрузке смены ${Math.round(util * 100)}% всё поступившее проходит базовую в срок.${sim.some(s => s.status === 'tight') ? ' Есть дни впритык — непредвиденная поставка или отсутствие сотрудника даст хвост.' : ''}</div>`;
+    alerts.push(`<div class="pl-alert warn"><div><b>По дням успеваем, но не к срокам в статусе:</b> ${planDay(days[intra.idx].date)} не успеть ${intra.late} из ${intra.n} устр., первое — ${intra.first === 'уже истёк' ? 'срок уже истёк' : `к ${intra.first}`}. Поможет выход сотрудника с утра.</div></div>`);
   } else if (adv.extra.length) {
-    const list = [...adv.extra].sort((a, b) => a.idx - b.idx)
-      .map(x => `<li>${planDay(days[x.idx].date)} — вызвать в смену: <b>${esc(x.employee)}</b> (${PLAN_SHIFT_MIN / 60} ч)</li>`).join('');
-    html = `<div class="card-title" style="margin-bottom:6px">График не справляется — ${adv.ok ? 'хватит дополнительных смен' : 'дополнительных смен не хватает'}</div>
-      <ul style="margin:6px 0 0 18px;font-size:14px;line-height:1.7">${list}</ul>
-      ${adv.ok ? '' : '<div style="font-size:14px;color:var(--danger);margin-top:8px">Даже с вызовами срок срывается: свободных сотрудников в нужные дни нет. Нужен человек со стороны или перенос части поставки.</div>'}`;
+    const list = [...adv.extra].sort((a, b) => a.idx - b.idx).map(x => `${planDay(days[x.idx].date)} — <b>${esc(x.employee)}</b>`).join(', ');
+    alerts.push(`<div class="pl-alert ${adv.ok ? 'warn' : 'bad'}"><div><b>Не справляемся.</b> Вызвать на ${PLAN_SHIFT_MIN / 60} ч: ${list}.${adv.ok ? '' : ' Даже с вызовами срок срывается — нужен человек со стороны или перенос поставки.'}</div></div>`);
   } else {
-    html = '<div class="card-title" style="margin-bottom:6px">График не справляется</div><div style="font-size:14px;color:var(--danger)">Свободных сотрудников в нужные дни нет — нужен человек со стороны или перенос части поставки.</div>';
+    alerts.push('<div class="pl-alert bad"><div><b>Не справляемся.</b> Свободных сотрудников в нужные дни нет — нужен человек со стороны или перенос части поставки.</div></div>');
   }
-  box.innerHTML = html + intraHtml + skippedHtml + extraHtml;
-  box.style.display = '';
+  const skippedAll = [...new Set(days.flatMap(d => d.skipped))];
+  const extraOn = [...planState.extraEmps];
+  if (skippedAll.length || extraOn.length) {
+    alerts.push(`<div class="pl-alert"><div>${skippedAll.length ? `В графике, но мало действий отдела — не в ёмкости: ${skippedAll.map(n => toggleBtn(n, '+')).join(' ')}` : ''}${extraOn.length ? ` Учтены вручную: ${extraOn.map(n => toggleBtn(n, '−')).join(' ')}` : ''}</div></div>`);
+  }
+  box.innerHTML = alerts.join('');
 
-  mkChart('pw-chart', {
-    type: 'bar',
-    data: {
-      labels: days.map(d => planDay(d.date)),
-      datasets: [
-        { label: 'Нагрузка дня, ч', data: days.map(d => planR1(d.demand / 60)), backgroundColor: 'rgba(107,147,196,.75)' },
-        { label: 'Ёмкость смен, ч', data: sim.map(s => planR1(s.cap / 60)), backgroundColor: 'rgba(77,179,132,.7)' },
-        { label: 'Хвост на конец дня, ч', data: sim.map(s => planR1(s.left / 60)), type: 'line', borderColor: '#C96A5E', backgroundColor: '#C96A5E', tension: .3 },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, beginAtZero: true } },
-    },
-  });
-
-  // ожидаемые поставки недели
-  const info = document.getElementById('pw-supply-info');
+  // ожидаемые поставки недели — свёрнуто
   const card = document.getElementById('pw-supply-card');
   if (w.supply.length) {
     const unk = w.supply.filter(r => !r.group_name || !m.groups.has(r.group_name));
-    info.innerHTML = `Ожидаемых устройств в списке: <b>${w.supply.reduce((s, r) => s + +r.qty, 0)}</b> (${w.supply.length} строк)${unk.length ? ` · без нормы: ${unk.length} строк — считаются по среднему отдела (${planR1(m.overallAvg)} мин)` : ''}`;
+    document.getElementById('pw-supply-info').innerHTML = `Список поставок: <b>${w.supply.reduce((s, r) => s + +r.qty, 0)}</b> устр.${unk.length ? ` · без нормы ${unk.length}` : ''}`;
     document.getElementById('pw-supply-tbody').innerHTML = w.supply.map(r => `<tr>
       <td>${planDay(r.expected_date)}</td><td>${esc(r.raw_name || '')}</td>
       <td>${r.group_name ? esc(r.group_name) : '<span style="color:var(--warn-text)">не распознано</span>'}</td>
-      <td class="num">${r.qty}</td><td>${esc(r.waybill || '')}</td><td>${esc(r.note || '')}</td></tr>`).join('');
+      <td class="num">${r.qty}</td><td>${esc(r.waybill || '')}</td></tr>`).join('');
     card.style.display = '';
   } else {
-    info.textContent = 'Список ожидаемых устройств на эту неделю не загружен — неделя считается по статистике поступления';
     card.style.display = 'none';
   }
 }
@@ -8830,35 +8973,29 @@ async function saveStatusMap(sel) {
     const { error } = await sb.from('app_settings').upsert({ key: 'fm_status_task', value: map, updated_at: new Date().toISOString() }, { onConflict: 'key' });
     if (error) throw new Error(error.message);
     planState.statusMap = map;
-    renderPlanWeek();
+    planState.shiftInputsFor = null;
+    sel.disabled = false;
+    if (planState.week) renderPlanWeek();
+    renderPlanSources();
   } catch (e) {
     showToast('Ошибка сохранения: ' + esc(e.message), 'error');
     sel.disabled = false;
   }
 }
 
-async function importQueueFile(input) {
-  const file = input.files && input.files[0];
-  input.value = '';
-  if (!file || !planState.loaded) return;
-  try {
-    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
-    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
-    const { items, fm } = parseQueueGrid(grid);
-    if (!items.length) throw new Error('В файле нет строк с техникой');
-    await loadStatusMap();
-    // момент выгрузки — время изменения файла, его можно поправить в поле «Выгрузка на»
-    planState.queue = { snap: planLocalDT(new Date(file.lastModified || Date.now())), items, file: file.name, fm };
-    planState.shiftInputsFor = null;
-    saveQueueLocal();
-    document.getElementById('pw-start').value = planMonday(planState.queue.snap.slice(0, 10));
-    const unk = items.filter(it => !it.group).length;
-    showToast(`Техника в работе: ${items.length}${fm ? ` (FileMaker, на диагностике ${planQueueDiag().length})` : ''}${unk ? `, не распознано: ${unk}` : ''}`);
-    await loadPlanWeek();
-  } catch (e) {
-    console.error('importQueueFile:', e);
-    showToast('Ошибка импорта: ' + e.message, 'error');
-  }
+async function importQueueGrid(grid, file) {
+  const { items, fm } = parseQueueGrid(grid);
+  if (!items.length) throw new Error('в файле нет строк с техникой');
+  // момент выгрузки — из имени файла скрипта (xfix_queue_ГГГГММДД_ЧЧММ), иначе время изменения файла
+  const m = String(file.name).match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})/);
+  const snap = m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}` : planLocalDT(new Date(file.lastModified || Date.now()));
+  planState.queue = { snap, items, file: file.name, fm };
+  planState.shiftInputsFor = null;
+  saveQueueLocal();
+  document.getElementById('pw-start').value = planMonday(snap.slice(0, 10));
+  planState.week = null;
+  showToast(`Очередь: ${items.length} устр.${fm ? `, на диагностике ${planQueueDiag().length}` : ''}`);
+  loadPlanning();
 }
 function onQueueSnapChange() {
   const v = document.getElementById('pw-snap').value;
@@ -8866,80 +9003,120 @@ function onQueueSnapChange() {
   planState.queue.snap = v;
   planState.shiftInputsFor = null;
   saveQueueLocal();
-  renderPlanWeek();
+  loadPlanning();
 }
 function clearQueue() {
+  if (!planState.queue || !confirm('Убрать загруженную очередь FileMaker из расчёта?')) return;
   planState.queue = null;
   planState.shiftInputsFor = null;
   saveQueueLocal();
-  renderPlanWeek();
+  loadPlanning();
 }
+// Неделя: строка про очередь на начало недели
 function renderQueueInfo(initQueue) {
-  const q = planState.queue, m = planState.model;
+  const q = planState.queue;
   const info = document.getElementById('pw-queue-info');
-  const snap = document.getElementById('pw-snap');
-  const backlog = document.getElementById('pw-backlog');
-  const card = document.getElementById('pw-queue-card');
-  const stCard = document.getElementById('pw-status-card');
-  backlog.disabled = !!(q && q.items.length);
+  const backlog = +document.getElementById('pw-backlog').value || 0;
   if (!q || !q.items.length) {
-    info.textContent = 'Техника в работе не загружена — очередь на начало недели берётся из поля «Хвост на начало»';
-    snap.value = ''; snap.disabled = true; card.style.display = 'none'; stCard.style.display = 'none';
+    info.innerHTML = backlog ? `Очередь на начало: <b>${backlog}</b> устр. из настроек` : 'Очередь FileMaker не загружена — считаем только поступление';
     return;
   }
-  snap.disabled = false;
-  if (snap.value !== q.snap) snap.value = q.snap;
-  const diag = planQueueDiag();
   const start = planState.week.start;
-  const dueLabel = due => due < 0 ? 'уже истёк' : due > 6 ? 'после недели' : planDay(planAddDays(start, due));
-  const mins = initQueue.reduce((a, x) => a + x.min, 0);
-  // истёкшие сроки — одной строкой, остальные по дням
-  const dueMap = new Map();
-  [...initQueue].sort((a, b) => a.due - b.due).forEach(x => {
-    const k = dueLabel(x.due);
-    dueMap.set(k, (dueMap.get(k) || 0) + x.dev);
+  const dev = initQueue.reduce((a, x) => a + x.dev, 0);
+  const late = initQueue.filter(x => x.due < 0).reduce((a, x) => a + x.dev, 0);
+  const inWeek = initQueue.filter(x => x.due >= 0 && x.due <= 6).reduce((a, x) => a + x.dev, 0);
+  info.innerHTML = `Очередь ${planDay(q.snap.slice(0, 10))}: <b>${Math.round(dev)}</b> на диагностике${late ? `, срок истёк у <b>${Math.round(late)}</b>` : ''}${inWeek ? `, истекает на неделе у ${Math.round(inWeek)}` : ''}`;
+  void start;
+}
+
+/* ─── Очередь: что лежит в FileMaker ───────────────────────────────────── */
+function renderPlanQueue() {
+  const q = planState.queue, m = planState.model;
+  const kpi = document.getElementById('pq-kpi'), meta = document.getElementById('pq-meta');
+  const snapEl = document.getElementById('pw-snap');
+  const empty = '<tr><td colspan="5" class="pl-empty">Загрузите выгрузку FileMaker кнопкой «Загрузить файл»</td></tr>';
+  if (!q || !q.items.length) {
+    meta.textContent = 'Очередь не загружена';
+    snapEl.value = ''; snapEl.disabled = true;
+    kpi.innerHTML = '';
+    ['pq-tasks', 'pw-queue-tbody', 'pq-urgent'].forEach(id => { document.getElementById(id).innerHTML = empty; });
+    return;
+  }
+  snapEl.disabled = false;
+  if (snapEl.value !== q.snap) snapEl.value = q.snap;
+  const snapT = new Date(q.snap), dayEnd = new Date(q.snap.slice(0, 10) + 'T23:59:59');
+  meta.innerHTML = `<b>${q.items.length}</b> устр. в «${esc(q.file || 'выгрузке')}»`;
+  const rows = q.items.map(it => ({ it, task: queueTask(it), due: queueDue(it, q.snap) }));
+  const unitMin = t => t === 'diag' ? null : (planState.tasks ? shiftUnitMin(t) : 0);
+  const byTask = new Map();
+  rows.filter(r => r.task).forEach(r => {
+    const x = byTask.get(r.task) || { n: 0, today: 0, late: 0, min: 0 };
+    x.n++;
+    if (r.due && r.due < snapT) x.late++; else if (r.due && r.due <= dayEnd) x.today++;
+    x.min += r.task === 'diag' ? m.normFor(r.it.group) : unitMin(r.task) || 0;
+    byTask.set(r.task, x);
   });
-  const byDue = [...dueMap].map(([k, n]) => `${k} — ${Math.round(n)}`).join(' · ');
-  const unk = diag.filter(it => !it.group || !m.groups.has(it.group)).length;
-  info.innerHTML = `${q.fm ? `Выгрузка FileMaker: <b>${q.items.length}</b> устр., на диагностике <b>${diag.length}</b>` : `В работе <b>${q.items.length}</b> устр.`} (${planR1(mins / 60)} ч по нормам)${q.file ? ` из «${esc(q.file)}»` : ''}. Срок в статусе истекает: ${byDue || '—'}${unk ? ` · без нормы: ${unk} — по среднему отдела` : ''}`;
+  const get = t => byTask.get(t) || { n: 0, today: 0, late: 0, min: 0 };
+  const diag = get('diag'), issue = get('issue'), okk = get('okk');
+  const express = rows.filter(r => r.task && r.it.express).length;
+  const tkAll = q.items.filter(it => /выдач/i.test(it.status)).length;
+  kpi.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">На диагностике</div><div class="kpi-value">${diag.n}</div><div class="kpi-delta ${diag.late ? 'down' : 'neutral'}">${diag.late ? `срок истёк у ${diag.late}` : 'в срок'}${diag.today ? ` · сегодня ${diag.today}` : ''}</div></div>
+    <div class="kpi-card"><div class="kpi-label">К выдаче через ТК</div><div class="kpi-value">${issue.n}</div><div class="kpi-delta neutral">из ${tkAll} готовых</div></div>
+    <div class="kpi-card"><div class="kpi-label">Проверка ОКК</div><div class="kpi-value">${okk.n}</div><div class="kpi-delta ${okk.late ? 'down' : 'neutral'}">${okk.late ? `срок истёк у ${okk.late}` : 'в срок'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Экспресс</div><div class="kpi-value">${express}</div><div class="kpi-delta neutral">в задачах отдела</div></div>`;
+
+  document.getElementById('pq-tasks').innerHTML = byTask.size ? Object.keys(QUEUE_TASK_NAMES).filter(t => byTask.has(t)).map(t => {
+    const x = byTask.get(t);
+    return `<tr><td>${esc(QUEUE_TASK_NAMES[t])}</td><td class="num">${x.n}</td><td class="num">${x.today || '—'}</td>
+      <td class="num">${x.late ? `<span style="color:var(--danger)">${x.late}</span>` : '—'}</td><td class="num">${x.min ? planR1(x.min / 60) : '—'}</td></tr>`;
+  }).join('') : '<tr><td colspan="5" class="pl-empty">Задач отдела в очереди нет</td></tr>';
+
   const groups = new Map();
-  diag.forEach(it => {
-    const k = it.group || 'не распознано';
+  rows.filter(r => r.task === 'diag').forEach(r => {
+    const k = r.it.group || 'не распознано';
     const g = groups.get(k) || { n: 0, minLeft: Infinity };
-    const due = queueDue(it, q.snap);
-    g.n++; if (due) g.minLeft = Math.min(g.minLeft, (due - new Date(q.snap)) / 36e5);
+    g.n++; if (r.due) g.minLeft = Math.min(g.minLeft, (r.due - snapT) / 36e5);
     groups.set(k, g);
   });
-  document.getElementById('pw-queue-tbody').innerHTML = [...groups].sort((a, b) => b[1].n - a[1].n).map(([g, x]) => `<tr>
+  document.getElementById('pw-queue-tbody').innerHTML = groups.size ? [...groups].sort((a, b) => b[1].n - a[1].n).map(([g, x]) => `<tr>
     <td>${g === 'не распознано' ? `<span style="color:var(--warn-text)">${g}</span>` : esc(g)}</td><td class="num">${x.n}</td>
-    <td class="num">${planR1(m.normFor(g === 'не распознано' ? null : g))}</td>
-    <td class="num">${isFinite(x.minLeft) ? planR1(x.minLeft) : '—'}</td></tr>`).join('');
-  card.style.display = groups.size ? '' : 'none';
+    <td class="num">${Math.round(m.normFor(g === 'не распознано' ? null : g))}</td>
+    <td class="num">${isFinite(x.minLeft) ? (x.minLeft < 0 ? `<span style="color:var(--danger)">истёк</span>` : Math.round(x.minLeft)) : '—'}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="pl-empty">На диагностике пусто</td></tr>';
 
-  // статусы выгрузки FileMaker и их задачи
-  if (!q.fm) { stCard.style.display = 'none'; return; }
+  const urgent = rows.filter(r => r.task && r.due && r.due <= dayEnd).sort((a, b) => b.it.express - a.it.express || a.due - b.due);
+  const dt = d => `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  document.getElementById('pq-urgent').innerHTML = urgent.length ? urgent.slice(0, 30).map(r => `<tr>
+      <td style="white-space:nowrap;${r.due < snapT ? 'color:var(--danger)' : ''}">${dt(r.due)}</td>
+      <td>${esc(QUEUE_TASK_NAMES[r.task] || r.task)}${r.it.express ? ' <span class="zone-badge zone-elevated">экспресс</span>' : ''}</td>
+      <td>${esc(r.it.name || '—')}<span class="pl-sub-txt">${esc(r.it.sid || r.it.id || '')}</span></td>
+      <td>${esc(r.it.status)}</td><td>${esc(r.it.resp || '—')}</td></tr>`).join('')
+    + (urgent.length > 30 ? `<tr><td colspan="5" class="pl-empty">и ещё ${urgent.length - 30}</td></tr>` : '')
+    : '<tr><td colspan="5" class="pl-empty">Срочного нет</td></tr>';
+}
+
+/* Настройки: статусы FileMaker → задача отдела */
+function renderStatusMap() {
+  const q = planState.queue;
+  const tbody = document.getElementById('pw-status-tbody');
+  if (!q || !q.fm || !q.items.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="pl-empty">Появятся после загрузки выгрузки FileMaker</td></tr>';
+    return;
+  }
   const types = (planState.tasks && planState.tasks.types) || [];
   const taskName = c => (types.find(x => x.code === c) || {}).name || QUEUE_TASK_NAMES[c] || c;
-  const TASKS = ['diag', 'post_asc', 'accessory_order', 'asc_prep', 'asc_receive', 'okk', 'issue', 'intake'];
   const byStatus = new Map();
-  q.items.forEach(it => {
-    const x = byStatus.get(it.status) || { n: 0, task: 0, late: 0 };
-    x.n++; if (queueTask(it)) x.task++;
-    const due = queueDue(it, q.snap);
-    if (due && due < new Date(q.snap)) x.late++;
-    byStatus.set(it.status, x);
-  });
+  q.items.forEach(it => byStatus.set(it.status, (byStatus.get(it.status) || 0) + 1));
   const map = planState.statusMap || {};
-  document.getElementById('pw-status-tbody').innerHTML = [...byStatus].sort((a, b) => b[1].n - a[1].n).map(([st, x]) => {
+  tbody.innerHTML = [...byStatus].sort((a, b) => b[1] - a[1]).map(([st, n]) => {
     const cur = st in map ? map[st] : fmStatusDefault(st);
-    return `<tr><td>${esc(st)}</td><td class="num">${x.n}</td><td class="num">${x.task > 0 && x.task < x.n ? `${x.task}` : '—'}</td>
-      <td class="num">${x.late ? `<span style="color:var(--danger)">${x.late}</span>` : '—'}</td>
-      <td><select class="settings-input" style="min-height:32px;padding:4px 8px;width:auto" data-status="${esc(st)}" onchange="saveStatusMap(this)">
+    return `<tr><td>${esc(st)}</td><td class="num">${n}</td>
+      <td><select class="pl-input" data-status="${esc(st)}" onchange="saveStatusMap(this)">
         <option value=""${cur ? '' : ' selected'}>ждём — не задача отдела</option>
-        ${TASKS.map(c => `<option value="${c}"${cur === c ? ' selected' : ''}>${esc(taskName(c))}</option>`).join('')}
-      </select>${st in map ? '' : ' <span style="font-size:12px;color:var(--ink-muted)">по умолчанию</span>'}</td></tr>`;
+        ${Object.keys(QUEUE_TASK_NAMES).map(c => `<option value="${c}"${cur === c ? ' selected' : ''}>${esc(taskName(c))}</option>`).join('')}
+      </select></td></tr>`;
   }).join('');
-  stCard.style.display = '';
 }
 
 function togglePlanExtra(name) {
@@ -8999,26 +9176,16 @@ function parseSupplyGrid(grid) {
   }
   throw new Error('Не найдены колонки «дата» и «устройство» — скачайте шаблон');
 }
-async function importSupplyFile(input) {
-  const file = input.files && input.files[0];
-  input.value = '';
-  if (!file || !planState.loaded) return;
-  try {
-    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
-    const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
-    const rows = parseSupplyGrid(grid);
-    if (!rows.length) throw new Error('В файле нет строк с датой и устройством');
-    const dates = rows.map(r => r.expected_date).sort();
-    const n = await rpcWithRetry('import_expected_supply', { p_rows: rows, p_from: dates[0], p_to: dates[dates.length - 1] });
-    const unk = rows.filter(r => !r.group_name).length;
-    showToast(`Загружено строк: ${n}${unk ? `, не распознано устройств: ${unk}` : ''}`);
-    // открыть неделю первой поставки из файла
-    document.getElementById('pw-start').value = planMonday(dates[0]);
-    await loadPlanWeek();
-  } catch (e) {
-    console.error('importSupplyFile:', e);
-    showToast('Ошибка импорта: ' + e.message, 'error');
-  }
+async function importSupplyRows(rows) {
+  if (!rows.length) throw new Error('в файле нет строк с датой и устройством');
+  const dates = rows.map(r => r.expected_date).sort();
+  const n = await rpcWithRetry('import_expected_supply', { p_rows: rows, p_from: dates[0], p_to: dates[dates.length - 1] });
+  const unk = rows.filter(r => !r.group_name).length;
+  showToast(`Поставки: ${n} строк${unk ? `, не распознано устройств: ${unk}` : ''}`);
+  // открыть неделю первой поставки из файла
+  document.getElementById('pw-start').value = planMonday(dates[0]);
+  planState.week = null;
+  switchPlanTab('week');
 }
 async function clearWeekSupply() {
   const w = planState.week;
@@ -9072,43 +9239,18 @@ function renderPlanPeople() {
     <div class="kpi-card"><div class="kpi-label">После смены</div><div class="kpi-value">${planR1(sum(main, 'after') / 60 / sh)} ч</div><div class="kpi-delta neutral">в среднем за смену</div></div>`;
   const spd = s => s == null ? '—' : `<span style="color:${s >= 1.15 ? 'var(--green-text)' : s <= 0.87 ? 'var(--danger)' : 'inherit'}">${s.toFixed(2)}</span>`;
   document.getElementById('pp-tbody').innerHTML = rows.length ? rows.map(r => {
-    const s = r.shifts || 1, q = r.q;
+    const s = r.shifts || 1, q = r.q, load = r.len ? r.norm / r.len : null;
     return `<tr>
-      <td>${esc(r.emp)}</td>
+      <td>${esc(r.emp)}${r.empty ? `<span class="pl-sub-txt">пустых смен: ${r.empty}</span>` : ''}</td>
       <td class="num">${r.shifts}</td>
       <td class="num">${planR1(r.dev / s)}</td>
-      <td class="num">${fmtNum(Math.round(r.rub / s))}</td>
-      <td class="num">${planR1(r.norm / 60 / s)}</td>
-      <td class="num">${r.len ? planPct(r.norm / r.len) : '—'}</td>
+      <td>${load == null ? '—' : `<div class="pl-barcell" style="min-width:120px"><div class="pl-bar"><i class="cap" style="width:100%"></i><i class="use" style="width:${Math.min(100, load * 100)}%"></i></div><b style="min-width:40px">${planPct(load)}</b></div>`}</td>
       <td class="num">${spd(r.speed)}</td>
       <td class="num">${planR1(r.idle / 60 / s)}</td>
       <td class="num">${planR1(r.after / 60 / s)}</td>
-      <td class="num">${r.empty || '—'}</td>
-      <td class="num">${q.base ? planPct(+q.rt / +q.base) : '—'} / ${q.rt ? planPct(+q.rt_found / +q.rt) : '—'}</td>
       <td class="num">${q.base_with_acc ? planPct(+q.base_in_1d / +q.base_with_acc) : '—'}</td>
-      <td class="num">${q.base_repeat ?? '—'}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных за период</td></tr>';
-
-  // динамика: условные часы за смену по неделям
-  const weeks = [];
-  for (let d = planMonday(m.dataFrom); d <= m.dataTo; d = planAddDays(d, 7)) weeks.push(d);
-  mkChart('pp-chart', {
-    type: 'line',
-    data: {
-      labels: weeks.map(d => `${d.slice(8, 10)}.${d.slice(5, 7)}`),
-      datasets: m.mainEmps.map((emp, i) => ({
-        label: planShort(emp),
-        data: weeks.map(wk => {
-          const end = planAddDays(wk, 6);
-          const days = m.byEmp.get(emp).days.filter(r => r.work_date >= wk && r.work_date <= end && +r.n_actions > 0);
-          return days.length ? planR1(days.reduce((s, r) => s + +r.norm_min, 0) / 60 / days.length) : null;
-        }),
-        borderColor: PALETTE[i % PALETTE.length], backgroundColor: PALETTE[i % PALETTE.length], tension: .3, spanGaps: true,
-      })),
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, beginAtZero: true } } },
-  });
+  }).join('') : '<tr><td colspan="8" class="pl-empty">Нет данных за период</td></tr>';
 }
 
 /* ─── Нормы устройств ──────────────────────────────────────────────────── */
@@ -9118,13 +9260,14 @@ function renderPlanNorms() {
   const dept = planState.norms.filter(r => r.employee == null);
   const emps = m.mainEmps;
   const pers = new Map(planState.norms.filter(r => r.employee != null).map(r => [`${r.employee}|${r.group_name}`, r]));
-  document.getElementById('pn-thead').innerHTML = `<tr><th>Устройство</th><th class="num">Обращений</th><th class="num">Медиана, мин</th><th class="num">Среднее, мин</th><th class="num">С РТ</th>${emps.map(e => `<th class="num" title="${esc(e)}">${esc(planShort(e))}</th>`).join('')}</tr>`;
+  const maxMed = Math.max(1, ...dept.map(g => +g.med_min));
+  document.getElementById('pn-thead').innerHTML = `<tr><th>Устройство</th><th class="num">Обращений</th><th>Медиана, мин</th><th class="num">Среднее, мин</th><th class="num">С РТ</th>${emps.map(e => `<th class="num" title="${esc(e)}">${esc(planShort(e))}</th>`).join('')}</tr>`;
   document.getElementById('pn-tbody').innerHTML = dept.length ? dept.map(g => {
     const small = +g.services < PLAN_SMALL_GROUP;
     return `<tr${small ? ' style="opacity:.6"' : ''}>
       <td>${esc(g.group_name || '—')} <span style="color:var(--ink-muted);font-size:12px">${esc(g.vendor || '')}</span></td>
       <td class="num">${g.services}</td>
-      <td class="num"><b>${planR1(+g.med_min)}</b></td>
+      <td><div class="pl-barcell" style="min-width:150px"><div class="pl-bar"><i class="use" style="width:${+g.med_min / maxMed * 100}%"></i></div><b style="min-width:36px">${planR1(+g.med_min)}</b></div></td>
       <td class="num">${planR1(+g.avg_min)}</td>
       <td class="num">${planPct(+g.rt_share)}</td>
       ${emps.map(e => {
@@ -9136,16 +9279,8 @@ function renderPlanNorms() {
       }).join('')}
     </tr>`;
   }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px">Нет данных за период</td></tr>';
-  const big = dept.filter(g => +g.services >= PLAN_SMALL_GROUP);
-  mkChart('pn-chart', {
-    type: 'bar',
-    data: {
-      labels: big.map(g => g.group_name),
-      datasets: [{ label: 'Медиана, мин на обращение', data: big.map(g => +g.med_min), backgroundColor: big.map(g => g.vendor === 'Яндекс' ? 'rgba(209,160,78,.75)' : 'rgba(107,147,196,.75)') }],
-    },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: CC.grid }, beginAtZero: true }, y: { grid: { display: false } } } },
-  });
 }
+
 
 /* ─── Типы задач объединённого отдела (supabase_tasks.sql) ─────────────────
    Нормы, оплата за час и нагрузка по типам задач: диагностика, логистика, ОКК.
@@ -9367,7 +9502,7 @@ async function savePlanTaskMap(sel) {
     if (error) throw new Error(error.message);
     showToast(`Разметка сохранена: ${esc(r.action_type)}`, 'success');
     planState.tasks = null;   // нормы и нагрузка пересчитываются по новой разметке
-    await renderPlanTasks();
+    await (planState.tab === 'settings' ? renderPlanSettings() : renderPlanTasks());
   } catch (e) {
     showToast('Ошибка сохранения: ' + esc(e.message), 'error');
     sel.disabled = false;
@@ -9480,8 +9615,8 @@ async function renderPlanShift() {
     document.getElementById('pd-okk').value = planR1(Math.max(f.okk, qx ? qx.min.okk : 0) / 60);
   }
   renderShiftQueueNote(qx, date);
-  const util = document.getElementById('pd-util');
-  if (!util.value) util.value = Math.round(sm.util * 100);
+  const util = document.getElementById('pw-util');
+  if (!util.value) util.value = Math.round(planState.model.util * 100);
   const perDev = dd.devices ? dd.minutes / dd.devices : sm.perDevice;
   const input = {
     date, ship,
@@ -9549,10 +9684,10 @@ function renderShiftTrips(trips, date, leaving, qx, sm) {
     const daysLeft = Math.round((new Date(next.eve) - new Date(date)) / 864e5) + 1;   // включая сегодня
     const today = appleMin / daysLeft;
     const head = `<b>Выезд ${esc(planTripLabel(next.trip))} ${planDay(next.trip.date_from)}</b>: Apple (iPhone, Mac, iPad, Watch) — обработка и базовая диагностика до конца ${next.eve === date ? 'сегодняшней смены' : planDay(next.eve)}`;
-    if (!qx) lines.push(`${head}. Загрузите выгрузку FileMaker, чтобы посчитать, сколько таких устройств в очереди`);
-    else if (!apple.length) lines.push(`${head}: в очереди таких нет`);
+    if (!qx) lines.push(['', `${head}. Сколько их — покажет выгрузка FileMaker`]);
+    else if (!apple.length) lines.push(['ok', `${head}: в очереди таких нет`]);
     else {
-      lines.push(`${head}: в очереди ${apple.length} устр., ≈ ${planR1(appleMin / 60)} ч по нормам${daysLeft > 1 ? `, сегодня — не меньше ${planR1(today / 60)} ч` : ''}. Диагностам — сначала они`);
+      lines.push(['warn', `${head}: в очереди <b>${apple.length}</b> устр., ≈ ${planR1(appleMin / 60)} ч${daysLeft > 1 ? `, сегодня — не меньше ${planR1(today / 60)} ч` : ''}. Диагностам — сначала они`]);
       if (plan && today > plan.diagCap + 1) plan.warn.push(`Apple к выезду ${planDay(next.trip.date_from)}: сегодня нужно ${planR1(today / 60)} ч диагностики, ёмкость ${planR1(plan.diagCap / 60)} ч — не успеваем, часть уедет только через неделю`);
     }
   }
@@ -9562,10 +9697,9 @@ function renderShiftTrips(trips, date, leaving, qx, sm) {
     const fromQueue = qx && q ? q.items.filter(it => queueTask(it) === 'asc_prep'
       && keys.includes(String(it.outsource || '').trim().toLowerCase())).length : null;
     const n = fromQueue ? `${fromQueue} устр. в «На отправку» к партнёрам маршрута` : t.devices_count ? `${t.devices_count} устр. по командировке` : 'число техники не указано';
-    lines.push(`<b>Завтра выезд</b> ${esc(planTripLabel(t))}: партию собрать сегодня до конца смены — ${n}`);
+    lines.push(['warn', `<b>Завтра выезд ${esc(planTripLabel(t))}</b>: собрать партию до конца смены — ${n}`]);
   });
-  el.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
-  el.style.display = lines.length ? '' : 'none';
+  el.innerHTML = lines.map(([cls, x]) => `<div class="pl-alert ${cls}"><div>${x}</div></div>`).join('');
 }
 
 function renderShiftQueueNote(qx, date) {
@@ -9573,14 +9707,13 @@ function renderShiftQueueNote(qx, date) {
   const q = planState.queue;
   if (!qx) {
     el.innerHTML = q && q.fm && q.snap.slice(0, 10) > date
-      ? `Выгрузка FileMaker сделана позже выбранной даты — план по прогнозу`
-      : `Очередь FileMaker не загружена — план по прогнозу. Загрузите выгрузку во вкладке «Проверка недели»`;
+      ? 'Выгрузка FileMaker позже этой даты — объём по прогнозу'
+      : 'Объём по прогнозу — загрузите выгрузку FileMaker, чтобы учесть очередь';
     return;
   }
   const parts = Object.entries(QUEUE_TASK_NAMES).filter(([t]) => qx.n[t])
-    .map(([t, name]) => `${name} <b>${qx.n[t]}</b>${qx.urgent[t] ? ` <span style="color:var(--danger)">(срок сегодня ${qx.urgent[t]})</span>` : ''}`);
-  el.innerHTML = `Очередь FileMaker на ${planDay(qx.snap.slice(0, 10))} ${qx.snap.slice(11, 16)}: ${parts.join(' · ') || 'задач нет'}`
-    + `${qx.express ? ` · экспресс <b>${qx.express}</b>` : ''}${qx.late ? ` · <span style="color:var(--danger)">срок в статусе уже истёк: ${qx.late}</span>` : ''}`;
+    .map(([t, name]) => `${name.toLowerCase()} <b>${qx.n[t]}</b>${qx.urgent[t] ? ` <span style="color:var(--danger)">(${qx.urgent[t]} к сроку)</span>` : ''}`);
+  el.innerHTML = `В очереди: ${parts.join(' · ') || 'задач нет'}${qx.express ? ` · экспресс <b>${qx.express}</b>` : ''}`;
 }
 
 function onShiftDateChange() {
@@ -9661,51 +9794,64 @@ function buildShiftPlan(sm, sched, input) {
 function renderShiftPlan(sm, plan, input) {
   const { people } = plan;
   const bal = plan.diagCap - plan.diagNeed;
-  const nRole = role => people.filter(p => p.segs.some(x => x.role === role)).length;
+  const okkWho = people.filter(p => p.segs.some(x => x.role === 'okk')).map(p => esc(planShort(p.emp))).join(', ');
+  const logWho = people.filter(p => p.segs.some(x => x.role === 'log')).length;
   document.getElementById('pd-kpi').innerHTML = people.length ? `
-    <div class="kpi-card"><div class="kpi-label">В смене</div><div class="kpi-value">${people.length}</div><div class="kpi-delta neutral">${planDay(input.date)}${input.ship ? ' · отправки к 15:00' : ''}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Диагностика</div><div class="kpi-value">${planR1(plan.diagNeed / 60)} ч</div><div class="kpi-delta ${bal < -30 ? 'down' : bal > 120 ? 'up' : 'neutral'}">${bal < 0 ? `не хватает ${planR1(-bal / 60)} ч` : `ёмкость ${planR1(plan.diagCap / 60)} ч, резерв ${planR1(bal / 60)} ч`}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Логистика</div><div class="kpi-value">${planR1(input.log / 60)} ч</div><div class="kpi-delta ${plan.logLeft > 1 ? 'down' : 'neutral'}">${nRole('log')} сотр.${input.ship ? `, выдача к 15:00 ≈ ${planR1(input.issue / 60)} ч` : ''}${input.tripPrep ? `, партия в АСЦ ≈ ${planR1(input.tripPrep / 60)} ч` : ''}</div></div>
-    <div class="kpi-card"><div class="kpi-label">ОКК</div><div class="kpi-value">${planR1(input.okk / 60)} ч</div><div class="kpi-delta ${plan.okkLeft > 1 ? 'down' : 'neutral'}">${people.filter(p => p.segs.some(x => x.role === 'okk')).map(p => esc(planShort(p.emp))).join(', ') || 'некому'}</div></div>`
-    : '<div class="card" style="grid-column:1/-1;color:var(--text-muted)">На эту дату в графике нет смен команды — загрузите график (Shifton) или выберите другую дату</div>';
+    <div class="kpi-card"><div class="kpi-label">В смене</div><div class="kpi-value">${people.length}</div><div class="kpi-delta neutral">${input.ship ? 'отправки клиентам к 15:00' : PLAN_DOW[planDow(input.date)]}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Диагностика</div><div class="kpi-value ${bal < -30 ? 'danger' : ''}">${planR1(plan.diagNeed / 60)} / ${planR1(plan.diagCap / 60)} ч</div><div class="kpi-delta ${bal < -30 ? 'down' : 'neutral'}">${bal < 0 ? `не хватает ${planR1(-bal / 60)} ч` : `резерв ${planR1(bal / 60)} ч`}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Логистика</div><div class="kpi-value">${planR1(input.log / 60)} ч</div><div class="kpi-delta ${plan.logLeft > 1 ? 'down' : 'neutral'}">${logWho} сотр.${input.ship && input.issue ? ` · выдача ${planR1(input.issue / 60)} ч к 15:00` : ''}</div></div>
+    <div class="kpi-card"><div class="kpi-label">ОКК</div><div class="kpi-value">${planR1(input.okk / 60)} ч</div><div class="kpi-delta ${plan.okkLeft > 1 ? 'down' : 'neutral'}">${okkWho || 'некому'}</div></div>`
+    : '<div class="pl-alert warn" style="grid-column:1/-1"><div>На эту дату в графике нет смен команды — загрузите график Shifton или выберите другую дату</div></div>';
 
-  const adv = [...plan.warn];
+  // предупреждения: сначала проблемы, затем резерв
+  const adv = plan.warn.map(x => ['bad', esc(x)]);
   if (people.length && bal < -30) {
-    adv.push(`Диагностика: не хватает ${planR1(-bal / 60)} ч — около ${Math.round(-bal / sm.perDevice)} устр. перейдут на завтра. Если это срывает срок — вкладка «Проверка недели» подскажет, кого вызвать`);
+    adv.push(['bad', `<b>Диагностика: не хватает ${planR1(-bal / 60)} ч</b> — около ${Math.round(-bal / sm.perDevice)} устр. перейдут на завтра. Кого вызвать — во вкладке «Неделя»`]);
   } else if (people.length && bal > 120) {
-    adv.push(`Резерв ${planR1(bal / 60)} ч: можно взять задачи следующего дня или сократить смену`);
+    adv.push(['ok', `Резерв ${planR1(bal / 60)} ч: можно взять задачи следующего дня или сократить смену`]);
   }
-  const advEl = document.getElementById('pd-advice');
-  advEl.style.display = adv.length ? '' : 'none';
-  advEl.innerHTML = adv.map(x => `<div style="font-size:14px;margin:4px 0">${esc(x)}</div>`).join('');
+  document.getElementById('pd-advice').innerHTML = adv.map(([cls, x]) => `<div class="pl-alert ${cls}"><div>${x}</div></div>`).join('');
 
-  const t0 = Math.min(...people.map(p => p.start)), t1 = Math.max(...people.map(p => p.end));
-  const span = Math.max(1, t1 - t0);
-  document.getElementById('pd-tbody').innerHTML = people.map(p => {
-    const bar = p.segs.map(x => `<div title="${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}" style="position:absolute;top:0;bottom:0;left:${(x.from - t0) / span * 100}%;width:${(x.to - x.from) / span * 100}%;background:${planRoleColor(x.role)};${x.role ? '' : 'opacity:.35;'}border-radius:3px"></div>`).join('');
-    const txt = p.segs.map(x => `${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}`).join(' · ');
-    return `<tr>
-      <td>${esc(p.emp)}</td>
-      <td style="white-space:nowrap">${planHM(p.start)}–${planHM(p.end)}</td>
-      <td><div style="position:relative;height:14px;margin-bottom:4px">${bar}</div><div style="font-size:12px;color:var(--ink-muted)">${txt}</div></td>
-      <td class="num">${planR1(p.work / 60)}</td>
-      <td class="num">${planR1(p.cap / 60)}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">Нет смен</td></tr>';
-  document.getElementById('pd-legend').innerHTML = PLAN_ROLES.map(r => `<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${r.color}"></span>${r.name}</span>`).join('');
+  // роли по времени: шкала по часам, отрезок подписан, если хватает места (от 1,5 ч)
+  const gantt = document.getElementById('pd-gantt');
+  if (!people.length) { gantt.innerHTML = ''; document.getElementById('pd-legend').innerHTML = ''; return; }
+  const t0 = Math.floor(Math.min(...people.map(p => p.start)) / 60) * 60;
+  const t1 = Math.ceil(Math.max(...people.map(p => p.end)) / 60) * 60;
+  const span = Math.max(60, t1 - t0), hours = span / 60;
+  const pos = t => (t - t0) / span * 100;
+  const step = hours > 12 ? 2 : 1;
+  const ticks = Array.from({ length: Math.floor(hours / step) + 1 }, (_, i) => t0 + i * step * 60)
+    .map(t => `<span style="left:${pos(t)}%">${String(t / 60).padStart(2, '0')}</span>`).join('');
+  const segColor = c => c ? `background:color-mix(in srgb, ${planRoleColor(c)} 26%, transparent);border-left-color:${planRoleColor(c)}` : 'background:transparent;border-left-color:var(--hairline);color:var(--ink-muted)';
+  gantt.innerHTML = `<div></div><div class="pl-gh">${ticks}</div><div class="pl-gh" style="text-align:right"><span style="right:0;transform:none" title="Работа по нормам / ёмкость смены, часов">загрузка, ч</span></div>`
+    + people.map(p => {
+      const segs = p.segs.map(x => {
+        const len = x.to - x.from;
+        const label = len >= 180 ? `${planRoleName(x.role)} · ${planHM(x.from)}–${planHM(x.to)}` : len >= 75 ? planRoleName(x.role) : '';
+        return `<div class="pl-bar-seg" style="left:${pos(x.from)}%;width:${pos(x.to) - pos(x.from)}%;${segColor(x.role)}" title="${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}">${label}</div>`;
+      }).join('');
+      const fill = p.cap ? Math.min(100, p.work / p.cap * 100) : 0;
+      return `<div class="pl-gname" title="${esc(p.emp)}">${esc(planShort(p.emp))} <span class="pl-meta">${planHM(p.start)}–${planHM(p.end)}</span></div>
+        <div class="pl-track" style="--h:${hours}">${segs}</div>
+        <div class="pl-load">${planR1(p.work / 60)} / ${planR1(p.cap / 60)}<div class="pl-meter"><i style="width:${fill}%"></i></div></div>`;
+    }).join('');
+  document.getElementById('pd-legend').innerHTML = PLAN_ROLES.map(r => `<span><i style="background:${r.color}"></i>${r.name}</span>`).join('');
+}
 
-  // допуски: команда + все, у кого есть строки допусков
+/* Настройки: допуски к ролям */
+function renderPlanAccess(sm) {
   const emps = [...new Set([...sm.base.team.map(e => e.employee),
     ...[...sm.base.byEmp.keys()].filter(e => sm.allowed(e, 'okk')),
     ...(planState.access || []).map(r => r.employee)])];
+  const spd = v => `<span style="color:${v >= 1.15 ? 'var(--green-text)' : v <= 0.87 ? 'var(--danger)' : 'inherit'}">${v.toFixed(2)}</span>`;
   document.getElementById('pd-access').innerHTML = emps.map(emp => `<tr>
       <td>${esc(emp)}</td>
-      <td class="num">${sm.speed(emp, 'diag').toFixed(2)}</td><td class="num">${sm.speed(emp, 'log').toFixed(2)}</td>
+      <td class="num">${spd(sm.speed(emp, 'diag'))}</td><td class="num">${spd(sm.speed(emp, 'log'))}</td>
       ${PLAN_ROLES.map(r => {
         const own = sm.access.has(`${emp}|${r.code}`);
         return `<td style="text-align:center"><input type="checkbox" data-emp="${esc(emp)}" data-role="${r.code}"${sm.allowed(emp, r.code) ? ' checked' : ''} onchange="saveTaskAccess(this)" title="${own ? 'задано вручную' : 'по умолчанию'}"></td>`;
       }).join('')}
-    </tr>`).join('');
+    </tr>`).join('') || '<tr><td colspan="6" class="pl-empty">Нет сотрудников за период статистики</td></tr>';
 }
 
 async function saveTaskAccess(cb) {
@@ -9715,12 +9861,34 @@ async function saveTaskAccess(cb) {
     const { error } = await sb.from('task_access').upsert(row, { onConflict: 'employee,role' });
     if (error) throw new Error(error.message);
     planState.access = (planState.access || []).filter(r => !(r.employee === row.employee && r.role === row.role)).concat(row);
-    renderPlanShift();
+    cb.disabled = false;
+    cb.title = 'задано вручную';
   } catch (e) {
     cb.checked = !cb.checked;
     cb.disabled = false;
     showToast('Ошибка сохранения: ' + esc(e.message), 'error');
   }
+}
+
+/* ─── Настройки ────────────────────────────────────────────────────────── */
+async function renderPlanSettings() {
+  renderStatusMap();
+  try {
+    if (!planState.tasks) await loadPlanTasks();
+    if (!planState.access) {
+      const r = await sb.from('task_access').select('*');
+      if (r.error) throw new Error(r.error.message);
+      planState.access = r.data || [];
+    }
+  } catch (e) {
+    const msg = `<tr><td colspan="6" class="pl-empty" style="color:var(--xf-red)">Ошибка: ${esc(e.message)}${/task_/i.test(e.message) ? ' — прогоните supabase_tasks.sql' : ''}</td></tr>`;
+    document.getElementById('pd-access').innerHTML = msg;
+    document.getElementById('pt-map').innerHTML = msg;
+    return;
+  }
+  renderPlanAccess(buildShiftModel());
+  renderStatusMap();
+  renderPlanTaskMap();
 }
 
 function copyShiftPlan() {
@@ -9774,11 +9942,6 @@ function renderPlanIntake() {
   });
   const hours = [];
   for (let h = 8; h <= 21; h++) hours.push(h);
-  mkChart('pi-hour', {
-    type: 'bar',
-    data: { labels: hours.map(h => `${h}:00`), datasets: [{ label: 'Доля приёма', data: hours.map(h => Math.round(m.hourly[h] / hourTot * 100)), backgroundColor: 'rgba(107,147,196,.75)' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y}%` } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: CC.grid }, ticks: { callback: v => v + '%' } } } },
-  });
   const dates = [];
   for (let d = m.dataFrom; d <= m.dataTo; d = planAddDays(d, 1)) dates.push(d);
   mkChart('pi-daily', {
