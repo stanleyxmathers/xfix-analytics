@@ -384,6 +384,8 @@ body.presentation .slide-hint { display: none; }
 .report-select:focus { border-color: var(--green-500); box-shadow: var(--shadow-focus); }
 
 .period-picker { position: relative; flex-shrink: 0; }
+/* Планирование живёт своими файлами и датами: отчёт KPI и его период там не нужны */
+body[data-page="planning"] #hdr-upload, body[data-page="planning"] #period-picker { display: none; }
 .period-btn { gap: 8px; padding: 8px 12px 8px 14px; font-weight: 500; max-width: 420px; }
 .period-btn > svg { flex-shrink: 0; color: var(--ink-muted); }
 .period-btn-main { font-weight: 600; white-space: nowrap; }
@@ -1153,7 +1155,7 @@ details[open] > .pl-summary::before { content: '▾'; }
       </div>
       <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Переключить тему" style="padding:0 10px"></button>
       <button class="btn btn-ghost" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" aria-label="Обновить данные" style="padding:0 12px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
-      <button class="btn btn-primary" onclick="openUploadModal()">
+      <button class="btn btn-primary" id="hdr-upload" onclick="openUploadModal()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4M3 13h10"/><path stroke="currentColor" stroke-width="1.5" fill="none" d="M4 5l4-4 4 4M8 1v9M3 13h10"/></svg>
         Загрузить отчёт
       </button>
@@ -3223,6 +3225,7 @@ function showPage(id, el) {
   if (el) el.classList.add('active');
   document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
   STATE.currentPage = id;
+  document.body.dataset.page = id;
   loadPageData(id);
 }
 function loadPageData(id) {
