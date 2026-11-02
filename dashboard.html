@@ -8413,6 +8413,18 @@ function planNextTrip(trips, date) {
   const t = (trips || []).filter(x => x.date_from > date).sort((a, b) => a.date_from < b.date_from ? -1 : 1)[0];
   return t ? { trip: t, eve: planAddDays(t.date_from, -1) } : null;
 }
+/* «Аутсорс партнёр» в FileMaker — код страны (КЗ, РБ…) или название партнёра.
+   Ключи маршрута: коды стран маршрута и названия партнёров, в нижнем регистре. */
+const PLAN_COUNTRY_CODES = { 'казахстан': 'кз', 'беларусь': 'рб', 'белоруссия': 'рб', 'узбекистан': 'уз', 'грузия': 'гр', 'армения': 'ам', 'кыргызстан': 'кг', 'киргизия': 'кг' };
+function planTripPartnerKeys(t) {
+  const keys = [];
+  (Array.isArray(t.routes) ? t.routes : []).forEach(r => {
+    const c = PLAN_COUNTRY_CODES[String(r.country || '').trim().toLowerCase()];
+    if (c) keys.push(c);
+    if (r.partner) keys.push(String(r.partner).trim().toLowerCase());
+  });
+  return keys;
+}
 function planTripLabel(t) {
   const route = (Array.isArray(t.routes) ? t.routes : []).map(r => [r.city || r.country, r.partner].filter(Boolean).join(' · ')).join(' → ');
   return `${t.trip_number ? `№${t.trip_number} ` : ''}${route || t.title || ''}`.trim();
@@ -8721,9 +8733,11 @@ function parseFmQueue(grid, h) {
     const r = grid[i] || [];
     const status = str(r, 'status');
     if (!status) continue;
-    const name = str(r, 'name') || str(r, 'type');
+    // «Тип устройства» в FileMaker — список (AirPods¶Наушники), у Яндекса часто пуст
+    const types = String(get(r, 'type') ?? '').split(/[\r\n]+/).map(x => x.trim()).filter(Boolean);
+    const name = str(r, 'name') || types[0] || '';
     items.push({
-      name, group: matchSupplyGroup(str(r, 'type')) || matchSupplyGroup(name),
+      name, group: types.map(matchSupplyGroup).find(Boolean) || matchSupplyGroup(name),
       acc: xlsxDateTimeToISO(get(r, 'acc')),
       deadline: xlsxDateTimeToISO(get(r, 'deadline')),
       leftH: queueLeftHours(get(r, 'left')),
@@ -8732,8 +8746,10 @@ function parseFmQueue(grid, h) {
       vendor: str(r, 'vendor'), type: str(r, 'type'), repair: str(r, 'repair'),
       express: flag(get(r, 'express')), expressDate: xlsxDateToISO(get(r, 'expressDate')),
       priority: flag(get(r, 'priority')), clientDue: xlsxDateToISO(get(r, 'clientDue')),
-      // выдача через ТК; null — колонок доставки нет в выгрузке, считаем всё выдачей
-      tk: col.delivOut < 0 && col.delivType < 0 ? null : !!str(r, 'delivOut') || /достав|тк|сдэк|сдек/i.test(str(r, 'delivType')),
+      // «Доставка тип по направлению»: «Обе» — отдаём через ТК, «К нам» / «Нет» — клиент
+      // забирает сам; пусто — неизвестно, считаем выдачей («Связь доставка Выдать» —
+      // всегда текст «выдать», признаком не служит)
+      tk: /^обе$/i.test(str(r, 'delivType')) ? true : /^(к нам|нет)$/i.test(str(r, 'delivType')) ? false : null,
       outsource: str(r, 'outsource'), resp: str(r, 'resp'),
     });
   }
@@ -8877,7 +8893,13 @@ function renderQueueInfo(initQueue) {
   const start = planState.week.start;
   const dueLabel = due => due < 0 ? 'уже истёк' : due > 6 ? 'после недели' : planDay(planAddDays(start, due));
   const mins = initQueue.reduce((a, x) => a + x.min, 0);
-  const byDue = [...initQueue].sort((a, b) => a.due - b.due).map(x => `${dueLabel(x.due)} — ${x.dev}`).join(' · ');
+  // истёкшие сроки — одной строкой, остальные по дням
+  const dueMap = new Map();
+  [...initQueue].sort((a, b) => a.due - b.due).forEach(x => {
+    const k = dueLabel(x.due);
+    dueMap.set(k, (dueMap.get(k) || 0) + x.dev);
+  });
+  const byDue = [...dueMap].map(([k, n]) => `${k} — ${Math.round(n)}`).join(' · ');
   const unk = diag.filter(it => !it.group || !m.groups.has(it.group)).length;
   info.innerHTML = `${q.fm ? `Выгрузка FileMaker: <b>${q.items.length}</b> устр., на диагностике <b>${diag.length}</b>` : `В работе <b>${q.items.length}</b> устр.`} (${planR1(mins / 60)} ч по нормам)${q.file ? ` из «${esc(q.file)}»` : ''}. Срок в статусе истекает: ${byDue || '—'}${unk ? ` · без нормы: ${unk} — по среднему отдела` : ''}`;
   const groups = new Map();
@@ -8936,8 +8958,9 @@ const SUPPLY_HEADERS = {
 /* Группа устройства по названию из файла: сначала точное имя группы из статистики,
    затем ключевые слова */
 const SUPPLY_KEYWORDS = [
+  [/модул|лампоч|розетк|датчик|выключател/i, 'Яндекс Аксессуары'],
   [/станц|алиса|station/i, 'Яндекс.Станция'], [/яндекс.*тв|yandex.*tv|телевиз/i, 'Яндекс ТВ'],
-  [/macbook|макбук/i, 'MacBook'], [/ipad|айпад/i, 'iPad'], [/iphone|айфон/i, 'iPhone'],
+  [/macbook|макбук|^mac$|imac|mac mini|mac studio/i, 'MacBook'], [/ipad|айпад/i, 'iPad'], [/iphone|айфон/i, 'iPhone'],
   [/airpods|эйрподс/i, 'AirPods'], [/watch|часы/i, 'Apple Watch'], [/pencil|стилус/i, 'Apple Pencil'],
   [/дропс|drops|камера|пульт|яндекс/i, 'Яндекс Аксессуары'], [/magic|мышь|клавиатур|earpods|airtag|адаптер|кабель/i, 'Аксессуар'],
 ];
@@ -9535,9 +9558,9 @@ function renderShiftTrips(trips, date, leaving, qx, sm) {
   }
   leaving.forEach(t => {
     // техника на отправку к партнёрам маршрута — из очереди FileMaker по полю «Аутсорс партнёр»
-    const partners = (Array.isArray(t.routes) ? t.routes : []).map(r => String(r.partner || '').toLowerCase()).filter(Boolean);
+    const keys = planTripPartnerKeys(t);
     const fromQueue = qx && q ? q.items.filter(it => queueTask(it) === 'asc_prep'
-      && partners.some(p => String(it.outsource || '').toLowerCase().includes(p))).length : null;
+      && keys.includes(String(it.outsource || '').trim().toLowerCase())).length : null;
     const n = fromQueue ? `${fromQueue} устр. в «На отправку» к партнёрам маршрута` : t.devices_count ? `${t.devices_count} устр. по командировке` : 'число техники не указано';
     lines.push(`<b>Завтра выезд</b> ${esc(planTripLabel(t))}: партию собрать сегодня до конца смены — ${n}`);
   });
