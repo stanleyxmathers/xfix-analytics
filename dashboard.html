@@ -1651,11 +1651,14 @@ body.presentation .slide-hint { display: none; }
           <div class="card" style="overflow-x:auto">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px">
               <div class="card-title" style="margin:0">Разметка действий по типам задач</div>
-              <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" id="pt-map-unmapped" onchange="renderPlanTaskMap()"> только неразмеченные</label>
+              <div style="display:flex;gap:16px;flex-wrap:wrap">
+                <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center"><input type="checkbox" id="pt-map-unmapped" onchange="renderPlanTaskMap()"> только неразмеченные</label>
+                <label style="font-size:13px;color:var(--ink-muted);display:flex;gap:6px;align-items:center" title="Действия, которые делали только сотрудники вне команды (инженеры, сопровождение…), в расчёт не идут"><input type="checkbox" id="pt-map-all" onchange="renderPlanTaskMap()"> и действия вне команды</label>
+              </div>
             </div>
-            <div class="section-sub" style="margin-bottom:8px">Тип задачи задаётся для пары «тип действия + отдел». «По умолчанию» — общая разметка для всех отделов; неразмеченная логистика попадает в «Логистика, не размечено»</div>
+            <div class="section-sub" style="margin-bottom:8px">Тип задачи задаётся для пары «тип действия + отдел». «По умолчанию» — общая разметка для всех отделов; неразмеченная логистика попадает в «Логистика, не размечено». Колонка «Отдел» — отдел типа действия из выгрузки; в расчёт идут только действия сотрудников команды (по умолчанию — отделы Диагносты, Логистика, ОКК; отдел сотрудника — из Настройки → Сотрудники или самый частый в его действиях), и цифры в таблице — по ним</div>
             <table class="data-table" style="min-width:760px">
-              <thead><tr><th>Действие</th><th>Отдел</th><th class="num">Действий</th><th class="num">Сотр.</th><th class="num">₽</th><th>Тип задачи</th></tr></thead>
+              <thead><tr><th>Действие</th><th>Отдел</th><th class="num">Действий команды</th><th class="num">Сотр.</th><th class="num">₽</th><th>Тип задачи</th></tr></thead>
               <tbody id="pt-map"></tbody>
             </table>
           </div>
@@ -9016,7 +9019,7 @@ async function renderPlanTasks() {
   const order = t.types.map(x => x.code).filter(c => agg.has(c) || normTot.has(c));
   const rubHours = order.map(c => agg.get(c)).filter(a => a && a.avg).map(a => a.rub / a.avg * 60);
   const unmapped = t.actionTypes.filter(r => !r.mapped_dept && r.task_type === 'logistics');
-  const unmappedN = unmapped.reduce((s, r) => s + +r.actions, 0);
+  const unmappedN = unmapped.reduce((s, r) => s + +r.team_actions, 0);
 
   kpi.innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Загрузка команды</div><div class="kpi-value">${planPct(totShift ? totLoad / totShift : null)}</div><div class="kpi-delta neutral">нагрузка по нормам ÷ часы смен, ${team.length} сотр.</div></div>
@@ -9092,15 +9095,19 @@ function renderPlanTaskMap() {
   const t = planState.tasks;
   if (!t) return;
   const only = document.getElementById('pt-map-unmapped').checked;
+  const all = document.getElementById('pt-map-all').checked;
   const types = t.types;
-  const rows = t.actionTypes.filter(r => !only || !r.mapped_dept);
+  const rows = t.actionTypes.filter(r => (!only || !r.mapped_dept) && (all || +r.team_actions > 0));
   document.getElementById('pt-map').innerHTML = rows.length ? rows.map(r => {
     const i = t.actionTypes.indexOf(r);
     const own = r.mapped_dept && r.mapped_dept !== '*';   // своя строка разметки для отдела
     const defName = !own && r.task_type ? (types.find(x => x.code === r.task_type) || {}).name || r.task_type : 'не учитывается';
-    return `<tr${r.mapped_dept ? '' : ' style="background:var(--warn-tint)"'}>
+    const style = !+r.team_actions ? ' style="opacity:.55"' : r.mapped_dept ? '' : ' style="background:var(--warn-tint)"';
+    return `<tr${style}>
       <td>${esc(r.action_type)}</td><td>${esc(r.department || '—')}</td>
-      <td class="num">${fmtNum(r.actions)}</td><td class="num">${r.employees}</td><td class="num">${fmtNum(Math.round(+r.rub))}</td>
+      <td class="num" title="Всего ${fmtNum(r.actions)}">${fmtNum(r.team_actions)}</td>
+      <td class="num" title="Всего ${r.employees}">${r.team_employees}</td>
+      <td class="num">${fmtNum(Math.round(+r.team_rub))}</td>
       <td><select class="settings-input" style="min-height:32px;padding:4px 8px;width:auto" data-i="${i}" onchange="savePlanTaskMap(this)">
         <option value=""${own ? '' : ' selected'}>По умолчанию: ${esc(defName)}</option>
         ${types.map(x => `<option value="${esc(x.code)}"${own && r.task_type === x.code ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}

@@ -23,12 +23,14 @@ CREATE TABLE IF NOT EXISTS task_types (
 );
 
 INSERT INTO task_types(code, name, sort_order, lane) VALUES
+  ('intake',          'Приёмка и регистрация', 5, 'dept'),
   ('diag',            'Диагностика',          10, 'dept'),
   ('accessory_order', 'Заказ аксессуара',     20, 'dept'),
   ('asc_prep',        'Подготовка к АСЦ',     30, 'dept'),
   ('post_asc',        'Проверка после ЗАСЦ',  40, 'dept'),
   ('okk',             'Проверка (ОКК)',       50, 'okk'),
   ('issue',           'Выдача',               60, 'dept'),
+  ('parts',           'Запчасти и возвраты',  70, 'dept'),
   ('logistics',       'Логистика, не размечено', 90, 'dept'),
   ('other',           'Прочее',               95, 'dept'),
   ('skip',            'Не задача отдела',     99, 'none')
@@ -68,10 +70,41 @@ CREATE POLICY anon_all ON task_action_map FOR ALL TO anon USING (true) WITH CHEC
 GRANT SELECT ON task_types TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON task_action_map TO anon;
 
+-- Отделы сотрудников, которые входят в объединённый отдел. Отдел сотрудника —
+-- ручная привязка employee_departments, без неё — самый частый отдел его действий.
+-- Колонка «Отдел» выгрузки — отдел типа действия, а не сотрудника: расширенную
+-- диагностику, например, делают и диагносты, и инженеры. Поэтому задачи считаются
+-- только по действиям сотрудников команды. Переопределяется в app_settings:
+-- key = 'task_team_departments', value = ["Диагносты", "Логистика", "ОКК"].
+CREATE OR REPLACE FUNCTION task_team_departments()
+RETURNS TEXT[]
+LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT COALESCE(
+    (SELECT array_agg(x) FROM app_settings s, jsonb_array_elements_text(s.value) x
+     WHERE s.key = 'task_team_departments' AND jsonb_typeof(s.value) = 'array'),
+    ARRAY['Диагносты', 'Логистика', 'ОКК']);
+$$;
+
+-- ВНУТРЕННЕЕ: отдел каждого сотрудника с действиями за диапазон и признак команды
+CREATE OR REPLACE FUNCTION task_team(p_from DATE, p_to DATE)
+RETURNS TABLE(employee TEXT, department TEXT, in_team BOOLEAN)
+LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT e.employee, e.dept, e.dept = ANY(task_team_departments())
+  FROM (
+    SELECT a.employee::text AS employee,
+           COALESCE(MAX(ed.department), mode() WITHIN GROUP (ORDER BY a.department))::text AS dept
+    FROM actions a
+    LEFT JOIN employee_departments ed ON ed.employee = a.employee
+    WHERE a.action_date BETWEEN p_from AND p_to AND a.employee IS NOT NULL
+    GROUP BY a.employee
+  ) e;
+$$;
+
 -- ВНУТРЕННЕЕ: действия за диапазон с типом задачи и интервалом до предыдущего действия.
--- task_type NULL — действие не размечено и не из логистики либо размечено как skip
--- (в расчёт задач не входит, но участвует в интервалах). unit_id — единица задачи: обращение, а для действий
+-- task_type NULL — сотрудник не из команды, действие не размечено и не из логистики
+-- либо размечено как skip (в расчёт задач не входит, но участвует в интервалах). unit_id — единица задачи: обращение, а для действий
 -- без id сервиса — само действие.
+DROP FUNCTION IF EXISTS task_actions(DATE, DATE);
 CREATE OR REPLACE FUNCTION task_actions(p_from DATE, p_to DATE)
 RETURNS TABLE(id BIGINT, employee TEXT, department TEXT, action_date DATE, action_time TIME,
               action_type TEXT, group_name TEXT, vendor TEXT, service_id BIGINT, unit_id BIGINT,
@@ -80,10 +113,13 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.id, a.employee::text, a.department::text, a.action_date, a.action_time, a.action_type::text,
          a.group_name::text, a.vendor::text, a.service_id, COALESCE(a.service_id, -a.id),
          a.price,
-         NULLIF(COALESCE(md.task_type, ma.task_type, CASE WHEN a.department = 'Логистика' THEN 'logistics' END), 'skip'),
+         CASE WHEN tm.in_team THEN
+           NULLIF(COALESCE(md.task_type, ma.task_type, CASE WHEN a.department = 'Логистика' THEN 'logistics' END), 'skip')
+         END,
          EXTRACT(EPOCH FROM a.action_time - LAG(a.action_time) OVER (
            PARTITION BY a.employee, a.action_date ORDER BY a.action_time, a.id)) / 60
   FROM actions a
+  JOIN task_team(p_from, p_to) tm ON tm.employee = a.employee
   LEFT JOIN task_action_map md ON md.action_type = a.action_type AND md.department = a.department
   LEFT JOIN task_action_map ma ON ma.action_type = a.action_type AND ma.department = '*'
   WHERE a.action_date BETWEEN p_from AND p_to
@@ -93,23 +129,27 @@ $$;
 -- ------------------------------------------------------------
 -- Типы действий за период с текущей разметкой — для правки разметки в дашборде.
 -- mapped_dept — по какой строке разметки определён тип ('*' или отдел); NULL — не размечено
--- (у логистики тогда task_type = logistics по умолчанию).
+-- (у логистики тогда task_type = logistics по умолчанию). team_actions / team_employees —
+-- действия сотрудников команды: только они идут в расчёт задач.
 -- ------------------------------------------------------------
 DROP FUNCTION IF EXISTS get_task_action_types(DATE, DATE);
 CREATE OR REPLACE FUNCTION get_task_action_types(p_from DATE, p_to DATE)
 RETURNS TABLE(action_type TEXT, department TEXT, actions BIGINT, employees BIGINT, rub NUMERIC,
-              task_type TEXT, mapped_dept TEXT)
+              task_type TEXT, mapped_dept TEXT, team_actions BIGINT, team_employees BIGINT, team_rub NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
   SELECT a.action_type::text, a.department::text, COUNT(*), COUNT(DISTINCT a.employee),
          SUM(a.price),
          COALESCE(md.task_type, ma.task_type, CASE WHEN a.department = 'Логистика' THEN 'logistics' END),
-         COALESCE(md.department, ma.department)
+         COALESCE(md.department, ma.department),
+         COUNT(*) FILTER (WHERE tm.in_team), COUNT(DISTINCT a.employee) FILTER (WHERE tm.in_team),
+         COALESCE(SUM(a.price) FILTER (WHERE tm.in_team), 0)
   FROM actions a
+  LEFT JOIN task_team(p_from, p_to) tm ON tm.employee = a.employee
   LEFT JOIN task_action_map md ON md.action_type = a.action_type AND md.department = a.department
   LEFT JOIN task_action_map ma ON ma.action_type = a.action_type AND ma.department = '*'
   WHERE a.action_date BETWEEN p_from AND p_to AND a.action_type IS NOT NULL
   GROUP BY 1, 2, 6, 7
-  ORDER BY 3 DESC;
+  ORDER BY 8 DESC, 3 DESC;
 $$;
 
 -- ------------------------------------------------------------
@@ -219,6 +259,8 @@ LANGUAGE sql STABLE SECURITY DEFINER AS $$
   ORDER BY 1, 2, 3;
 $$;
 
+GRANT EXECUTE ON FUNCTION task_team_departments() TO anon;
+GRANT EXECUTE ON FUNCTION task_team(DATE, DATE) TO anon;
 GRANT EXECUTE ON FUNCTION task_actions(DATE, DATE) TO anon;
 GRANT EXECUTE ON FUNCTION get_task_action_types(DATE, DATE) TO anon;
 GRANT EXECUTE ON FUNCTION get_task_norms(DATE, DATE, INT) TO anon;
