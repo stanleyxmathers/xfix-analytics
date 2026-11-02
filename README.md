@@ -17,6 +17,7 @@
 ├── supabase_unified_upload.sql # один отчёт на всё: импорт, KPI из actions, «мой отдел»
 ├── supabase_planning.sql     # планирование: нормы по устройствам, поступление, продуктивность, ожидаемые поставки, план графика
 ├── supabase_tasks.sql        # типы задач объединённого отдела: разметка, нормы, ₽/час, нагрузка, роли и допуски для плана смены
+├── FileMaker_выгрузка_очереди.md # скрипт FileMaker: выгрузка техники в работе в Excel для «Планирования»
 └── supabase/functions/db-health/index.ts   # Edge Function: прокси к Metrics API
 ```
 

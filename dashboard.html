@@ -1531,6 +1531,14 @@ body.presentation .slide-hint { display: none; }
               <tbody id="pw-queue-tbody"></tbody>
             </table>
           </div>
+          <div class="card" id="pw-status-card" style="margin-top:12px;overflow-x:auto;display:none">
+            <div class="card-title">Статусы из FileMaker</div>
+            <div class="section-sub" style="margin-bottom:8px">Какая задача отдела у устройства в каждом статусе. В «Проверку недели» идут устройства с задачей «Диагностика», остальные — в «План смены». «К заказу» — задача отдела только для аксессуаров, «К выдаче» — только для выдачи через ТК (если в выгрузке есть поля доставки)</div>
+            <table class="data-table">
+              <thead><tr><th>Статус</th><th class="num">Устройств</th><th class="num" title="Если меньше общего числа — часть устройств статуса не задача отдела (не аксессуар, самовывоз)">Из них задач</th><th class="num">Срок истёк</th><th>Задача отдела</th></tr></thead>
+              <tbody id="pw-status-tbody"></tbody>
+            </table>
+          </div>
           <div class="kpi-grid" id="pw-kpi" style="margin-top:16px"></div>
           <div class="card" style="margin-bottom:16px">
             <div class="card-title">Нагрузка и ёмкость смен по дням</div>
@@ -1634,6 +1642,7 @@ body.presentation .slide-hint { display: none; }
             <label title="Часы логистики по нормам: средняя нагрузка этого дня недели">Логистика, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-log" onchange="renderPlanShift()"></label>
             <label title="Часы проверок ОКК по нормам: средняя нагрузка этого дня недели">ОКК, ч<input type="number" min="0" step="0.5" class="settings-input" id="pd-okk" onchange="renderPlanShift()"></label>
           </div>
+          <div class="section-sub" id="pd-queue-note" style="margin-top:12px"></div>
           <div class="kpi-grid" id="pd-kpi" style="margin-top:16px"></div>
           <div class="card" id="pd-advice" style="margin-bottom:16px;display:none"></div>
           <div class="card" style="overflow-x:auto;margin-bottom:16px">
@@ -8173,7 +8182,7 @@ const planState = {
   tab: 'week', loaded: false, loading: null, from: null, to: null,
   norms: [], prod: [], quality: [], intake: [], lag: [],
   model: null, week: null, extraEmps: new Set(), queue: null, tasks: null,
-  access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null,
+  access: null, shiftSched: {}, shiftInputsFor: null, shiftPlan: null, statusMap: null,
 };
 
 function planIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -8352,6 +8361,7 @@ async function loadPlanWeek() {
   const input = document.getElementById('pw-start');
   if (!input.value) input.value = planMonday(planIso(new Date()));
   if (planState.queue === null) planState.queue = loadQueueLocal();
+  await loadStatusMap();
   const start = planMonday(input.value);
   input.value = start;
   const end = planAddDays(start, 6);
@@ -8427,14 +8437,14 @@ function buildWeekDays() {
 /* Очередь на начало: техника в работе (свой срок у каждого устройства) или хвост числом */
 function buildInitialQueue(days, sla, backlogDev) {
   const m = planState.model, q = planState.queue;
-  if (q && q.items.length) {
+  const diagItems = planQueueDiag();
+  if (q && diagItems.length) {
     const start = new Date(planState.week.start + 'T00:00:00');
-    const snapT = new Date(q.snap);
     const byDue = new Map();
-    q.items.forEach(it => {
-      // срок устройства: выгрузка + остаток времени в статусе; без остатка — приём + срок отдела
-      const dueT = it.leftH != null ? new Date(snapT.getTime() + it.leftH * 36e5)
-        : new Date(new Date(String(it.acc || q.snap).slice(0, 10) + 'T00:00:00').getTime() + sla * 864e5);
+    diagItems.forEach(it => {
+      // срок устройства: срок в статусе; без него — приём + срок отдела
+      const dueT = queueDue(it, q.snap)
+        || new Date(new Date(String(it.acc || q.snap).slice(0, 10) + 'T00:00:00').getTime() + sla * 864e5);
       const due = Math.floor((dueT - start) / 864e5);
       const b = byDue.get(due) || { day: -1, due, min: 0, dev: 0 };
       b.min += m.normFor(it.group); b.dev += 1;
@@ -8477,10 +8487,11 @@ function simulateWeek(days, extra, util, initQueue) {
    работа по нему и более срочным больше, чем смены дадут с момента выгрузки. */
 function intradayCheck(days, snap, util) {
   const q = planState.queue, m = planState.model, d = days[snap.idx];
-  if (!q || !q.items.length || !d) return null;
-  const offset = (new Date(q.snap) - new Date(d.date + 'T00:00:00')) / 6e4;
-  const items = q.items.filter(it => it.leftH != null)
-    .map(it => ({ it, t: offset + it.leftH * 60 }))
+  const diagItems = planQueueDiag();
+  if (!q || !diagItems.length || !d) return null;
+  const day0 = new Date(d.date + 'T00:00:00');
+  const items = diagItems.map(it => ({ it, due: queueDue(it, q.snap) })).filter(x => x.due)
+    .map(x => ({ it: x.it, t: (x.due - day0) / 6e4 }))
     .filter(x => x.t < 24 * 60).sort((a, b) => a.t - b.t);
   if (!items.length) return null;
   const capUntil = t => d.people.reduce((a, p) => {
@@ -8662,9 +8673,50 @@ function queueLeftHours(v) {
   const n = parseFloat(String(v).replace(',', '.'));
   return Number.isFinite(n) ? n * 24 : null;
 }
+/* Выгрузка FileMaker (FileMaker_выгрузка_очереди.md): колонки — имена полей Service */
+const FM_QUEUE_COLS = {
+  id: 'id', sid: 'id service', status: 'статус', stage: 'этап',
+  since: 'дата время последней смены статуса', deadline: 'дата время завершения этапа в текущем статусе',
+  left: 'осталось времени до истечения срока в статусе', acc: 'дата время получения техники',
+  vendor: 'вендор', type: 'тип устройства', name: 'наименование техники', repair: 'тип ремонта',
+  express: 'ключ экспресс согласован', expressDate: 'дата окончания план', priority: 'высокий приоритет',
+  clientDue: 'сети дата истечения клиентского срока', delivType: 'доставка тип по направлению',
+  delivOut: 'связь доставка выдать', outsource: 'аутсорс партнёр', resp: 'ответственный иоф',
+};
+function parseFmQueue(grid, h) {
+  const hdr = (grid[h] || []).map(c => normHeader(c).replace(/^service::/, ''));
+  const col = Object.fromEntries(Object.entries(FM_QUEUE_COLS).map(([k, name]) => [k, hdr.indexOf(name)]));
+  const get = (r, k) => col[k] >= 0 ? r[col[k]] : '';
+  const str = (r, k) => String(get(r, k) ?? '').replace(/\s+/g, ' ').trim();
+  const flag = v => v === true || +v > 0 || /^(да|yes|true)$/i.test(String(v).trim());
+  const items = [];
+  for (let i = h + 1; i < grid.length; i++) {
+    const r = grid[i] || [];
+    const status = str(r, 'status');
+    if (!status) continue;
+    const name = str(r, 'name') || str(r, 'type');
+    items.push({
+      name, group: matchSupplyGroup(str(r, 'type')) || matchSupplyGroup(name),
+      acc: xlsxDateTimeToISO(get(r, 'acc')),
+      deadline: xlsxDateTimeToISO(get(r, 'deadline')),
+      leftH: queueLeftHours(get(r, 'left')),
+      waybill: '',
+      status, stage: str(r, 'stage'), id: str(r, 'id'), sid: str(r, 'sid'),
+      vendor: str(r, 'vendor'), type: str(r, 'type'), repair: str(r, 'repair'),
+      express: flag(get(r, 'express')), expressDate: xlsxDateToISO(get(r, 'expressDate')),
+      priority: flag(get(r, 'priority')), clientDue: xlsxDateToISO(get(r, 'clientDue')),
+      // выдача через ТК; null — колонок доставки нет в выгрузке, считаем всё выдачей
+      tk: col.delivOut < 0 && col.delivType < 0 ? null : !!str(r, 'delivOut') || /достав|тк|сдэк|сдек/i.test(str(r, 'delivType')),
+      outsource: str(r, 'outsource'), resp: str(r, 'resp'),
+    });
+  }
+  return items;
+}
 function parseQueueGrid(grid) {
   const find = (hdr, keys, skip) => hdr.findIndex((c, i) => !skip.includes(i) && c && keys.some(k => c.includes(k)));
   for (let h = 0; h < Math.min(grid.length, 15); h++) {
+    const raw = (grid[h] || []).map(c => normHeader(c).replace(/^service::/, ''));
+    if (raw.includes('статус') && raw.includes(FM_QUEUE_COLS.name)) return { items: parseFmQueue(grid, h), fm: true };
     const hdr = (grid[h] || []).map(c => normHeader(c));
     const col = {};
     for (const k of ['acc', 'left', 'name', 'waybill']) col[k] = find(hdr, QUEUE_HEADERS[k], Object.values(col));
@@ -8681,10 +8733,67 @@ function parseQueueGrid(grid) {
         waybill: col.waybill >= 0 ? String(r[col.waybill] ?? '').trim() : '',
       });
     }
-    return items;
+    return { items, fm: false };
   }
   throw new Error('Не найдена колонка с наименованием техники');
 }
+
+/* Статус FileMaker → тип задачи отдела. Пусто — устройство ждёт (клиента, инженеров, АСЦ).
+   Разметка по умолчанию — по словам в статусе, правится в «Проверке недели» и хранится
+   в app_settings.fm_status_task. «К заказу» — задача отдела только для аксессуаров. */
+const FM_STATUS_DEFAULT = [
+  [/после\s*засц|после\s*насц/i, 'post_asc'], [/^проверка$/i, 'okk'], [/выдач/i, 'issue'],
+  [/на отправку/i, 'asc_prep'], [/к заказу/i, 'accessory_order'], [/^в работе$|диагност/i, 'diag'],
+];
+const QUEUE_TASK_NAMES = {
+  diag: 'Диагностика', post_asc: 'Проверка после ЗАСЦ', accessory_order: 'Заказ аксессуара',
+  asc_prep: 'Подготовка к АСЦ', asc_receive: 'Приёмка из АСЦ', okk: 'Проверка (ОКК)',
+  issue: 'Выдача', intake: 'Приёмка и регистрация',
+};
+function fmStatusDefault(status) {
+  const hit = FM_STATUS_DEFAULT.find(([re]) => re.test(status));
+  return hit ? hit[1] : '';
+}
+function queueTask(it) {
+  if (!it.status) return 'diag';                       // старый формат файла — вся очередь на диагностику
+  const map = planState.statusMap || {};
+  const t = it.status in map ? map[it.status] : fmStatusDefault(it.status);
+  if (t === 'accessory_order' && !/аксессуар/i.test(`${it.group || ''} ${it.type || ''}`)) return '';
+  if (t === 'issue' && it.tk === false) return '';      // самовывоз — ждём клиента
+  return t || '';
+}
+function planQueueDiag() {
+  const q = planState.queue;
+  return q && q.items ? q.items.filter(it => queueTask(it) === 'diag') : [];
+}
+/* Срок устройства: срок в статусе из FileMaker, иначе выгрузка + остаток */
+function queueDue(it, snap) {
+  if (it.deadline && it.deadline.length > 10) return new Date(it.deadline);
+  if (it.leftH != null) return new Date(new Date(snap).getTime() + it.leftH * 36e5);
+  return null;
+}
+async function loadStatusMap() {
+  if (planState.statusMap) return planState.statusMap;
+  try {
+    const r = await sb.from('app_settings').select('value').eq('key', 'fm_status_task').maybeSingle();
+    planState.statusMap = (r.data && r.data.value && typeof r.data.value === 'object') ? r.data.value : {};
+  } catch (e) { planState.statusMap = {}; }
+  return planState.statusMap;
+}
+async function saveStatusMap(sel) {
+  const map = { ...(planState.statusMap || {}), [sel.dataset.status]: sel.value };
+  sel.disabled = true;
+  try {
+    const { error } = await sb.from('app_settings').upsert({ key: 'fm_status_task', value: map, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) throw new Error(error.message);
+    planState.statusMap = map;
+    renderPlanWeek();
+  } catch (e) {
+    showToast('Ошибка сохранения: ' + esc(e.message), 'error');
+    sel.disabled = false;
+  }
+}
+
 async function importQueueFile(input) {
   const file = input.files && input.files[0];
   input.value = '';
@@ -8692,14 +8801,16 @@ async function importQueueFile(input) {
   try {
     const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false });
     const grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
-    const items = parseQueueGrid(grid);
+    const { items, fm } = parseQueueGrid(grid);
     if (!items.length) throw new Error('В файле нет строк с техникой');
+    await loadStatusMap();
     // момент выгрузки — время изменения файла, его можно поправить в поле «Выгрузка на»
-    planState.queue = { snap: planLocalDT(new Date(file.lastModified || Date.now())), items, file: file.name };
+    planState.queue = { snap: planLocalDT(new Date(file.lastModified || Date.now())), items, file: file.name, fm };
+    planState.shiftInputsFor = null;
     saveQueueLocal();
     document.getElementById('pw-start').value = planMonday(planState.queue.snap.slice(0, 10));
     const unk = items.filter(it => !it.group).length;
-    showToast(`Техника в работе: ${items.length}${unk ? `, не распознано: ${unk}` : ''}`);
+    showToast(`Техника в работе: ${items.length}${fm ? ` (FileMaker, на диагностике ${planQueueDiag().length})` : ''}${unk ? `, не распознано: ${unk}` : ''}`);
     await loadPlanWeek();
   } catch (e) {
     console.error('importQueueFile:', e);
@@ -8710,11 +8821,13 @@ function onQueueSnapChange() {
   const v = document.getElementById('pw-snap').value;
   if (!planState.queue || !v) return;
   planState.queue.snap = v;
+  planState.shiftInputsFor = null;
   saveQueueLocal();
   renderPlanWeek();
 }
 function clearQueue() {
   planState.queue = null;
+  planState.shiftInputsFor = null;
   saveQueueLocal();
   renderPlanWeek();
 }
@@ -8724,32 +8837,60 @@ function renderQueueInfo(initQueue) {
   const snap = document.getElementById('pw-snap');
   const backlog = document.getElementById('pw-backlog');
   const card = document.getElementById('pw-queue-card');
+  const stCard = document.getElementById('pw-status-card');
   backlog.disabled = !!(q && q.items.length);
   if (!q || !q.items.length) {
     info.textContent = 'Техника в работе не загружена — очередь на начало недели берётся из поля «Хвост на начало»';
-    snap.value = ''; snap.disabled = true; card.style.display = 'none';
+    snap.value = ''; snap.disabled = true; card.style.display = 'none'; stCard.style.display = 'none';
     return;
   }
   snap.disabled = false;
   if (snap.value !== q.snap) snap.value = q.snap;
+  const diag = planQueueDiag();
   const start = planState.week.start;
   const dueLabel = due => due < 0 ? 'уже истёк' : due > 6 ? 'после недели' : planDay(planAddDays(start, due));
   const mins = initQueue.reduce((a, x) => a + x.min, 0);
   const byDue = [...initQueue].sort((a, b) => a.due - b.due).map(x => `${dueLabel(x.due)} — ${x.dev}`).join(' · ');
-  const unk = q.items.filter(it => !it.group || !m.groups.has(it.group)).length;
-  info.innerHTML = `В работе <b>${q.items.length}</b> устр. (${planR1(mins / 60)} ч по нормам)${q.file ? ` из «${esc(q.file)}»` : ''}. Срок в статусе истекает: ${byDue}${unk ? ` · без нормы: ${unk} — по среднему отдела` : ''}`;
+  const unk = diag.filter(it => !it.group || !m.groups.has(it.group)).length;
+  info.innerHTML = `${q.fm ? `Выгрузка FileMaker: <b>${q.items.length}</b> устр., на диагностике <b>${diag.length}</b>` : `В работе <b>${q.items.length}</b> устр.`} (${planR1(mins / 60)} ч по нормам)${q.file ? ` из «${esc(q.file)}»` : ''}. Срок в статусе истекает: ${byDue || '—'}${unk ? ` · без нормы: ${unk} — по среднему отдела` : ''}`;
   const groups = new Map();
-  q.items.forEach(it => {
+  diag.forEach(it => {
     const k = it.group || 'не распознано';
     const g = groups.get(k) || { n: 0, minLeft: Infinity };
-    g.n++; if (it.leftH != null) g.minLeft = Math.min(g.minLeft, it.leftH);
+    const due = queueDue(it, q.snap);
+    g.n++; if (due) g.minLeft = Math.min(g.minLeft, (due - new Date(q.snap)) / 36e5);
     groups.set(k, g);
   });
   document.getElementById('pw-queue-tbody').innerHTML = [...groups].sort((a, b) => b[1].n - a[1].n).map(([g, x]) => `<tr>
     <td>${g === 'не распознано' ? `<span style="color:var(--warn-text)">${g}</span>` : esc(g)}</td><td class="num">${x.n}</td>
     <td class="num">${planR1(m.normFor(g === 'не распознано' ? null : g))}</td>
     <td class="num">${isFinite(x.minLeft) ? planR1(x.minLeft) : '—'}</td></tr>`).join('');
-  card.style.display = '';
+  card.style.display = groups.size ? '' : 'none';
+
+  // статусы выгрузки FileMaker и их задачи
+  if (!q.fm) { stCard.style.display = 'none'; return; }
+  const types = (planState.tasks && planState.tasks.types) || [];
+  const taskName = c => (types.find(x => x.code === c) || {}).name || QUEUE_TASK_NAMES[c] || c;
+  const TASKS = ['diag', 'post_asc', 'accessory_order', 'asc_prep', 'asc_receive', 'okk', 'issue', 'intake'];
+  const byStatus = new Map();
+  q.items.forEach(it => {
+    const x = byStatus.get(it.status) || { n: 0, task: 0, late: 0 };
+    x.n++; if (queueTask(it)) x.task++;
+    const due = queueDue(it, q.snap);
+    if (due && due < new Date(q.snap)) x.late++;
+    byStatus.set(it.status, x);
+  });
+  const map = planState.statusMap || {};
+  document.getElementById('pw-status-tbody').innerHTML = [...byStatus].sort((a, b) => b[1].n - a[1].n).map(([st, x]) => {
+    const cur = st in map ? map[st] : fmStatusDefault(st);
+    return `<tr><td>${esc(st)}</td><td class="num">${x.n}</td><td class="num">${x.task > 0 && x.task < x.n ? `${x.task}` : '—'}</td>
+      <td class="num">${x.late ? `<span style="color:var(--danger)">${x.late}</span>` : '—'}</td>
+      <td><select class="settings-input" style="min-height:32px;padding:4px 8px;width:auto" data-status="${esc(st)}" onchange="saveStatusMap(this)">
+        <option value=""${cur ? '' : ' selected'}>ждём — не задача отдела</option>
+        ${TASKS.map(c => `<option value="${c}"${cur === c ? ' selected' : ''}>${esc(taskName(c))}</option>`).join('')}
+      </select>${st in map ? '' : ' <span style="font-size:12px;color:var(--ink-muted)">по умолчанию</span>'}</td></tr>`;
+  }).join('');
+  stCard.style.display = '';
 }
 
 function togglePlanExtra(name) {
@@ -9277,29 +9418,78 @@ async function renderPlanShift() {
   }
   const sm = buildShiftModel();
   const d = planDow(date), f = sm.dow[d], dd = planState.model.dowAvg[d];
-  // поля прогноза заполняются при смене даты, дальше их можно править руками
+  const ship = PLAN_SHIP_DOW.includes(d);
+  const qx = shiftQueue(date, ship);
+  // поля прогноза заполняются при смене даты, дальше их можно править руками;
+  // с выгрузкой FileMaker — не меньше, чем лежит в очереди
   if (planState.shiftInputsFor !== date) {
     planState.shiftInputsFor = date;
     document.getElementById('pd-diag').value = Math.round(dd.devices);
-    document.getElementById('pd-log').value = planR1(f.log / 60);
-    document.getElementById('pd-okk').value = planR1(f.okk / 60);
+    document.getElementById('pd-backlog').value = qx ? qx.n.diag : 0;
+    document.getElementById('pd-log').value = planR1(Math.max(f.log, qx ? qx.logMin : 0) / 60);
+    document.getElementById('pd-okk').value = planR1(Math.max(f.okk, qx ? qx.min.okk : 0) / 60);
   }
+  renderShiftQueueNote(qx, date);
   const util = document.getElementById('pd-util');
   if (!util.value) util.value = Math.round(sm.util * 100);
   const perDev = dd.devices ? dd.minutes / dd.devices : sm.perDevice;
   const input = {
-    date, ship: PLAN_SHIP_DOW.includes(d),
+    date, ship,
     util: Math.max(0.3, Math.min(1, (+util.value || 60) / 100)),
     diag: (+document.getElementById('pd-diag').value || 0) * perDev
-      + (+document.getElementById('pd-backlog').value || 0) * sm.perDevice + f.diag,
+      + (+document.getElementById('pd-backlog').value || 0) * sm.perDevice
+      + Math.max(f.diag, qx ? qx.min.post_asc + qx.min.accessory_order : 0),
     log: (+document.getElementById('pd-log').value || 0) * 60,
     okk: (+document.getElementById('pd-okk').value || 0) * 60,
   };
   // доля выдачи в логистике дня недели — её во вт/пт нужно закончить к 15:00
-  input.issue = input.ship && f.log ? input.log * f.issue / f.log : 0;
+  input.issue = input.ship ? Math.min(input.log, Math.max(f.log ? input.log * f.issue / f.log : 0, qx ? qx.min.issue : 0)) : 0;
   const sched = planState.shiftSched[month].filter(r => r.work_date === date);
   planState.shiftPlan = buildShiftPlan(sm, sched, input);
   renderShiftPlan(sm, planState.shiftPlan, input);
+}
+
+/* Очередь FileMaker на дату плана: устройства по задачам, минуты по нормам задач,
+   сроки в статусе до конца дня. Выдача — работа дня только во вт/пт (отправки клиентам). */
+function shiftQueue(date, ship) {
+  const q = planState.queue;
+  if (!q || !q.fm || !q.items.length || q.snap.slice(0, 10) > date) return null;
+  const dept = planState.tasks.norms.filter(r => r.employee == null);
+  const unitMin = task => {
+    const rows = dept.filter(r => r.task_type === task);
+    const u = rows.reduce((a, r) => a + +r.units, 0);
+    return u ? rows.reduce((a, r) => a + +r.units * +r.avg_min, 0) / u : 0;
+  };
+  const tasks = Object.keys(QUEUE_TASK_NAMES);
+  const n = Object.fromEntries(tasks.map(t => [t, 0])), urgent = Object.fromEntries(tasks.map(t => [t, 0]));
+  const dayEnd = new Date(date + 'T23:59:59');
+  let express = 0, late = 0;
+  q.items.forEach(it => {
+    const t = queueTask(it);
+    if (!t) return;
+    n[t]++;
+    if (it.express) express++;
+    const due = queueDue(it, q.snap);
+    if (due && due <= dayEnd) { urgent[t]++; if (due < new Date(q.snap)) late++; }
+  });
+  const min = Object.fromEntries(tasks.map(t => [t, n[t] * (t === 'diag' ? 0 : unitMin(t))]));
+  const logMin = min.asc_prep + min.asc_receive + (ship ? min.issue : 0);
+  return { snap: q.snap, n, urgent, min, logMin, express, late };
+}
+
+function renderShiftQueueNote(qx, date) {
+  const el = document.getElementById('pd-queue-note');
+  const q = planState.queue;
+  if (!qx) {
+    el.innerHTML = q && q.fm && q.snap.slice(0, 10) > date
+      ? `Выгрузка FileMaker сделана позже выбранной даты — план по прогнозу`
+      : `Очередь FileMaker не загружена — план по прогнозу. Загрузите выгрузку во вкладке «Проверка недели»`;
+    return;
+  }
+  const parts = Object.entries(QUEUE_TASK_NAMES).filter(([t]) => qx.n[t])
+    .map(([t, name]) => `${name} <b>${qx.n[t]}</b>${qx.urgent[t] ? ` <span style="color:var(--danger)">(срок сегодня ${qx.urgent[t]})</span>` : ''}`);
+  el.innerHTML = `Очередь FileMaker на ${planDay(qx.snap.slice(0, 10))} ${qx.snap.slice(11, 16)}: ${parts.join(' · ') || 'задач нет'}`
+    + `${qx.express ? ` · экспресс <b>${qx.express}</b>` : ''}${qx.late ? ` · <span style="color:var(--danger)">срок в статусе уже истёк: ${qx.late}</span>` : ''}`;
 }
 
 function onShiftDateChange() {
