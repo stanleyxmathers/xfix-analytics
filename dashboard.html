@@ -5,71 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XFIX Analytics — Аналитика сервисного центра</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400..800&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300..700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* ─── Design tokens: «Матовое стекло — XFIX» ─────────────────────────────── */
+/* ─── Design tokens: «XFIX Mono» — серый фон, белые карточки, чёрный и зелёный ─── */
 :root {
-  /* Светлая тема (основная) */
-  --ground:      #F3F6F2;
-  --ground-mid:  #E6EEE8;
-  --ground-end:  #F5F6F3;
-  --ink:         #0E1311;
-  --ink-soft:    #3A4540;
-  --ink-muted:   #56615B;
-  --glass:        rgba(255,255,255,0.56);
-  --glass-strong: rgba(255,255,255,0.72);
-  --glass-faint:  rgba(255,255,255,0.3);
-  --glass-edge:   rgba(255,255,255,0.85);
-  --hairline:     rgba(14,19,17,0.08);
-  --row-hover:    rgba(14,19,17,0.03);
-  --green-500:  #4DB384;
-  --green-300:  #86D6AE;
-  --green-100:  #C4E9D4;
-  --green-text: #247A4E;
-  --green-tint: rgba(77,179,132,0.14);
-  --green-edge: rgba(77,179,132,0.42);
-  --orb-mint: rgba(110,196,150,0.42);
-  --orb-sage: rgba(168,220,190,0.5);
-  --orb-ink:  rgba(14,19,17,0.09);
+  --ground:      #EDEDED;
+  --ground-mid:  #EDEDED;
+  --ground-end:  #EDEDED;
+  --surface:     #FFFFFF;
+  --surface-2:   #F5F5F5;
+  --ink:         #000000;
+  --ink-soft:    #3A3A3A;
+  --ink-muted:   #6B6B6B;
+  --contrast:    #000000;   /* «чёрные» элементы: активная вкладка, тёмная кнопка, сверх нормы */
+  --on-contrast: #FFFFFF;
+  --mid:         #6B6B6B;   /* третий тон графиков */
+  --light:       #CCCCCC;   /* четвёртый тон, штрихи шкал */
+  --glass:        #FFFFFF;
+  --glass-strong: #F5F5F5;
+  --glass-faint:  #FAFAFA;
+  --glass-edge:   #FFFFFF;
+  --hairline:     #EDEDED;
+  --row-hover:    #F7F7F7;
+  --green-500:  #39BB3B;
+  --green-300:  #6FD071;
+  --green-100:  #D7F1D7;
+  --green-text: #1F6B20;
+  --green-tint: rgba(57,187,59,0.2);
+  --green-edge: rgba(57,187,59,0.5);
+  --orb-mint: transparent;
+  --orb-sage: transparent;
+  --orb-ink:  transparent;
   --warn:      #A8730F;
   --warn-text: #7A560E;
-  --warn-tint: rgba(224,169,58,0.14);
-  --warn-edge: rgba(224,169,58,0.35);
+  --warn-tint: rgba(224,169,58,0.16);
+  --warn-edge: rgba(224,169,58,0.4);
   --danger:      #B0352C;
   --danger-tint: rgba(190,48,40,0.08);
   --danger-edge: rgba(190,48,40,0.28);
-  --info-text: #3D6A96;
-  --info-tint: rgba(106,149,201,0.16);
-  --chart-ink: #1A211D;
-  --overlay:   rgba(14,19,17,0.28);
-  --tooltip-bg: rgba(255,255,255,0.94);
+  --info-text: #3A3A3A;
+  --info-tint: #F0F0F0;
+  --chart-ink: #000000;
+  --overlay:   rgba(0,0,0,0.32);
+  --tooltip-bg: #FFFFFF;
+  --ticks: repeating-linear-gradient(90deg, var(--light) 0 1.5px, transparent 1.5px 5px);
+  --hatch: repeating-linear-gradient(135deg, #E6E6E6 0 4px, #F6F6F6 4px 8px);
 
-  --shadow-glass:   0 18px 40px -22px rgba(18,48,32,0.22);
-  --shadow-control: 0 6px 16px -10px rgba(14,19,17,0.25);
-  --shadow-primary: 0 8px 20px -14px rgba(46,140,90,0.5);
-  --shadow-focus:   0 0 0 4px rgba(77,179,132,0.16);
-  --shadow-modal:   0 30px 60px -24px rgba(18,48,32,0.35);
+  --shadow-glass:   none;
+  --shadow-control: none;
+  --shadow-primary: none;
+  --shadow-focus:   0 0 0 3px rgba(0,0,0,0.14);
+  --shadow-modal:   0 30px 60px -24px rgba(0,0,0,0.35);
+  --shadow-pop:     0 18px 40px -18px rgba(0,0,0,0.28);
 
-  --blur-glass:   blur(24px) saturate(160%);
-  --blur-control: blur(12px) saturate(140%);
+  --blur-glass:   none;
+  --blur-control: none;
 
-  --font-display: "Wix Madefor Display", "Wix Madefor Text", system-ui, sans-serif;
-  --font-text:    "Wix Madefor Text", system-ui, sans-serif;
+  --font-display: "Onest", system-ui, sans-serif;
+  --font-text:    "Onest", system-ui, sans-serif;
 
   --radius-xs: 8px;
   --radius-sm: 10px;
   --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-  --radius-2xl: 28px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
   --radius-pill: 999px;
 
   /* Совместимость: старые имена → токены системы */
   --bg-page:    var(--ground);
-  --bg-surface: var(--glass);
-  --bg-card:    var(--glass-strong);
-  --bg-hover:   rgba(14,19,17,0.05);
+  --bg-surface: var(--surface);
+  --bg-card:    var(--surface);
+  --bg-hover:   #F0F0F0;
   --border-default: var(--hairline);
   --border-subtle:  var(--hairline);
   --border:         var(--hairline);
@@ -89,32 +97,35 @@
   --dur-base: 200ms;
   --ease-out: cubic-bezier(0.16,1,0.3,1);
 
-  --sidebar-w: 248px;
-  --sidebar-w-collapsed: 68px;
-  --topbar-h:  64px;
+  --sidebar-w: 0px;
+  --sidebar-w-collapsed: 0px;
+  --topbar-h:  0px;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --ground:      #0B110E;
-  --ground-mid:  #0E1712;
-  --ground-end:  #090C0B;
-  --ink:         #EEF4F0;
-  --ink-soft:    #C9D3CE;
-  --ink-muted:   #959D98;
-  --glass:        rgba(255,255,255,0.045);
-  --glass-strong: rgba(255,255,255,0.08);
-  --glass-faint:  rgba(255,255,255,0.025);
-  --glass-edge:   rgba(255,255,255,0.08);
-  --hairline:     rgba(255,255,255,0.08);
-  --row-hover:    rgba(255,255,255,0.03);
-  --green-100:  #1E3A2B;
-  --green-text: #7FD3A6;
-  --green-tint: rgba(77,179,132,0.16);
-  --green-edge: rgba(77,179,132,0.45);
-  --orb-mint: rgba(46,158,104,0.32);
-  --orb-sage: rgba(46,158,104,0.16);
-  --orb-ink:  rgba(120,200,160,0.1);
+  --ground:      #101010;
+  --ground-mid:  #101010;
+  --ground-end:  #101010;
+  --surface:     #1B1B1B;
+  --surface-2:   #242424;
+  --ink:         #F2F2F2;
+  --ink-soft:    #CFCFCF;
+  --ink-muted:   #9A9A9A;
+  --contrast:    #F2F2F2;
+  --on-contrast: #000000;
+  --mid:         #9A9A9A;
+  --light:       #4A4A4A;
+  --glass:        #1B1B1B;
+  --glass-strong: #242424;
+  --glass-faint:  #161616;
+  --glass-edge:   #2A2A2A;
+  --hairline:     #2A2A2A;
+  --row-hover:    #222222;
+  --green-100:  #1E3A1F;
+  --green-text: #7FD681;
+  --green-tint: rgba(57,187,59,0.22);
+  --green-edge: rgba(57,187,59,0.55);
   --warn:      #E0A93A;
   --warn-text: #F2C66B;
   --warn-tint: rgba(224,169,58,0.16);
@@ -122,18 +133,16 @@
   --danger:      #FFB4AC;
   --danger-tint: rgba(230,90,80,0.14);
   --danger-edge: rgba(230,90,80,0.35);
-  --info-text: #A9C6E8;
-  --info-tint: rgba(106,149,201,0.18);
-  --chart-ink: #D7E0DB;
-  --overlay:   rgba(0,0,0,0.55);
-  --tooltip-bg: rgba(18,26,22,0.94);
-
-  --shadow-glass:   0 24px 48px -28px rgba(0,0,0,0.7);
-  --shadow-control: 0 6px 16px -10px rgba(0,0,0,0.5);
-  --shadow-primary: 0 8px 20px -14px rgba(46,158,104,0.6);
+  --info-text: #CFCFCF;
+  --info-tint: #262626;
+  --chart-ink: #F2F2F2;
+  --overlay:   rgba(0,0,0,0.6);
+  --tooltip-bg: #1B1B1B;
+  --hatch: repeating-linear-gradient(135deg, #2A2A2A 0 4px, #202020 4px 8px);
+  --shadow-focus:   0 0 0 3px rgba(255,255,255,0.18);
   --shadow-modal:   0 30px 60px -24px rgba(0,0,0,0.8);
-
-  --bg-hover: rgba(255,255,255,0.06);
+  --shadow-pop:     0 18px 40px -18px rgba(0,0,0,0.7);
+  --bg-hover: #262626;
   color-scheme: dark;
 }
 
@@ -1114,6 +1123,298 @@ details[open] > .pl-summary::before { content: '▾'; }
   .slide-dot { width: 6px; height: 6px; }
   .slide-dot.active { width: 18px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   XFIX Mono — оболочка и компоненты (поверх базовых правил выше)
+   Серый фон, белые карточки без теней, крупные лёгкие цифры, таблетки,
+   чёрный — активное и «сверх», зелёный — норма и акцент.
+══════════════════════════════════════════════════════════════════════════ */
+body { background: var(--ground); font-size: 14px; }
+body::before, body::after { display: none; }
+.sidebar, .topbar, .card, .kpi-card, .modal, .toast, .processing-banner, .tabs, .btn, .period-pop, .slide-nav { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Оболочка: шапка сверху, страница прокручивается целиком */
+.app { display: block; height: auto; overflow: visible; max-width: 1440px; margin: 0 auto; padding: 18px clamp(12px, 2.4vw, 32px) 40px; }
+.main { display: block; overflow: visible; }
+.content { overflow: visible; padding: 0; }
+.xhead { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 22px; }
+.xlogo { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+.xlogo-mark { width: 44px; height: 30px; border-radius: var(--radius-pill); background: var(--green-500); color: #000; display: flex; align-items: center; justify-content: center; }
+.xlogo-text { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.xnav { display: flex; gap: 2px; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
+.xnav::-webkit-scrollbar { display: none; }
+.xnav .nav-item { display: inline-flex; align-items: center; gap: 6px; height: 38px; min-height: 0; margin: 0; padding: 0 16px; border: 0; border-radius: var(--radius-pill); background: transparent; font: 400 14px/1 var(--font-text); color: var(--ink); white-space: nowrap; cursor: pointer; }
+.xnav .nav-item:hover { background: rgba(0,0,0,.06); color: var(--ink); }
+[data-theme="dark"] .xnav .nav-item:hover { background: rgba(255,255,255,.08); }
+.xnav .nav-item.active { background: var(--contrast); color: var(--on-contrast); font-weight: 400; border: 0; }
+.xnav .nav-item:focus-visible { outline: 2px solid var(--contrast); outline-offset: 2px; }
+.nav-badge { margin-left: 2px; background: var(--green-500); color: #000; font-size: 11px; font-weight: 600; padding: 2px 7px; }
+.xnav .nav-item.active .nav-badge { background: var(--green-500); color: #000; }
+.xhead-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.xhead-info { font-size: 12px; color: var(--ink-muted); white-space: nowrap; }
+.xhead-home { width: 38px; height: 38px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center; background: var(--surface); color: var(--ink); }
+.xhead-home:hover { background: var(--contrast); color: var(--on-contrast); }
+
+/* Заголовок страницы: подпись + крупный лёгкий заголовок, справа — период и действия */
+.page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.page-head-text { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.page-cap { font-size: 12px; color: var(--ink-muted); }
+.page-cap:empty { display: none; }
+.page-cap::first-letter { text-transform: uppercase; }
+.page-title { margin: 0; font-family: var(--font-display); font-size: clamp(34px, 4vw, 48px); font-weight: 400; letter-spacing: -0.035em; line-height: 1; color: var(--ink); }
+.page-head-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+body.presentation .xhead, body.presentation .page-head { display: none; }
+
+/* Карточки */
+.card { background: var(--surface); border: 0; border-radius: var(--radius-xl); box-shadow: none; padding: 18px 20px; }
+.card-lg { padding: 22px 24px; }
+.card-title { font-family: var(--font-text); font-size: 15px; font-weight: 500; letter-spacing: 0; margin-bottom: 14px; }
+.card .card, .card .kpi-card { background: var(--surface-2); border: 0; border-radius: var(--radius-lg); }
+.section-title { font-family: var(--font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.025em; }
+.section-sub { font-size: 12px; }
+.charts-grid, .kpi-grid { gap: 14px; }
+
+/* Плитки с цифрой */
+.kpi-card { background: var(--surface); border: 0; border-radius: var(--radius-xl); box-shadow: none; padding: 18px 20px; display: flex; flex-direction: column; }
+.kpi-label { font-size: 14px; font-weight: 400; color: var(--ink); text-transform: none; letter-spacing: 0; margin-bottom: 14px; }
+.kpi-value { font-family: var(--font-display); font-size: 44px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.kpi-value.kpi-text { font-size: 22px; font-weight: 400; text-transform: none; }
+.kpi-value.danger, .kpi-value.accent { color: var(--ink); }
+.kpi-grid.compact .kpi-card { padding: 16px 18px; }
+.kpi-grid.compact .kpi-label { font-size: 13px; letter-spacing: 0; margin-bottom: 10px; }
+.kpi-grid.compact .kpi-value { font-size: 34px; }
+.kpi-delta { font-weight: 500; padding: 3px 10px; align-self: flex-start; }
+.kpi-delta.up { background: var(--green-tint); color: var(--green-text); }
+.kpi-delta.down { background: var(--contrast); color: var(--on-contrast); }
+.kpi-delta.neutral { background: var(--ground); color: var(--ink-soft); }
+.kpi-delta-label { font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.kpi-card.clickable:hover { transform: none; box-shadow: inset 0 0 0 1.5px var(--contrast); }
+
+/* Кнопки — таблетки */
+.btn { min-height: 38px; padding: 0 16px; border: 0; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500; box-shadow: none; }
+.btn:active { transform: none; }
+.btn-primary { background: var(--contrast); color: var(--on-contrast); border: 0; box-shadow: none; }
+.btn-primary:hover { background: var(--contrast); opacity: .86; }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 0; box-shadow: none; }
+.btn-ghost:hover, [data-theme="dark"] .btn-ghost:hover { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--contrast); }
+.card .btn-ghost, .modal .btn-ghost, .period-pop .btn-ghost { background: var(--ground); }
+.btn-danger { background: var(--surface); color: var(--danger); box-shadow: none; }
+.btn-icon { width: 38px; padding: 0; }
+.btn.active { background: var(--contrast); color: var(--on-contrast); }
+.btn:focus-visible { outline: 2px solid var(--contrast); outline-offset: 2px; box-shadow: none; }
+.dup-btn { background: var(--ground); border: 0; color: var(--ink); font-weight: 500; }
+.dup-btn:hover { background: var(--contrast); color: var(--on-contrast); }
+
+/* Вкладки и сегменты: белая подложка, активное — чёрным */
+.tabs { background: var(--surface); border: 0; box-shadow: none; border-radius: var(--radius-pill); padding: 4px; gap: 2px; width: max-content; max-width: 100%; overflow-x: auto; }
+.tab { flex: 0 0 auto; min-height: 32px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); font-size: 13px; font-weight: 400; color: var(--ink); white-space: nowrap; }
+.tab.active { background: var(--contrast); color: var(--on-contrast); border: 0; box-shadow: none; font-weight: 400; }
+.tab:hover:not(.active) { background: rgba(0,0,0,.05); }
+.stabs { border-bottom: 0; gap: 2px; background: var(--surface); border-radius: var(--radius-pill); padding: 4px; width: max-content; max-width: 100%; }
+.stab-btn { border: 0; margin: 0; padding: 0 14px; min-height: 32px; border-radius: var(--radius-pill); color: var(--ink); font-size: 13px; font-weight: 400; }
+.stab-btn.active { background: var(--contrast); color: var(--on-contrast); border: 0; font-weight: 400; }
+.meth-seg, .period-seg { background: var(--ground); border-radius: var(--radius-pill); }
+.meth-seg button, .period-seg button { border-radius: var(--radius-pill); }
+.period-seg button.active { background: var(--contrast); color: var(--on-contrast); border-color: transparent; box-shadow: none; font-weight: 500; }
+
+/* Поля ввода */
+.settings-input, .report-select, .dept-select { background: var(--surface-2); border: 1px solid transparent; border-radius: var(--radius-md); }
+.page-head .report-select, .xhead .report-select { background: var(--surface); }
+.settings-input:focus, .report-select:focus, .dept-select:focus { border-color: var(--contrast); box-shadow: none; }
+.as-cb input[type=checkbox] { accent-color: var(--green-500); }
+
+/* Таблицы */
+.data-table th { font-size: 12px; font-weight: 400; color: var(--ink-muted); text-transform: none; letter-spacing: 0; border-bottom: 1px solid var(--hairline); }
+.data-table td { color: var(--ink); border-bottom: 1px solid var(--hairline); }
+.data-table tr:hover td { background: var(--row-hover); }
+
+/* Метки: норма — зелёным, дальше по светлоте до чёрного */
+.zone-badge, .risk-badge, .dept-badge { height: 24px; font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.zone-normal, .risk-low, .priority-low { background: var(--green-tint); color: var(--green-text); }
+.zone-small, .risk-unknown { background: var(--ground); color: var(--ink); }
+.zone-elevated, .zone-yellow, .risk-medium, .priority-medium { background: var(--mid); color: #fff; }
+.zone-critical, .zone-red, .risk-high, .priority-high { background: var(--contrast); color: var(--on-contrast); }
+.dept-badge { background: var(--ground); color: var(--ink); }
+.dept-badge.manual { background: var(--green-tint); color: var(--green-text); }
+
+/* Шкалы и прогресс */
+.progress-bar { background: var(--ground); height: 10px; }
+.progress-fill { background: var(--green-500); }
+.progress-fill.danger { background: var(--contrast); opacity: 1; }
+.progress-fill.warning { background: var(--mid); opacity: 1; }
+.upload-fill { background: var(--green-500); }
+.spinner { border-top-color: var(--contrast); }
+
+/* Списки инсайтов и аномалий */
+.insight-item, .anomaly-item, .pattern-card, .top-risk-item, .kpi-trend-item { background: var(--surface-2); border: 0; border-radius: var(--radius-lg); }
+.insight-icon { background: var(--green-500); color: #000; border-radius: var(--radius-md); }
+.anomaly-item.critical { box-shadow: inset 3px 0 0 var(--contrast); }
+.anomaly-item.warning { box-shadow: inset 3px 0 0 var(--mid); }
+.anomaly-item.critical .anomaly-severity { background: var(--contrast); color: var(--on-contrast); }
+.anomaly-item.warning .anomaly-severity { background: var(--light); }
+.anomaly-group-title { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 500; color: var(--ink); }
+.ai-card { background: var(--surface); border: 0; box-shadow: none; }
+.empty-state-icon { background: var(--ground); border: 0; }
+.slide-eyebrow { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12px; }
+.settings-label, .period-pop-label, .nav-section, .kpi-trend-title { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; color: var(--ink); }
+
+/* Модальные окна, всплывающие, тосты */
+.modal, [data-theme="light"] .modal, [data-theme="dark"] .modal { background: var(--surface); border: 0; border-radius: var(--radius-2xl); }
+.modal-title { font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: -0.02em; }
+.modal-close { background: var(--ground); box-shadow: none; }
+.period-pop { background: var(--surface); border: 0; box-shadow: var(--shadow-pop); border-radius: var(--radius-xl); }
+.period-btn { background: var(--surface); }
+.period-picker.open .period-btn { box-shadow: inset 0 0 0 1.5px var(--contrast); }
+.toast { background: var(--surface); border: 0; box-shadow: var(--shadow-pop); }
+.toast.success .toast-icon { background: var(--green-500); color: #000; }
+.toast.error .toast-icon { background: var(--contrast); color: var(--on-contrast); }
+.processing-banner { background: var(--surface); border: 0; box-shadow: var(--shadow-pop); }
+.drop-zone { border: 1.5px dashed var(--light); background: var(--surface-2); }
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--green-500); background: var(--green-tint); }
+.slide-nav { background: var(--surface); box-shadow: var(--shadow-pop); }
+.slide-dot.active, .slide-progress > div { background: var(--contrast); }
+.duty-cell { background: var(--ground); border: 0; }
+.duty-cell.active { background: var(--green-500); }
+.skel { background: linear-gradient(90deg, var(--ground) 25%, var(--surface-2) 37%, var(--ground) 63%); background-size: 1200px 100%; }
+.fm-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.emp-star { color: var(--green-500); }
+::-webkit-scrollbar-thumb { background: var(--light); background-clip: padding-box; }
+
+
+
+/* ─── Планирование в стиле XFIX Mono ───────────────────────────────────── */
+.pl-headtools { display: none; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+body[data-page="planning"] .page-head .pl-headtools { display: flex; }
+.pl-head { margin-bottom: 18px; }
+.pl-head .tabs.pl-tabs { background: transparent; padding: 0; gap: 6px; }
+.pl-tabs .tab { height: 40px; min-height: 40px; padding: 0 18px; background: var(--surface); color: var(--ink); font-size: 14px; }
+.pl-tabs .tab:hover:not(.active) { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--contrast); }
+.pl-tabs .tab.active { background: var(--green-500); color: #000; font-weight: 500; }
+.pl-sources { margin-left: 0; }
+.pl-chip { height: 30px; background: rgba(255,255,255,.6); border: 0; color: var(--ink); font-size: 12px; }
+[data-theme="dark"] .pl-chip { background: rgba(255,255,255,.06); }
+.pl-chip:hover { box-shadow: inset 0 0 0 1.5px var(--contrast); }
+.pl-chip.ok i { background: var(--green-500); }
+.pl-chip.old i { background: var(--contrast); }
+.pl-chip.off { color: var(--ink-muted); }
+.pl-toolbar { gap: 10px; margin-bottom: 18px; }
+.pl-step { gap: 2px; padding: 4px; border-radius: var(--radius-pill); background: var(--surface); }
+.pl-arrow { width: 32px; height: 32px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--ink); font-size: 16px; }
+.pl-arrow:hover { background: var(--ground); color: var(--ink); }
+.pl-step .pl-input { border: 0; background: transparent; font-weight: 500; height: 32px; padding: 0 6px; }
+.pl-input { border: 1px solid transparent; background: var(--surface-2); border-radius: var(--radius-sm); }
+.pl-input:focus { border-color: var(--contrast); box-shadow: none; }
+.pl-toolbar > .pl-input, .pl-toolbar label > .pl-input { background: var(--surface); }
+.pl-day { font-size: 13px; color: var(--ink-muted); font-weight: 400; }
+.pl-toolbar-end .btn svg { margin-right: 2px; }
+.pl-card { padding: 18px 20px; margin-bottom: 14px; }
+.pl-h { margin: 0; font-size: 14px; font-weight: 400; color: var(--ink); }
+.pl-card-head { align-items: center; margin-bottom: 6px; }
+.pl-card .card-title { font-size: 14px; font-weight: 400; }
+.pl-edit { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; padding: 14px 18px; margin-bottom: 14px; background: var(--surface); }
+.pl-edit[hidden] { display: none; }
+
+/* вывод + плитки */
+.pl-top { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+.pl-verdict { flex: 1.5 1 520px; min-width: 0; margin: 0; border: 0; border-radius: var(--radius-xl); padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; color: #000; }
+.pl-verdict.ok { background: radial-gradient(120% 140% at 10% 0%, #6FD071 0%, #39BB3B 55%, rgba(57,187,59,.85) 100%); box-shadow: 0 20px 40px -24px rgba(46,154,48,.55); }
+.pl-verdict.dark { background: #000; color: #fff; }
+[data-theme="dark"] .pl-verdict.dark { background: #2A2A2A; }
+.pl-verdict:empty { display: none; }
+.pl-vlabel { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.pl-verdict.dark .pl-vlabel { color: #CFCFCF; }
+.pl-vdot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-500); }
+.pl-vhead { margin: 0; font-size: 28px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.15; }
+.pl-vhead b { font-weight: 600; }
+.pl-verdict ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.pl-verdict li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius-md); background: rgba(255,255,255,.45); font-size: 14px; line-height: 1.4; color: inherit; }
+.pl-verdict li::before { display: none; }
+.pl-verdict.dark li { background: rgba(255,255,255,.08); }
+.pl-verdict li > span:last-child { min-width: 0; }
+.pl-verdict b { font-weight: 600; }
+.pl-verdict .btn { min-height: 26px; padding: 0 10px; font-size: 12px; background: var(--green-500); color: #000; margin: 2px 4px 0 0; }
+.pl-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.pl-tag.k { background: var(--contrast); color: var(--on-contrast); }
+.pl-tag.g { background: var(--green-tint); color: var(--green-text); }
+.pl-tag.w { background: rgba(255,255,255,.8); color: #000; }
+.pl-verdict.dark .pl-tag.k { background: var(--green-500); color: #000; }
+.pl-verdict.dark .pl-tag.w { background: rgba(255,255,255,.16); color: #fff; }
+.card .pl-tag.w { background: var(--ground); color: var(--ink); }
+.pl-tiles { flex: 1 1 360px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.pl-tile, .pl-tiles .kpi-card { background: var(--surface); border-radius: var(--radius-xl); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; margin: 0; }
+.pl-tile.dark { background: var(--contrast); color: var(--on-contrast); }
+.pl-tile-t { font-size: 13px; }
+.pl-big, .pl-tiles .kpi-value { font-size: 40px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.pl-big sup { font-size: .34em; font-weight: 400; letter-spacing: 0; vertical-align: top; position: relative; top: .1em; margin-left: 2px; }
+.pl-tile-n { font-size: 12px; opacity: .75; }
+.pl-tiles .kpi-label { font-size: 13px; margin: 0; }
+.pl-tiles .kpi-delta { background: none; padding: 0; margin: 0; font-size: 12px; font-weight: 400; color: var(--ink-muted); }
+
+/* роли */
+.pl-role { grid-template-columns: minmax(200px, 1.3fr) minmax(160px, 1.6fr) 110px minmax(140px, 1fr) 120px; gap: 16px; padding: 14px 0; border-top: 1px solid var(--hairline); }
+.pl-role:first-child { border-top: 1px solid var(--hairline); padding-top: 14px; }
+.pl-role-name { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-size: 15px; font-weight: 500; }
+.pl-role-name > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+.pl-role-name i { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.pl-role-name .pl-sub-txt { font-weight: 400; margin: 0; }
+.pl-rbar { position: relative; height: 22px; border-radius: 6px; background: var(--ticks); overflow: visible; }
+.pl-rbar .need { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+.pl-rbar .capm { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--contrast); }
+.pl-role-val { font-size: 13px; color: var(--ink-muted); }
+.pl-role-val b { font-size: 17px; font-weight: 500; color: var(--ink); }
+.pl-role-who { font-size: 13px; color: var(--ink-soft); }
+.pl-foot { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-muted); }
+.pl-foot b { color: var(--ink); font-weight: 500; }
+
+/* кто чем занят */
+.pl-gantt-wrap { overflow-x: auto; }
+.pl-gantt { min-width: 760px; grid-template-columns: 150px minmax(0, 1fr) 80px; column-gap: 12px; row-gap: 8px; margin-top: 8px; }
+.pl-gname { display: flex; flex-direction: column; gap: 1px; font-size: 14px; font-weight: 500; }
+.pl-gname .pl-sub-txt { display: block; margin: 0; font-weight: 400; }
+.pl-gh { height: 18px; }
+.pl-gh span { white-space: nowrap; }
+.pl-track { height: 40px; border-radius: 10px; background: var(--surface-2); background-image: none; }
+.pl-bar-seg { top: 4px; bottom: 4px; border-radius: 8px; border-left: 0; padding: 0 10px; font-size: 12px; }
+.pl-cut { border-left-color: var(--contrast); }
+.pl-cut-i { border-left-color: var(--contrast); }
+.pl-meter { background: var(--ground); height: 4px; }
+.pl-meter i { background: var(--green-500); }
+.pl-now-row { height: 22px; margin-top: -4px; }
+.pl-now { top: 0; font-size: 11px; font-weight: 600; background: var(--contrast); color: var(--on-contrast); border-radius: var(--radius-pill); padding: 2px 8px; }
+.pl-legend { margin-top: 0; gap: 14px; }
+.pl-legend i { width: 14px; height: 10px; border-radius: 3px; }
+
+/* неделя и таблицы */
+.pl-bar { height: 18px; }
+.pl-bar .cap { background: var(--ticks); opacity: .7; border-radius: 5px; }
+.pl-bar .use { background: var(--green-500); border-radius: 5px; }
+.pl-bar .over { background: var(--contrast); border-radius: 5px; }
+.pl-seg { background: var(--surface); padding: 4px; }
+.pl-seg button { color: var(--ink); }
+.pl-seg button.active { background: var(--contrast); color: var(--on-contrast); box-shadow: none; font-weight: 400; }
+.pl-alert { background: var(--surface-2); }
+.pl-alert::before { background: var(--mid); }
+.pl-alert.bad, .pl-alert.warn { background: var(--surface-2); }
+.pl-alert.bad::before, .pl-alert.warn::before { background: var(--contrast); }
+.pl-alert.ok { background: var(--green-tint); }
+.pl-alert.ok::before { background: var(--green-500); }
+.pl-pill.ok { background: var(--green-tint); color: var(--green-text); }
+.pl-pill.bad, .pl-pill.warn { background: var(--contrast); color: var(--on-contrast); }
+@media (max-width: 1100px) {
+  .pl-role { grid-template-columns: 1fr 110px 120px; }
+}
+/* Еженедельный отчёт: заголовок страницы — сам слайд */
+body[data-page="methodology"] .page-head { justify-content: flex-end; margin-bottom: 0; }
+body[data-page="methodology"] .page-head-text { display: none; }
+#page-methodology > .section-header .section-title { font-size: clamp(34px, 4vw, 48px); letter-spacing: -0.035em; line-height: 1; margin: 8px 0 10px; }
+#page-methodology > .section-header { align-items: flex-end; margin-bottom: 22px; }
+@media (max-width: 900px) {
+  .app { padding: 12px 12px 32px; }
+  .xhead { gap: 10px; }
+  .xnav { order: 3; flex-basis: 100%; }
+  .xhead-info { display: none; }
+  .page-head { margin-bottom: 16px; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1121,70 +1422,35 @@ details[open] > .pl-summary::before { content: '▾'; }
 <body>
 
 <div class="app">
-  <!-- ─── Sidebar ─────────────────────────────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark"><svg viewBox="0 0 37 37" fill="var(--text-primary)" xmlns="http://www.w3.org/2000/svg"><path d="m30.02,0H6.98C3.13,0,0,3.13,0,6.98v23.04c0,3.86,3.13,6.98,6.98,6.98h23.04c3.86,0,6.98-3.13,6.98-6.98V6.98c0-3.86-3.13-6.98-6.98-6.98Zm3.15,10.82c0,.76-.3,1.48-.84,2.02l-4.65,4.65c-.56.56-.56,1.47,0,2.03l4.65,4.65c.54.54.84,1.26.84,2.02v3.53c0,1.91-1.55,3.46-3.46,3.46h-3.53c-.76,0-1.48-.3-2.02-.84l-4.65-4.65c-.56-.56-1.47-.56-2.03,0l-4.65,4.65c-.54.54-1.26.84-2.02.84h-3.53c-1.91,0-3.46-1.55-3.46-3.46v-3.53c0-.76.3-1.48.84-2.02l4.65-4.65c.56-.56.56-1.47,0-2.03l-4.65-4.65c-.54-.54-.84-1.26-.84-2.02v-3.53c0-1.91,1.55-3.46,3.46-3.46h3.53c.76,0,1.48.3,2.02.84l4.65,4.65c.56.56,1.47.56,2.03,0l4.65-4.65c.54-.54,1.26-.84,2.02-.84h3.53c1.91,0,3.46,1.55,3.46,3.46v3.53Z"/></svg></div>
-      <div class="logo-title">
-        <div class="logo-text">XFIX</div>
-      </div>
-      <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Свернуть меню" aria-label="Свернуть меню">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M6 2.5v11"/></svg>
-      </button>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-section">Аналитика</div>
-      <div class="nav-item active" data-page="overview" onclick="showPage('overview',this)" title="Главная">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 0h5v5H9V9z"/></svg>
-        <span class="nav-label">Главная</span>
-      </div>
-      <div class="nav-item" data-page="overruns" onclick="showPage('overruns',this)" title="Перерасходы">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 14h14L8 1zm0 3l4.5 8h-9L8 4z"/></svg>
-        <span class="nav-label">Перерасходы</span>
-      </div>
-
-      <div class="nav-item" data-page="methodology" onclick="showPage('methodology',this)" title="Еженедельный отчет">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2" width="11" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/></svg>
-        <span class="nav-label">Еженедельный отчет</span>
-      </div>
-
-      <div class="nav-section">Контроль</div>
-      <div class="nav-item" data-page="diagnostics" onclick="showPage('diagnostics',this)" title="Отдел диагностики">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2" height="4"/><rect x="4.5" y="7" width="2" height="7"/><rect x="8" y="4" width="2" height="10"/><rect x="11.5" y="6" width="2" height="8"/></svg>
-        <span class="nav-label">Отдел диагностики</span>
-        <span class="nav-badge" id="anomaly-badge" style="display:none">0</span>
-      </div>
-      <div class="nav-item" data-page="planning" onclick="showPage('planning',this)" title="Планирование">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2"/></svg>
-        <span class="nav-label">Планирование</span>
-      </div>
-
-      <div class="nav-section">Управление</div>
-      <div class="nav-item" data-page="upload" onclick="showPage('upload',this)" title="Загрузка данных">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 13h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-        <span class="nav-label">Загрузка данных</span>
-      </div>
-      <div class="nav-item" data-page="settings" onclick="showPage('settings',this)" title="Настройки">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6A3 3 0 008 5zm6.3 1.2l-1.1-.2A5.5 5.5 0 0012 4.8l.6-.9a.5.5 0 00-.1-.7l-1.1-1a.5.5 0 00-.7.1l-.7.8A5.5 5.5 0 008.2 2.1L8 1a.5.5 0 00-.5-.4h-1.4A.5.5 0 005.7 1l-.2 1.1A5.5 5.5 0 004 3.2L3.1 2.6a.5.5 0 00-.7.1l-1 1.1a.5.5 0 00.1.7l.8.7A5.5 5.5 0 002.1 7l-1.1.2a.5.5 0 00-.4.5v1.4c0 .3.2.5.4.5l1.1.2a5.5 5.5 0 001.1 1.2l-.6.9a.5.5 0 00.1.7l1.1 1c.2.2.5.1.7-.1l.7-.8A5.5 5.5 0 007.8 14l.2 1.1c.1.2.3.4.5.4h1.4c.3 0 .5-.2.5-.4l.2-1.1a5.5 5.5 0 001.2-1.1l.9.6c.2.1.5.1.7-.1l1-1.1a.5.5 0 00-.1-.7l-.8-.7a5.5 5.5 0 00.2-1.4l1.1-.2c.2-.1.4-.3.4-.5V6.6a.5.5 0 00-.4-.4z"/></svg>
-        <span class="nav-label">Настройки</span>
-      </div>
+  <!-- ─── Шапка: логотип, разделы, период и действия ─────────────────────── -->
+  <header class="xhead">
+    <a class="xlogo" href="#" onclick="event.preventDefault();showPage('overview',document.querySelector('.nav-item[data-page=&quot;overview&quot;]'))" aria-label="XFIX Аналитика — главная">
+      <span class="xlogo-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+      <span class="xlogo-text">XFIX</span>
+    </a>
+    <nav class="xnav" aria-label="Разделы">
+      <button type="button" class="nav-item active" data-page="overview" onclick="showPage('overview',this)">Главная</button>
+      <button type="button" class="nav-item" data-page="overruns" onclick="showPage('overruns',this)">Перерасходы</button>
+      <button type="button" class="nav-item" data-page="diagnostics" onclick="showPage('diagnostics',this)">Отдел диагностики<span class="nav-badge" id="anomaly-badge" style="display:none">0</span></button>
+      <button type="button" class="nav-item" data-page="methodology" onclick="showPage('methodology',this)">Еженедельный отчёт</button>
+      <button type="button" class="nav-item" data-page="planning" onclick="showPage('planning',this)">Планирование</button>
+      <button type="button" class="nav-item" data-page="upload" onclick="showPage('upload',this)">Загрузка</button>
+      <button type="button" class="nav-item" data-page="settings" onclick="showPage('settings',this)">Настройки</button>
     </nav>
-
-    <div class="sidebar-footer">
-      <a class="nav-item home-link" href="https://fivenine.space/" title="Все инструменты">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>
-        <span class="nav-label">Все инструменты</span>
-      </a>
-      <div id="last-upload-info">Загрузок: —</div>
+    <div class="xhead-tools">
+      <span class="xhead-info" id="last-upload-info">Загрузок: —</span>
+      <a class="xhead-home" href="https://fivenine.space/" title="Все инструменты" aria-label="Все инструменты"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></a>
+      <button class="btn btn-ghost btn-icon" id="theme-toggle" onclick="toggleTheme()" title="Переключить тему" aria-label="Переключить тему"></button>
     </div>
-  </aside>
+  </header>
 
-  <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
   <div class="main">
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="topbar-title" id="page-title">Главная <span>— обзор</span></div>
+    <section class="page-head">
+      <div class="page-head-text">
+        <span class="page-cap" id="page-cap">обзор, динамика, вендоры</span>
+        <h1 class="page-title" id="page-title">Главная</h1>
+      </div>
+      <div class="page-head-tools">
       <div class="period-picker" id="period-picker">
         <button class="btn btn-ghost period-btn" id="period-btn" onclick="togglePeriodPop()" aria-haspopup="dialog" aria-expanded="false" title="Период отчёта и сравнение">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
@@ -1218,13 +1484,13 @@ details[open] > .pl-summary::before { content: '▾'; }
           </div>
         </div>
       </div>
-      <button class="btn btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Переключить тему" style="padding:0 10px"></button>
-      <button class="btn btn-ghost" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" aria-label="Обновить данные" style="padding:0 12px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
-      <button class="btn btn-primary" id="hdr-upload" onclick="openUploadModal()">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v9M4 5l4-4 4 4M3 13h10"/><path stroke="currentColor" stroke-width="1.5" fill="none" d="M4 5l4-4 4 4M8 1v9M3 13h10"/></svg>
-        Загрузить отчёт
-      </button>
-    </header>
+        <button class="btn btn-ghost btn-icon" onclick="refreshPage()" id="refresh-btn" title="Обновить данные" aria-label="Обновить данные"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
+        <button class="btn btn-primary" id="hdr-upload" onclick="openUploadModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 21h16"/></svg>
+          Загрузить отчёт
+        </button>
+      </div>
+    </section>
 
     <!-- Content pages -->
     <div class="content">
@@ -1447,14 +1713,14 @@ details[open] > .pl-summary::before { content: '▾'; }
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start">
           <!-- Daily flow chart -->
           <div class="card card-lg">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Устройств по дням</div>
+            <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px">Устройств по дням</div>
             <div class="chart-wrap" style="height:200px">
               <canvas id="wl-daily-chart"></canvas>
             </div>
           </div>
           <!-- Day of week chart -->
           <div class="card card-lg">
-            <div id="wl-dow-title" style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Средняя нагрузка по дням недели</div>
+            <div id="wl-dow-title" style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px">Средняя нагрузка по дням недели</div>
             <div class="chart-wrap" style="height:200px">
               <canvas id="wl-dow-chart"></canvas>
             </div>
@@ -1462,7 +1728,7 @@ details[open] > .pl-summary::before { content: '▾'; }
         </div>
         <!-- Employee throughput table -->
         <div class="card" style="margin-top:16px">
-          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Производительность сотрудников</div>
+          <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:12px">Производительность сотрудников</div>
           <table class="data-table" id="wl-emp-table">
             <thead><tr>
               <th>Сотрудник</th>
@@ -1497,7 +1763,7 @@ details[open] > .pl-summary::before { content: '▾'; }
         <div class="card" id="kpi-mgr-score" style="margin-bottom:16px;display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div>
-              <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Итоговый балл за месяц</div>
+              <div style="font-size:12px;color:var(--text-muted)">Итоговый балл за месяц</div>
               <div id="kpi-mgr-scheme" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
               <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
                 <span id="kpi-mgr-total" style="font-size:38px;font-weight:700;line-height:1">0</span>
@@ -1630,46 +1896,52 @@ details[open] > .pl-summary::before { content: '▾'; }
             <button class="tab plan-tab" data-plan="analytics" onclick="switchPlanTab('analytics',this)">Аналитика</button>
             <button class="tab plan-tab" data-plan="settings" onclick="switchPlanTab('settings',this)">Настройки</button>
           </div>
+          <div class="pl-headtools" id="pl-headtools">
           <div class="pl-sources" id="pl-sources"></div>
           <label class="btn btn-primary pl-upload" title="Выгрузка FileMaker (техника в работе), график смен Shifton или список ожидаемых поставок — тип файла определяется сам. Можно просто перетащить файл на страницу">
             <input type="file" id="pl-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="planImportInput(this)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 21h16"/></svg>
             Загрузить
           </label>
+          </div>
         </div>
         <div class="pl-meta" id="plan-range-note" style="margin:-6px 0 12px"></div>
         <div class="pl-drop" id="pl-drop"><div>Отпустите файл<br><small>выгрузка FileMaker, график Shifton или список поставок</small></div></div>
 
-        <!-- Сегодня: вывод → нагрузка по ролям → кто чем занят -->
+        <!-- Сегодня: вывод дня и очередь → нагрузка по ролям → кто чем занят -->
         <div class="plan-view" id="plan-shift">
           <div class="pl-toolbar">
             <div class="pl-step">
               <button class="pl-arrow" onclick="stepShiftDate(-1)" aria-label="Предыдущий день">‹</button>
-              <input type="date" class="pl-input" id="pd-date" onchange="onShiftDateChange()">
+              <input type="date" class="pl-input" id="pd-date" onchange="onShiftDateChange()" aria-label="Дата плана">
               <button class="pl-arrow" onclick="stepShiftDate(1)" aria-label="Следующий день">›</button>
             </div>
             <span class="pl-day" id="pd-day"></span>
             <div class="pl-toolbar-end">
-              <button class="btn btn-ghost pl-btn-sm" id="pd-edit-btn" onclick="toggleShiftEdit()" aria-expanded="false" title="Поправить объём дня под факт">Изменить объём</button>
-              <button class="btn btn-ghost pl-btn-sm" onclick="copyShiftPlan()" title="План текстом — для чата смены">Скопировать план</button>
+              <button class="btn btn-ghost" id="pd-edit-btn" onclick="toggleShiftEdit()" aria-expanded="false" title="Поправить объём дня под факт">Изменить объём</button>
+              <button class="btn btn-ghost" onclick="copyShiftPlan()" title="План текстом — для чата смены"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/></svg>Скопировать план</button>
             </div>
           </div>
-          <div class="pl-verdict" id="pd-verdict"></div>
-          <div class="card pl-card">
-            <div class="pl-card-head"><div class="card-title">Нагрузка дня</div><span class="pl-meta" id="pd-source"></span></div>
-            <div class="pl-edit" id="pd-edit" hidden>
-              <label>Поступит на диагностику<span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-diag" onchange="renderPlanShift()"> устр.</span></label>
-              <label>Ждут диагностики с утра<span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-backlog" value="0" onchange="renderPlanShift()"> устр.</span></label>
-              <label>Логистика<span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-log" onchange="renderPlanShift()"> ч</span></label>
-              <label>ОКК<span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-okk" onchange="renderPlanShift()"> ч</span></label>
-              <button class="btn btn-ghost pl-btn-sm" onclick="onShiftDateChange()" title="Снова взять прогноз и очередь">Сбросить</button>
-            </div>
+          <div class="pl-edit card" id="pd-edit" hidden>
+            <label>Поступит на диагностику<span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-diag" onchange="renderPlanShift()"> устр.</span></label>
+            <label>Ждут диагностики с утра<span><input type="number" min="0" step="1" class="pl-input pl-num" id="pd-backlog" value="0" onchange="renderPlanShift()"> устр.</span></label>
+            <label>Логистика<span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-log" onchange="renderPlanShift()"> ч</span></label>
+            <label>ОКК<span><input type="number" min="0" step="0.5" class="pl-input pl-num" id="pd-okk" onchange="renderPlanShift()"> ч</span></label>
+            <button class="btn btn-ghost" onclick="onShiftDateChange()" title="Снова взять прогноз и очередь">Сбросить</button>
+          </div>
+          <section class="pl-top">
+            <article class="pl-verdict" id="pd-verdict"></article>
+            <div class="pl-tiles" id="pd-tiles"></div>
+          </section>
+          <article class="card pl-card">
+            <div class="pl-card-head"><h2 class="pl-h">Нагрузка дня по ролям</h2><span class="pl-meta" id="pd-source"></span></div>
             <div class="pl-roles" id="pd-kpi"></div>
-          </div>
-          <div class="card pl-card">
-            <div class="pl-card-head"><div class="card-title" id="pd-people-title">Кто чем занят</div><div class="pl-legend" id="pd-legend"></div></div>
-            <div class="pl-gantt" id="pd-gantt"></div>
-          </div>
+            <div class="pl-foot" id="pd-foot"></div>
+          </article>
+          <article class="card pl-card">
+            <div class="pl-card-head"><h2 class="pl-h" id="pd-people-title">Кто чем занят</h2><div class="pl-legend" id="pd-legend"></div></div>
+            <div class="pl-gantt-wrap"><div class="pl-gantt" id="pd-gantt"></div></div>
+          </article>
         </div>
 
         <!-- Неделя: хватит ли смен -->
@@ -1682,8 +1954,10 @@ details[open] > .pl-summary::before { content: '▾'; }
             </div>
             <span class="pl-meta" id="pw-queue-info"></span>
           </div>
-          <div class="pl-verdict" id="pw-advice"></div>
-          <div class="kpi-grid compact" id="pw-kpi"></div>
+          <section class="pl-top">
+            <article class="pl-verdict" id="pw-advice"></article>
+            <div class="pl-tiles" id="pw-kpi"></div>
+          </section>
           <div class="card pl-card" style="overflow-x:auto">
             <table class="data-table pl-table" style="min-width:640px">
               <thead><tr>
@@ -1959,7 +2233,7 @@ details[open] > .pl-summary::before { content: '▾'; }
           <div class="card" id="meth-kpi7-score" style="margin-bottom:16px;display:none">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
               <div>
-                <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Итоговый балл за месяц</div>
+                <div style="font-size:12px;color:var(--text-muted)">Итоговый балл за месяц</div>
                 <div id="meth-kpi7-scheme" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
                 <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
                   <span id="meth-kpi7-total" style="font-size:38px;font-weight:700;line-height:1">0</span>
@@ -2025,14 +2299,10 @@ details[open] > .pl-summary::before { content: '▾'; }
 
       <!-- ─ Upload ──────────────────────────────────────────────────────── -->
       <div class="page" id="page-upload">
-        <div class="section-header">
-          <div><div class="section-title">Загрузка отчётов</div>
-          <div class="section-sub">Импорт данных из Excel-выгрузки</div></div>
-        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
           <!-- Drop zone card -->
           <div class="card card-lg">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Новый отчёт</div>
+            <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:12px">Новый отчёт</div>
             <div class="drop-zone" id="pu-drop-zone" onclick="puTriggerFile()" ondragover="puDragOver(event)" ondragleave="puDragLeave()" ondrop="puDrop(event)">
               <div class="drop-zone-icon" style="color:var(--xf-ink-400)"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
               <div class="drop-zone-title">Перетащите Excel файл или нажмите</div>
@@ -2050,7 +2320,7 @@ details[open] > .pl-summary::before { content: '▾'; }
           </div>
           <!-- Hints card -->
           <div class="card card-lg" style="background:var(--bg-surface)">
-            <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:14px;text-transform:uppercase;letter-spacing:.05em">Как подготовить файл</div>
+            <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:14px">Как подготовить файл</div>
             <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--text-secondary)">
               <div style="display:flex;gap:10px;align-items:flex-start">
                 <span style="color:var(--accent);font-size:16px;line-height:1">①</span>
@@ -2076,7 +2346,7 @@ details[open] > .pl-summary::before { content: '▾'; }
         </div>
         <!-- History -->
         <div class="card" style="margin-top:16px">
-          <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">История загрузок</div>
+          <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:12px">История загрузок</div>
           <table class="data-table" id="pu-history">
             <thead><tr>
               <th>Неделя</th>
@@ -2094,9 +2364,6 @@ details[open] > .pl-summary::before { content: '▾'; }
 
       <!-- ─ Settings ─────────────────────────────────────────────────────── -->
       <div class="page" id="page-settings">
-        <div class="section-header">
-          <div><div class="section-title">Настройки</div><div class="section-sub">Подключение, базовые действия и назначение отделов</div></div>
-        </div>
 
         <div class="stabs">
           <button class="stab-btn active" onclick="switchSettingsTab('connection',this)">Подключение</button>
@@ -3245,12 +3512,12 @@ async function db(fn, params = {}) {
 const PAGE_TITLES = {
   overview:  'Главная <span>— обзор, динамика, вендоры</span>',
   overruns:  'Перерасходы <span>— причины и таблица</span>',
-  methodology: 'Еженедельный отчет <span>— в разрезах</span>',
+  methodology: 'Еженедельный отчёт <span>— в разрезах</span>',
   diagnostics: 'Отдел диагностики <span>— сотрудники, аномалии, нагрузка</span>',
-  planning:  'Планирование <span>— нагрузка, нормы, график</span>',
-  upload:    'Загрузка данных <span>— импорт отчётов</span>',
+  planning:  'Планирование <span>— отдел диагностики · роли: диагностика, логистика, ОКК</span>',
+  upload:    'Загрузка данных <span>— отчёты из Excel-выгрузки</span>',
   report:    'Менеджерский отчёт <span>— печать в PDF</span>',
-  settings:  'Настройки',
+  settings:  'Настройки <span>— подключение, базовые действия и отделы</span>',
 };
 /* ─── Sidebar collapse ─────────────────────────────────────────────────── */
 function applySidebarState(collapsed) {
@@ -3276,7 +3543,6 @@ function toggleSidebar() {
   applySidebarState(collapsed);
   try { localStorage.setItem('xfix_sidebar_collapsed', collapsed ? '1' : '0'); } catch (e) {}
 }
-try { applySidebarState(localStorage.getItem('xfix_sidebar_collapsed') === '1'); } catch (e) {}
 
 function enterPresentation() {
   document.body.classList.add('presentation');
@@ -3292,8 +3558,11 @@ function showPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
+  const navEl = (el && el.classList.contains('nav-item') ? el : null) || document.querySelector(`.xnav .nav-item[data-page="${id}"]`);
+  if (navEl) navEl.classList.add('active');
+  const pt = (PAGE_TITLES[id] || id).match(/^(.*?)\s*(?:<span>—\s*(.*)<\/span>)?$/);
+  document.getElementById('page-title').textContent = pt[1];
+  document.getElementById('page-cap').textContent = pt[2] || '';
   STATE.currentPage = id;
   document.body.dataset.page = id;
   loadPageData(id);
@@ -3650,6 +3919,8 @@ function onPeriodChange() { updatePeriodButton(); applyPeriod(); }
    CHART HELPERS
 ══════════════════════════════════════════════════════════════════════════════ */
 /* Цвета графиков берутся из токенов дизайн-системы и пересчитываются при смене темы */
+/* Палитра серий: зелёный → контраст → серые по светлоте (меняется с темой, см. readChartTheme) */
+const PALETTE = [];
 const CC = {};
 function readChartTheme() {
   const cs = getComputedStyle(document.documentElement);
@@ -3657,9 +3928,14 @@ function readChartTheme() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   Object.assign(CC, {
     text: v('--ink-muted'), ink: v('--ink'), grid: v('--hairline'),
-    ref: dark ? 'rgba(238,244,240,.3)' : 'rgba(14,19,17,.28)',
+    ref: dark ? 'rgba(242,242,242,.35)' : 'rgba(0,0,0,.3)',
     tooltipBg: v('--tooltip-bg'),
+    g: '#39BB3B', k: dark ? '#F2F2F2' : '#000000', mid: dark ? '#9A9A9A' : '#6B6B6B', light: dark ? '#4A4A4A' : '#CCCCCC',
+    gA: a => `rgba(57,187,59,${a})`, kA: a => dark ? `rgba(242,242,242,${a})` : `rgba(0,0,0,${a})`,
   });
+  PALETTE.splice(0, PALETTE.length, ...(dark
+    ? ['#39BB3B', '#F2F2F2', '#8A8A8A', '#86D688', '#5A5A5A', '#BDBDBD', '#1F8A21', '#E0E0E0']
+    : ['#39BB3B', '#000000', '#A8A8A8', '#1F6B20', '#6B6B6B', '#D4D4D4', '#86D688', '#3A3A3A']));
   Chart.defaults.color = CC.text;
   Chart.defaults.borderColor = CC.grid;
   Object.assign(Chart.defaults.plugins.tooltip, {
@@ -3684,7 +3960,7 @@ function restyleCharts() {
   });
 }
 readChartTheme();
-Chart.defaults.font.family = "'Wix Madefor Text', sans-serif";
+Chart.defaults.font.family = "'Onest', system-ui, sans-serif";
 Chart.defaults.elements.bar.borderRadius = 4;
 Chart.defaults.elements.line.borderWidth = 2;
 Chart.defaults.elements.point.radius = 2;
@@ -3703,7 +3979,6 @@ function mkChart(id, config) {
 }
 
 /* Те же оттенки, что раньше, но приглушённые под «матовое стекло» */
-const PALETTE = ['#4DB384','#C96A5E','#D1A04E','#6B93C4','#9886BE','#5BA9B0','#CF8A5B','#98B860'];
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FORMAT HELPERS
@@ -3813,7 +4088,7 @@ async function loadOverview() {
       type: 'doughnut',
       data: {
         labels: ['Норма', 'Небольшое', 'Повышен', 'Критично'],
-        datasets: [{ data: [d.zone_normal||0, d.zone_small||0, d.zone_elevated||0, d.zone_critical||0], backgroundColor: ['#4DB384','#8DB7D9','#D1A04E','#C96A5E'], borderWidth: 0, hoverOffset: 6 }]
+        datasets: [{ data: [d.zone_normal||0, d.zone_small||0, d.zone_elevated||0, d.zone_critical||0], backgroundColor: [CC.g, CC.light, CC.mid, CC.k], borderWidth: 0, hoverOffset: 6 }]
       },
       options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
     });
@@ -3857,7 +4132,7 @@ async function loadOverview() {
           </div>
           ${ai.summary ? `<div class="ai-summary">${ai.summary}</div>` : ''}
           ${patterns.length ? `
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Паттерны (${patterns.length})</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">Паттерны (${patterns.length})</div>
             <div class="patterns-grid">
               ${patterns.map(p => `
                 <div class="pattern-card">
@@ -3870,7 +4145,7 @@ async function loadOverview() {
             </div>
           ` : ''}
           ${risks.length ? `
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Топ-риски</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">Топ-риски</div>
             <div class="top-risks">
               ${risks.map(r => `
                 <div class="top-risk-item">
@@ -3928,8 +4203,8 @@ async function loadDynamics() {
       data: {
         labels,
         datasets: [
-          { label: 'Обращения', data: services, borderColor: '#4DB384', backgroundColor: 'rgba(77,179,132,.12)', fill: true, tension: .25, spanGaps: false, yAxisID: 'y1' },
-          { label: 'Выплаты, ₽', data: payments, borderColor: '#6B93C4', backgroundColor: 'rgba(107,147,196,.10)', fill: true, tension: .25, spanGaps: false, yAxisID: 'y2' },
+          { label: 'Обращения', data: services, borderColor: CC.g, backgroundColor: CC.gA(.14), fill: true, tension: .25, spanGaps: false, yAxisID: 'y1' },
+          { label: 'Выплаты, ₽', data: payments, borderColor: CC.k, backgroundColor: CC.kA(.04), fill: true, tension: .25, spanGaps: false, yAxisID: 'y2' },
         ]
       },
       options: {
@@ -3947,7 +4222,7 @@ async function loadDynamics() {
       type: 'bar',
       data: {
         labels,
-        datasets: [{ label: 'Перерасход, ₽', data: overruns, backgroundColor: 'rgba(201,106,94,.55)', borderColor: '#C96A5E', borderWidth: 1 }]
+        datasets: [{ label: 'Перерасход, ₽', data: overruns, backgroundColor: CC.k, borderWidth: 0 }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -4419,7 +4694,7 @@ async function toggleEmpDetail(idx, employee) {
 
     const openCount = dups.filter(d => !d.review_status).length;
     el.innerHTML = `
-      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:10px">
         ${ico('repeat', 13)} Дублирующие действия — ${openCount} случай(ев)${dups.length > openCount ? `, разобрано ${dups.length - openCount}` : ''}
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -4753,8 +5028,7 @@ function goMethSlide(i) {
     stage.classList.remove('slide-in-next', 'slide-in-prev');
     void stage.offsetWidth;                       // перезапуск анимации
     stage.classList.add('slide-in-' + dir);
-    const content = document.querySelector('.content');
-    if (content) content.scrollTop = 0;
+    window.scrollTo(0, 0);
   }
   switchMethTab(METH_SLIDES[i].n);
 }
@@ -7605,7 +7879,7 @@ function renderKpiCards(prefix = 'kpi-mgr') {
     const res = kpiComputeMetric(m);
     total += res.pts;
     const ratio = m.maxPts ? res.pts / m.maxPts : 0;
-    const color = ratio >= 0.9 ? 'var(--xf-green,#39bb3b)' : ratio >= 0.5 ? 'var(--warn-text)' : 'var(--xf-red,#e5484d)';
+    const color = ratio >= 0.9 ? 'var(--xf-green)' : ratio >= 0.5 ? 'var(--warn-text)' : 'var(--xf-red)';
     const detail = m.plan
       ? `${res.den ? `${res.num} из ${res.den} не выполнили` : 'план не задан'}`
       : `${res.num} / ${res.den}${res.empty ? ' · нет данных' : ''}${res.source === 'issue_checks' ? ' · по таблице проверок' : ''}`;
@@ -7633,7 +7907,7 @@ function renderKpiCards(prefix = 'kpi-mgr') {
     : `Схема с ${kpiMonthGen(scheme.from)}`;
   const info = kpiMgr.months.find(m => m.month === kpiMgr.month);
   if (info && info.source === 'actions' && !info.with_flags) {
-    document.getElementById(prefix + '-scheme').innerHTML += ' · <span style="color:var(--xf-red,#e5484d)">в загруженном отчёте нет колонки «Ключ просрочен» — перезагрузите общий отчёт за месяц</span>';
+    document.getElementById(prefix + '-scheme').innerHTML += ' · <span style="color:var(--xf-red)">в загруженном отчёте нет колонки «Ключ просрочен» — перезагрузите общий отчёт за месяц</span>';
   }
   const pass = total >= thr;
   const bar = document.getElementById(prefix + '-bar');
@@ -7642,7 +7916,7 @@ function renderKpiCards(prefix = 'kpi-mgr') {
   const premium = cfg.pointRub ? `<div style="font-size:13px;font-weight:600;margin-top:6px">Премия: ${fmt.money(pass ? total * cfg.pointRub : 0)}</div>` : '';
   const badge = document.getElementById(prefix + '-badge');
   badge.innerHTML = (pass
-    ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--green-tint);color:var(--xf-green,#39bb3b);font-weight:600;font-size:13px">✓ Порог премии пройден</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">+${total - thr} сверх порога</div>`
+    ? `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--green-tint);color:var(--xf-green);font-weight:600;font-size:13px">✓ Порог премии пройден</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">+${total - thr} сверх порога</div>`
     : `<span style="display:inline-block;padding:6px 14px;border-radius:999px;background:var(--warn-tint);color:var(--warn-text);font-weight:600;font-size:13px">Ниже порога премии</span><div style="font-size:11px;color:var(--text-muted);margin-top:4px">не хватает ${thr - total} баллов</div>`) + premium;
 }
 
@@ -7670,15 +7944,15 @@ function renderKpiPlanTable() {
     const has = plan > 0;
     const met = has ? fact >= plan : null;
     const status = !has ? '<span style="color:var(--text-muted)">план не задан</span>'
-      : met ? '<span style="color:var(--xf-green,#39bb3b)">✓ выполнил</span>'
-            : '<span style="color:var(--xf-red,#e5484d)">✗ не выполнил</span>';
+      : met ? '<span style="color:var(--xf-green)">✓ выполнил</span>'
+            : '<span style="color:var(--xf-red)">✗ не выполнил</span>';
     return `<tr>
       <td>${esc(name)}</td>
       <td class="num"><input class="settings-input kpi-plan-in" data-emp="${esc(name)}" data-f="plan" type="number" min="0" value="${plan || ''}" placeholder="0" style="width:130px;text-align:right"></td>
       <td class="num"><input class="settings-input kpi-plan-in" data-emp="${esc(name)}" data-f="fix" type="number" min="0" value="${fix || ''}" placeholder="0" style="width:130px;text-align:right"></td>
       <td class="num">${fmt.money(fact)}</td>
       <td class="num">${status}</td>
-      <td class="num"><button class="btn btn-ghost" title="Исключить из плана (не мой отдел)" onclick="excludeKpiEmployee('${esc(name).replace(/'/g,"\\'")}')" style="padding:2px 8px;color:var(--xf-red,#e5484d)">✕</button></td>
+      <td class="num"><button class="btn btn-ghost" title="Исключить из плана (не мой отдел)" onclick="excludeKpiEmployee('${esc(name).replace(/'/g,"\\'")}')" style="padding:2px 8px;color:var(--xf-red)">✕</button></td>
     </tr>`;
   }).join('');
 }
@@ -7691,7 +7965,7 @@ function renderKpiExcluded(names) {
   const chips = names.map(n =>
     `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-muted,rgba(128,128,128,.12));border-radius:16px;padding:4px 6px 4px 12px;font-size:12px">
       ${esc(n)}
-      <button class="btn btn-ghost" title="Вернуть в план" onclick="includeKpiEmployee('${esc(n).replace(/'/g,"\\'")}')" style="padding:0 6px;color:var(--xf-green,#39bb3b)">↩</button>
+      <button class="btn btn-ghost" title="Вернуть в план" onclick="includeKpiEmployee('${esc(n).replace(/'/g,"\\'")}')" style="padding:0 6px;color:var(--xf-green)">↩</button>
     </span>`).join(' ');
   el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Исключены из плана (${names.length}) — не мой отдел:</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">${chips}</div>`;
@@ -7767,7 +8041,7 @@ function renderKpiSettings() {
         : `Действует схема с ${kpiMonthGen(scheme.from)}${scheme.stored ? '' : ' (встроенная)'}`}</span>
     </div>`;
   const missing = kpiMgr.schemesMissing
-    ? `<div style="font-size:12px;color:var(--xf-red,#e5484d);margin-bottom:12px">Таблица kpi_schemes не найдена — прогоните supabase_kpi.sql, иначе изменения не сохранятся.</div>` : '';
+    ? `<div style="font-size:12px;color:var(--xf-red);margin-bottom:12px">Таблица kpi_schemes не найдена — прогоните supabase_kpi.sql, иначе изменения не сохранятся.</div>` : '';
 
   if (scheme.legacy) {
     // только просмотр: веса и шкалы, по которым считались прошлые месяцы
@@ -7832,7 +8106,7 @@ function renderKpiSettings() {
     ${cards}
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px">
       <button class="btn btn-primary" onclick="saveKpiScheme()">Сохранить с ${kpiMonthGen(month)}</button>
-      ${exact ? `<button class="btn btn-ghost" onclick="deleteKpiScheme()" style="color:var(--xf-red,#e5484d)">Удалить версию ${kpiMonthGen(month)}</button>` : ''}
+      ${exact ? `<button class="btn btn-ghost" onclick="deleteKpiScheme()" style="color:var(--xf-red)">Удалить версию ${kpiMonthGen(month)}</button>` : ''}
       <span style="font-size:12px;color:var(--text-muted)">Применится к ${kpiMonthLabel(month).toLowerCase()} и следующим месяцам, пока не задана новая версия. Предыдущие месяцы не меняются.</span>
     </div>`;
   kpiDraftSum();
@@ -8083,7 +8357,7 @@ async function loadWorkload() {
         data: dailyRows.map(r => +r.services),
         backgroundColor: dailyRows.map(r => {
           const dow = +r.dow;
-          return (dow === 0 || dow === 6) ? 'rgba(209,160,78,.7)' : 'rgba(77,179,132,.75)';
+          return (dow === 0 || dow === 6) ? CC.light : CC.g;
         }),
         borderRadius: 4,
       }]
@@ -8131,7 +8405,7 @@ async function loadWorkload() {
       datasets: [{
         label: 'Среднее устройств',
         data: dowAvg,
-        backgroundColor: dowOrder.map(d => d === 0 || d === 6 ? 'rgba(209,160,78,.7)' : 'rgba(77,179,132,.55)'),
+        backgroundColor: dowOrder.map(d => d === 0 || d === 6 ? CC.light : CC.g),
         borderRadius: 4,
       }]
     },
@@ -8505,6 +8779,8 @@ async function planImportSchedule(grid) {
 function initPlanDrop() {
   if (initPlanDrop.done) return;
   initPlanDrop.done = true;
+  const tools = document.getElementById('pl-headtools');
+  if (tools) document.querySelector('.page-head-tools').prepend(tools);
   const page = document.getElementById('page-planning'), drop = document.getElementById('pl-drop');
   const active = () => page.classList.contains('active');
   let depth = 0;
@@ -8890,7 +9166,7 @@ function renderPlanWeek() {
     const s = sim[i];
     const ppl = d.people.map(p => `${p.employee}${p.start ? ` ${hhmm(p.start)}–${hhmm(p.end)}` : ''}`).join('\n');
     if (d.past) return `<tr style="opacity:.5"><td>${planDay(d.date)}</td><td class="num">—</td><td></td><td class="num">${d.people.length || '—'}</td><td class="num">—</td><td>${badge('past')}</td></tr>`;
-    const note = intra && intra.idx === i && intra.late ? `<span class="pl-sub-txt" style="color:var(--danger)">не успеваем ${intra.late} из ${intra.n} к сроку в статусе</span>`
+    const note = intra && intra.idx === i && intra.late ? `<span class="pl-sub-txt" style="color:var(--ink)">не успеваем ${intra.late} из ${intra.n} к сроку в статусе</span>`
       : s.lateMin > 1 ? `<span class="pl-sub-txt">${Math.round(s.lateDev)} устр. позже срока</span>` : '';
     return `<tr>
       <td style="white-space:nowrap">${planDay(d.date)}${d.list.length ? '<span class="pl-sub-txt">поставка</span>' : ''}</td>
@@ -8919,7 +9195,9 @@ function renderPlanWeek() {
   const extraOn = [...planState.extraEmps];
   if (skippedAll.length) items.push(['info', `В графике, но мало действий отдела — не считаются в ёмкости: ${skippedAll.map(n => toggleBtn(n, '+')).join(' ')}`]);
   if (extraOn.length) items.push(['info', `Учтены вручную: ${extraOn.map(n => toggleBtn(n, '−')).join(' ')}`]);
-  renderShiftVerdict(items, 'pw-advice');
+  const [main, ...rest] = items;
+  renderPlanVerdict('pw-advice', { tone: main[0], label: 'Совет по графику', head: main[1],
+    items: rest.map(([kind, html]) => ({ tag: /вручную/.test(html) ? 'учтены' : 'не в ёмкости', kind, html: html.replace(/^[^:]+:\s*/, '') })) });
 
   // ожидаемые поставки недели — свёрнуто
   const card = document.getElementById('pw-supply-card');
@@ -9629,9 +9907,9 @@ async function savePlanTaskMap(sel) {
    переключение — смена роли: у сотрудника не больше трёх отрезков (ОКК → логистика →
    диагностика). Объём — прогноз по дню недели, пока нет живой очереди из FileMaker. */
 const PLAN_ROLES = [
-  { code: 'diag', name: 'Диагностика', color: '#6B93C4' },
-  { code: 'log', name: 'Логистика', color: '#D1A04E' },
-  { code: 'okk', name: 'ОКК', color: '#9886BE' },
+  { code: 'diag', name: 'Диагностика', color: 'var(--green-500)', fg: '#000' },
+  { code: 'log', name: 'Логистика', color: 'var(--contrast)', fg: 'var(--on-contrast)' },
+  { code: 'okk', name: 'ОКК', color: 'var(--light)', fg: 'var(--ink)' },
 ];
 const PLAN_ISSUE_CUTOFF = 15 * 60;   // отправки клиентам во вт и пт — готово к 15:00
 const PLAN_SHIP_DOW = [1, 4];        // вт, пт (planDow: пн = 0)
@@ -9791,11 +10069,13 @@ function renderShiftTrips(trips, date, leaving, qx, sm) {
   const lines = [];
   // Apple на диагностике к ближайшему выезду: сколько нужно сделать к вечеру накануне
   const next = planNextTrip(trips, date);
+  planState.shiftApple = null;
   if (next && next.eve >= date) {
     const apple = qx && q ? q.items.filter(it => queueTask(it) === 'diag' && planIsTripApple(it)) : [];
     const appleMin = apple.reduce((a, it) => a + planState.model.normFor(it.group), 0);
     const daysLeft = Math.round((new Date(next.eve) - new Date(date)) / 864e5) + 1;   // включая сегодня
     const today = appleMin / daysLeft;
+    planState.shiftApple = { n: qx ? apple.length : null, day: planDay(next.trip.date_from) };
     const head = `<b>Выезд ${esc(planTripLabel(next.trip))} ${planDay(next.trip.date_from)}</b>: Apple (iPhone, Mac, iPad, Watch) — обработка и базовая диагностика до конца ${next.eve === date ? 'сегодняшней смены' : planDay(next.eve)}`;
     if (!qx) lines.push(['info', `${head}. Сколько их — покажет выгрузка FileMaker`]);
     else if (!apple.length) lines.push(['ok', `${head}: в очереди таких нет`]);
@@ -9901,34 +10181,45 @@ const PLAN_DOW_FULL = ['Понедельник', 'Вторник', 'Среда',
 const planWho = list => list.length ? `<span title="${esc(list.map(p => p.emp).join(', '))}">${list.slice(0, 2).map(p => esc(planShort(p.emp))).join(', ')}${list.length > 2 ? ` +${list.length - 2}` : ''}</span>` : '';
 
 /* Вывод дня: одна строка-итог (самое серьёзное) и короткий список остального */
-function renderShiftVerdict(items, id = 'pd-verdict') {
+/* Карточка-вывод: зелёная, когда всё сходится, чёрная — когда есть риск.
+   items: [{ tag, kind: 'bad'|'warn'|'info'|'ok', html }] — короткие пункты с меткой темы */
+function renderPlanVerdict(id, { tone, label, head, items = [] }) {
   const el = document.getElementById(id);
-  const rank = { bad: 0, warn: 1, info: 2, ok: 3 };
-  items.sort((a, b) => rank[a[0]] - rank[b[0]]);
-  const [head, ...rest] = items;
-  el.className = `pl-verdict ${head[0]}`;
-  el.innerHTML = `<div class="pl-verdict-head">${head[1]}</div>`
-    + (rest.length ? `<ul>${rest.map(([c, x]) => `<li class="${c}">${x}</li>`).join('')}</ul>` : '');
+  const dark = tone === 'bad' || tone === 'warn';
+  el.className = `pl-verdict ${dark ? 'dark' : 'ok'}`;
+  const icon = dark
+    ? '<i class="pl-vdot" aria-hidden="true"></i>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';
+  el.innerHTML = `<span class="pl-vlabel">${icon}${label}</span><p class="pl-vhead">${head}</p>`
+    + (items.length ? `<ul>${items.map(x => `<li><span class="pl-tag ${x.kind === 'bad' || x.kind === 'warn' ? 'k' : 'w'}">${esc(x.tag)}</span><span>${x.html}</span></li>`).join('')}</ul>` : '');
+}
+// «Тема: текст» → метка темы и текст пункта
+function planSplitTopic(text, fallback) {
+  const m = String(text).match(/^([^:]{2,28}):\s*(.+)$/);
+  if (!m) return { tag: fallback, html: esc(text) };
+  const t = m[1].toLowerCase();
+  return { tag: /отправки/.test(t) ? 'отправки' : /apple/.test(t) ? 'выезд' : t, html: esc(m[2]) };
 }
 
-/* Строка роли: сколько работы по нормам и сколько закрывают люди в смене */
+/* Плитки очереди справа от вывода */
+function planTile(title, value, unit, note, dark) {
+  return `<article class="pl-tile${dark ? ' dark' : ''}"><span class="pl-tile-t">${title}</span><span class="pl-big">${value}${unit ? `<sup>${unit}</sup>` : ''}</span><span class="pl-tile-n">${note}</span></article>`;
+}
+
+/* Строка роли: работа по нормам (заливка) против ёмкости людей в смене (чёрная отметка) */
 function shiftRoleRow(role, need, cap, who, sub, status) {
-  const color = planRoleColor(role);
-  const scale = Math.max(need, cap, 1);
+  const r = PLAN_ROLES.find(x => x.code === role);
+  const scale = Math.max(need, cap, 1) * 1.08;
   const w = v => `${Math.max(0, v) / scale * 100}%`;
-  const bar = need > 0 || cap > 0
-    ? `<div class="pl-rbar" title="Работа ${planR1(need / 60)} ч · закрывают ${planR1(cap / 60)} ч">
-        <i class="cap" style="width:${w(cap)};background:color-mix(in srgb, ${color} 16%, transparent)"></i>
-        <i class="use" style="width:${w(Math.min(need, cap))};background:${color}"></i>
-        ${need > cap ? `<i class="over" style="left:${w(cap)};width:${w(need - cap)}"></i>` : ''}
-      </div>`
-    : '<div class="pl-rbar empty"></div>';
   return `<div class="pl-role">
-      <div class="pl-role-name"><i style="background:${color}"></i>${planRoleName(role)}<span class="pl-sub-txt">${sub}</span></div>
-      ${bar}
-      <div class="pl-role-val"><b>${planR1(need / 60)}</b> из ${planR1(cap / 60)} ч</div>
-      <div class="pl-role-who">${who || '<span class="pl-muted">никого</span>'}</div>
-      <div class="pl-role-st"><span class="pl-pill ${status[0]}">${status[1]}</span></div>
+      <span class="pl-role-name"><span><i style="background:${r.color}"></i>${r.name}</span><span class="pl-sub-txt">${sub}</span></span>
+      <span class="pl-rbar" role="img" aria-label="${r.name}: нужно ${planR1(need / 60)} ч, ёмкость ${planR1(cap / 60)} ч">
+        <i class="need" style="width:${w(need)};background:${r.color}"></i>
+        ${cap > 0 ? `<i class="capm" style="left:${w(cap)}"></i>` : ''}
+      </span>
+      <span class="pl-role-val"><b>${planR1(need / 60)}</b> / ${planR1(cap / 60)} ч</span>
+      <span class="pl-role-who">${who || '<span class="pl-muted">никого</span>'}</span>
+      <span class="pl-role-st"><span class="pl-tag ${status[0] === 'ok' ? 'g' : status[0] ? 'k' : 'w'}">${status[1]}</span></span>
     </div>`;
 }
 
@@ -9936,50 +10227,70 @@ function renderShiftPlan(sm, plan, input, qx) {
   const { people } = plan;
   const d = planDow(input.date);
   const byRole = role => people.filter(p => p.segs.some(x => x.role === role));
-  const late = n => n ? `, <span class="pl-late">${n} к сроку</span>` : '';
+  const late = n => n ? `, ${n} к сроку` : '';
   const q = (t, label) => qx && qx.n[t] ? `${label} ${qx.n[t]}${late(qx.urgent[t])}` : '';
   const join = parts => parts.filter(Boolean).join(' · ');
 
   // источник объёма
-  const snapOk = qx && qx.snap;
-  document.getElementById('pd-source').innerHTML = snapOk
-    ? `очередь FileMaker ${planDay(qx.snap.slice(0, 10))} ${qx.snap.slice(11, 16)} + прогноз поступления`
-    : `прогноз на ${PLAN_DOW[d]} — <a href="#" onclick="event.preventDefault();document.getElementById('pl-file').click()">загрузите выгрузку FileMaker</a>, чтобы учесть очередь`;
+  document.getElementById('pd-source').innerHTML = qx && qx.snap
+    ? `нужно / ёмкость, часов по нормам · очередь ${planDay(qx.snap.slice(0, 10))} ${qx.snap.slice(11, 16)}`
+    : `нужно / ёмкость, часов по нормам · прогноз на ${PLAN_DOW[d]}, <a href="#" onclick="event.preventDefault();document.getElementById('pl-file').click()">загрузите очередь FileMaker</a>`;
   document.getElementById('pd-people-title').textContent = people.length ? `Кто чем занят · ${people.length} ${plural(people.length, 'человек', 'человека', 'человек')}` : 'Кто чем занят';
 
+  // плитки очереди
+  const ap = planState.shiftApple;
+  const urgentToday = qx ? Math.max(0, Object.values(qx.urgent).reduce((a, b) => a + b, 0) - qx.late) : 0;
+  const backlog = +document.getElementById('pd-backlog').value || 0;
+  document.getElementById('pd-tiles').innerHTML =
+    planTile('Ждут диагностики', qx ? qx.n.diag : backlog, 'устр.', qx ? 'из выгрузки FileMaker' : 'введено вручную')
+    + planTile('Срок сегодня', qx ? urgentToday : '—', '', qx ? 'истекает до конца дня, все задачи' : 'нужна выгрузка FileMaker')
+    + planTile('Срок истёк', qx ? qx.late : '—', '', qx ? (qx.late ? 'закрыть первыми' : 'просроченных нет') : 'нужна выгрузка FileMaker', qx && qx.late > 0)
+    + planTile('Apple к выезду', ap && ap.n != null ? ap.n : '—', ap && ap.n != null ? 'устр.' : '', ap ? `выезд ${ap.day}` : 'выездов на 2 недели нет');
+
+  const trips = (planState.shiftTripLines || []).map(([kind, html]) => ({ tag: /партию/.test(html) ? 'партия' : 'выезд', kind, html }));
   if (!people.length) {
-    renderShiftVerdict([['warn', 'На эту дату в графике нет смен команды — загрузите график Shifton или выберите другую дату'], ...(planState.shiftTripLines || [])]);
-    document.getElementById('pd-kpi').innerHTML = '';
-    document.getElementById('pd-gantt').innerHTML = '';
-    document.getElementById('pd-legend').innerHTML = '';
+    renderPlanVerdict('pd-verdict', { tone: 'warn', label: 'Вывод дня', head: '<b>Смен нет</b> — на эту дату в графике нет команды', items: [{ tag: 'график', kind: 'info', html: 'Загрузите график Shifton или выберите другую дату' }, ...trips] });
+    ['pd-kpi', 'pd-gantt', 'pd-legend', 'pd-foot'].forEach(id => { document.getElementById(id).innerHTML = ''; });
     return;
   }
 
   // ── нагрузка по ролям
   const bal = plan.diagCap - plan.diagNeed;
-  const incoming = +document.getElementById('pd-diag').value || 0, backlog = +document.getElementById('pd-backlog').value || 0;
+  const incoming = +document.getElementById('pd-diag').value || 0;
   const diagSub = join([backlog ? `ждут ${backlog}${late(qx && qx.urgent.diag)}` : '', incoming ? `поступит ~${incoming}` : '', q('post_asc', 'после ЗАСЦ'), q('accessory_order', 'аксессуары')]) || 'устройств нет';
   const logSub = join([input.ship ? q('issue', 'выдача') : '', q('asc_prep', 'к АСЦ'), q('asc_receive', 'из АСЦ'), input.tripPrep ? 'партия в командировку' : '']) || (qx ? 'задач в очереди нет' : `по прогнозу на ${PLAN_DOW[d]}`);
-  const okkSub = q('okk', 'проверка') || (qx ? 'проверок в очереди нет' : `по прогнозу на ${PLAN_DOW[d]}`);
-  const st = (left, need, extra) => need <= 0 ? ['', 'нет работы'] : left > 1 ? ['bad', `не хватает ${planR1(left / 60)} ч`] : extra || ['ok', 'закрыто'];
-  const diagSt = plan.diagNeed <= 0 ? ['', 'нет работы'] : bal < -30 ? ['bad', `не хватает ${planR1(-bal / 60)} ч`] : bal > 120 ? ['ok', `резерв ${planR1(bal / 60)} ч`] : ['ok', 'закрыто'];
+  const okkSub = q('okk', 'проверка перед выдачей') || (qx ? 'проверок в очереди нет' : `по прогнозу на ${PLAN_DOW[d]}`);
+  const st = (left, need, extra) => need <= 0 ? ['', 'нет работы'] : left > 1 ? ['bad', `не хватает ${planR1(left / 60)} ч`] : extra || ['ok', 'успеваем'];
+  const diagSt = plan.diagNeed <= 0 ? ['', 'нет работы'] : bal < -30 ? ['bad', `не хватает ${planR1(-bal / 60)} ч`] : bal < 30 ? ['warn', 'впритык'] : ['ok', 'успеваем'];
   const issueLate = plan.warn.some(x => x.startsWith('Отправки клиентам'));
   document.getElementById('pd-kpi').innerHTML =
     shiftRoleRow('diag', plan.diagNeed, plan.diagCap, planWho(byRole('diag')), diagSub, diagSt)
     + shiftRoleRow('log', input.log, input.log - plan.logLeft, planWho(byRole('log')), logSub,
-      st(plan.logLeft, input.log, input.ship && input.issue ? (issueLate ? ['warn', 'выдача не к 15:00'] : ['ok', 'выдача к 15:00']) : null))
+      st(plan.logLeft, input.log, input.ship && input.issue ? (issueLate ? ['warn', 'не к 15:00'] : ['ok', 'к 15:00']) : null))
     + shiftRoleRow('okk', input.okk, input.okk - plan.okkLeft, planWho(byRole('okk')), okkSub, st(plan.okkLeft, input.okk));
+  const shiftH = people.reduce((a, p) => a + (p.end - p.start), 0) / 60;
+  const capH = people.reduce((a, p) => a + p.cap, 0) / 60;
+  const needH = (plan.diagNeed + input.log + input.okk) / 60;
+  document.getElementById('pd-foot').innerHTML = `<span>В графике <b>${people.length} ${plural(people.length, 'человек', 'человека', 'человек')} · ${planR1(shiftH)} ч</b></span>`
+    + `<span>Рабочих при загрузке ${Math.round(input.util * 100)}% — <b>${planR1(capH)} ч</b></span><span>Нужно — <b>${planR1(needH)} ч</b></span>`;
 
-  // ── вывод: проблемы, командировки, резерв
-  const items = plan.warn.map(x => ['bad', esc(x)]);
-  if (bal < -30) items.unshift(['bad', `<b>Диагностика: не хватает ${planR1(-bal / 60)} ч</b> — около ${Math.round(-bal / sm.perDevice)} устр. перейдут на завтра. Кого вызвать — во вкладке «Неделя»`]);
-  items.push(...(planState.shiftTripLines || []));
-  if (!items.some(([c]) => c === 'bad' || c === 'warn')) {
-    items.unshift(['ok', bal > 120
-      ? `<b>Всё успеваем</b> · резерв ${planR1(bal / 60)} ч — можно взять задачи следующего дня или сократить смену`
-      : '<b>Всё успеваем</b> — смена загружена ровно']);
+  // ── вывод дня
+  const issues = plan.warn.map(x => ({ ...planSplitTopic(x, 'роли'), kind: 'bad' }));
+  let head, tone;
+  if (bal < -30) {
+    tone = 'bad';
+    head = `<b>Не хватает ${planR1(-bal / 60)} ч</b> диагностики`;
+    issues.unshift({ tag: 'диагностика', kind: 'bad', html: `около ${Math.round(-bal / sm.perDevice)} устр. перейдут на завтра — кого вызвать, видно во вкладке «Неделя»` });
+  } else if (issues.length) {
+    tone = 'bad';
+    const f = issues.shift();
+    head = `<b>${esc(f.tag[0].toUpperCase() + f.tag.slice(1))}</b>: ${f.html}`;
+  } else {
+    tone = 'ok';
+    head = bal > 30 ? `<b>Всё успеваем</b> · резерв ${planR1(bal / 60)} ч` : '<b>Всё успеваем</b> · смена загружена ровно';
+    if (bal > 120) issues.push({ tag: 'резерв', kind: 'info', html: 'можно взять задачи следующего дня или сократить смену' });
   }
-  renderShiftVerdict(items);
+  renderPlanVerdict('pd-verdict', { tone, label: 'Вывод дня', head, items: [...issues, ...trips] });
 
   // ── кто чем занят: группы по первой роли, шкала по часам
   const order = { okk: 0, log: 1, diag: 2 };
@@ -9991,22 +10302,27 @@ function renderShiftPlan(sm, plan, input, qx) {
   const pos = t => (t - t0) / span * 100;
   const step = hours > 12 ? 2 : 1;
   const ticks = Array.from({ length: Math.floor(hours / step) + 1 }, (_, i) => t0 + i * step * 60)
-    .map(t => `<span style="left:${pos(t)}%">${String(t / 60).padStart(2, '0')}</span>`).join('');
+    .map(t => `<span style="left:${pos(t)}%">${t / 60}:00</span>`).join('');
   const cut = input.ship && PLAN_ISSUE_CUTOFF > t0 && PLAN_ISSUE_CUTOFF < t1 ? `<b class="pl-cut" style="left:${pos(PLAN_ISSUE_CUTOFF)}%" title="Отправки клиентам — готово к 15:00"></b>` : '';
-  const segColor = c => c ? `background:color-mix(in srgb, ${planRoleColor(c)} 26%, transparent);border-left-color:${planRoleColor(c)}` : 'background:transparent;border-left-color:var(--hairline);color:var(--ink-muted)';
+  const role = c => PLAN_ROLES.find(r => r.code === c);
+  const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+  const showNow = input.date === planIso(now) && nowMin > t0 && nowMin < t1;
   document.getElementById('pd-gantt').innerHTML = `<div></div><div class="pl-gh">${ticks}</div><div class="pl-gh pl-gh-r" title="Работа по нормам ÷ сколько человек успел бы за смену">загрузка</div>`
     + rows.map(p => {
       const segs = p.segs.map(x => {
-        const len = x.to - x.from;
-        const label = len >= 180 ? `${planRoleName(x.role)} · ${planHM(x.from)}–${planHM(x.to)}` : len >= 75 ? planRoleName(x.role) : '';
-        return `<div class="pl-bar-seg" style="left:${pos(x.from)}%;width:${pos(x.to) - pos(x.from)}%;${segColor(x.role)}" title="${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}">${label}</div>`;
+        const len = x.to - x.from, r = role(x.role);
+        const label = len >= 120 ? (r ? r.name : 'свободно') : '';
+        const style = r ? `background:${r.color};color:${r.fg}` : 'background:var(--hatch);color:var(--ink-muted)';
+        return `<span class="pl-bar-seg" style="left:${pos(x.from)}%;width:${pos(x.to) - pos(x.from)}%;${style}" title="${planHM(x.from)}–${planHM(x.to)} ${esc(planRoleName(x.role))}">${label}</span>`;
       }).join('');
       const pct = p.cap ? Math.min(100, Math.round(p.work / p.cap * 100)) : 0;
-      return `<div class="pl-gname" title="${esc(p.emp)}">${esc(planShort(p.emp))}<span class="pl-sub-txt">${planHM(p.start)}–${planHM(p.end)}</span></div>
-        <div class="pl-track" style="--h:${hours}">${segs}${cut}</div>
+      return `<div class="pl-gname" title="${esc(p.emp)}"><span>${esc(planShort(p.emp))}</span><span class="pl-sub-txt">${planHM(p.start)}–${planHM(p.end)}</span></div>
+        <div class="pl-track">${segs}${cut}</div>
         <div class="pl-load" title="${planR1(p.work / 60)} из ${planR1(p.cap / 60)} ч по нормам">${pct}%<div class="pl-meter"><i style="width:${pct}%"></i></div></div>`;
-    }).join('');
+    }).join('')
+    + (showNow ? `<div></div><div class="pl-gh pl-now-row"><span class="pl-now" style="left:${pos(nowMin)}%">сейчас ${planHM(nowMin)}</span></div><div></div>` : '');
   document.getElementById('pd-legend').innerHTML = PLAN_ROLES.map(r => `<span><i style="background:${r.color}"></i>${r.name}</span>`).join('')
+    + '<span><i style="background:var(--hatch)"></i>свободно</span>'
     + (cut ? '<span><i class="pl-cut-i"></i>отправки к 15:00</span>' : '');
 }
 
@@ -10121,7 +10437,7 @@ function renderPlanIntake() {
     data: {
       labels: dates.map(d => `${d.slice(8, 10)}.${d.slice(5, 7)}`),
       datasets: [{ label: 'Принято устройств', data: dates.map(d => m.daily.get(d) || 0),
-        backgroundColor: dates.map(d => d > m.intakeTo ? 'rgba(150,150,150,.4)' : 'rgba(77,179,132,.7)') }],
+        backgroundColor: dates.map(d => d > m.intakeTo ? CC.light : CC.g) }],
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } }, y: { grid: { color: CC.grid } } } },
   });
@@ -10173,6 +10489,9 @@ function toggleTheme() {
   const next = (document.documentElement.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark';
   localStorage.setItem('xfix-theme', next);
   applyTheme(next);
+  // цвета серий заданы при построении — перестраиваем открытую страницу
+  STATE.loaded.clear();
+  if (STATE.currentPage) loadPageData(STATE.currentPage);
 }
 
 /** Подставляет SVG в статические плейсхолдеры <div data-ico="name"> */
@@ -10187,13 +10506,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   loadSettings();
   loadReports();
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.setAttribute('tabindex', '0');
-    item.setAttribute('role', 'button');
-    item.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
-    });
-  });
 });
 </script>
 </body>
