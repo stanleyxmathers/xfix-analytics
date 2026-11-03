@@ -10289,18 +10289,30 @@ function buildShiftPlan(sm, sched, input) {
     ? `ОКК: не хватает ${planR1(okk / 60)} ч — проверку надо отдать ещё кому-то с допуском`
     : 'ОКК: в смене нет никого с допуском — отметьте замещающего в допусках ниже');
 
-  // 2. Логистика с начала смены: сначала те, у кого она относительно сильнее диагностики
+  // 2. Логистика с начала смены. Первыми — те, кому больше нечего делать (нет допуска
+  //    к диагностике); если таких несколько, работу делим между ними поровну по ёмкости:
+  //    так логисты не простаивают, а отправки во вт/пт заканчиваются раньше.
+  //    Остаток — тем, у кого логистика относительно сильнее диагностики.
   let log = input.log, issueDone = 0;
+  const onlyLog = p => !sm.allowed(p.emp, 'diag');
   const logPeople = people.filter(p => sm.allowed(p.emp, 'log') && p.cursor < p.end).sort((a, b) =>
-    (input.ship ? (b.start < PLAN_ISSUE_CUTOFF - 120) - (a.start < PLAN_ISSUE_CUTOFF - 120) : 0)
+    onlyLog(b) - onlyLog(a)
+    || (input.ship ? (b.start < PLAN_ISSUE_CUTOFF - 120) - (a.start < PLAN_ISSUE_CUTOFF - 120) : 0)
     || (b.sp.log / b.sp.diag) - (a.sp.log / a.sp.diag)
     || sm.share(b.emp, 'log') - sm.share(a.emp, 'log')
     || a.start - b.start);
+  const dedicated = logPeople.filter(onlyLog);
+  if (dedicated.length > 1 && log > 1) {
+    const capOf = p => (p.end - p.cursor) * input.util * p.sp.log;
+    const tot = dedicated.reduce((a, p) => a + capOf(p), 0);
+    const pool = Math.min(log, tot);
+    dedicated.forEach(p => { log -= assign(p, 'log', pool * capOf(p) / tot); });
+  }
   for (const p of logPeople) {
     if (log <= 1) break;
     log -= assign(p, 'log', log);
-    if (input.ship) issueDone += before(p.segs[p.segs.length - 1], PLAN_ISSUE_CUTOFF);
   }
+  if (input.ship) people.forEach(p => p.segs.forEach(x => { if (x.role === 'log') issueDone += before(x, PLAN_ISSUE_CUTOFF); }));
   if (log > 1) warn.push(`Логистика: не хватает ${planR1(log / 60)} ч — некому с допуском`);
   if (input.ship && issueDone + 1 < Math.min(input.issue, input.log)) {
     warn.push(`Отправки клиентам: к 15:00 по плану успеваем ~${planR1(issueDone / 60)} из ${planR1(input.issue / 60)} ч — поставьте на логистику с утра ещё одного человека`);
