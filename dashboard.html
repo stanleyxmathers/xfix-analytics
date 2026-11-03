@@ -1403,6 +1403,76 @@ body[data-page="planning"] .page-head .pl-headtools { display: flex; }
 @media (max-width: 1100px) {
   .pl-role { grid-template-columns: 1fr 110px 120px; }
 }
+
+/* ─── Главная ─────────────────────────────────────────────────────────── */
+.sc { font-size: 12px; color: var(--ink-muted); font-weight: 400; }
+.sv { font-size: 15px; font-weight: 500; }
+.ov-layout { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; margin-bottom: 28px; }
+.ov-main { flex: 999 1 720px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.ov-row3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.ov-row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; }
+.ov-card { display: flex; flex-direction: column; gap: 14px; }
+.ov-card.clickable { cursor: pointer; }
+.ov-card.clickable:hover { box-shadow: inset 0 0 0 1.5px var(--contrast); }
+.ov-hd { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); }
+.ov-hd svg { flex-shrink: 0; }
+.ov-hd h2 { margin: 0; font-size: 14px; font-weight: 400; }
+.ov-sp { flex: 1; }
+.ov-arr { width: 28px; height: 28px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.ov-arr:hover { background: var(--ground); }
+.ov-big { font-family: var(--font-display); font-size: 48px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.ov-big.c { text-align: center; }
+.ov-big sup { font-size: .34em; font-weight: 400; letter-spacing: 0; vertical-align: top; position: relative; top: .1em; margin-left: 2px; }
+.ov-pairs { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.ov-pair { display: flex; flex-direction: column; gap: 2px; }
+.ov-pair.r { text-align: right; }
+.ov-col { display: flex; flex-direction: column; gap: 10px; }
+.ov-col.r { text-align: right; }
+.ov-split { display: flex; align-items: center; gap: 4px; height: 26px; }
+.ov-split > span { height: 100%; border-radius: 6px; background: var(--green-500); }
+.ov-split > i { width: 5px; height: 100%; border-radius: 3px; background: var(--contrast); flex-shrink: 0; }
+.ov-split > b { flex: 1 1 auto; height: 100%; background: var(--ticks); }
+.ov-gauge { position: relative; height: 118px; }
+.ov-gauge .ov-big { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 44px; }
+.ov-zbar { display: flex; gap: 3px; height: 44px; }
+.ov-zbar > span { min-width: 26px; height: 100%; border-radius: 8px; }
+.ov-zleg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.ov-zleg > div { display: flex; gap: 10px; align-items: flex-start; }
+.ov-zleg i { width: 10px; height: 10px; margin-top: 5px; border-radius: 3px; flex-shrink: 0; }
+.ov-reason { display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 6px 12px; align-items: center; font-size: 13px; }
+.ov-reason > b { font-weight: 500; text-align: right; }
+.ov-rbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 3px; height: 12px; }
+.ov-rbar > span { height: 100%; border-radius: 4px; }
+.ov-rbar > b { flex: 1 1 auto; height: 100%; background: var(--ticks); opacity: .6; }
+#ov-reasons { display: flex; flex-direction: column; gap: 12px; }
+.ov-vendors { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 0; }
+.ov-vendor { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ov-vtop { display: flex; align-items: center; gap: 10px; }
+.ov-ini { width: 34px; height: 34px; border-radius: var(--radius-pill); background: var(--ground); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.ov-ini.g { background: var(--green-500); color: #000; }
+.ov-vname { display: flex; flex-direction: column; min-width: 0; font-size: 14px; font-weight: 500; }
+.ov-vfoot { display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid var(--hairline); padding-top: 10px; }
+.ov-vfoot b { font-weight: 600; }
+.ov-aside { flex: 1 1 320px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ov-hero { border-radius: var(--radius-xl); padding: 16px 18px; min-height: 146px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; color: #000; background: radial-gradient(120% 120% at 30% 20%, #6FD071 0%, #39BB3B 45%, rgba(57,187,59,.75) 100%); box-shadow: 0 20px 40px -24px rgba(46,154,48,.55); }
+.ov-hero-l { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.ov-hero .ov-arr { color: #000; }
+.ov-hero .ov-arr:hover { background: rgba(255,255,255,.35); }
+.ov-hero p { margin: 0; font-size: 19px; line-height: 1.3; letter-spacing: -0.01em; }
+.ov-hero b { font-weight: 600; }
+.ov-aside .insight-list { gap: 14px; }
+.ov-rec { display: flex; gap: 10px; align-items: flex-start; }
+.ov-rec-n { width: 24px; height: 24px; border-radius: var(--radius-pill); background: var(--ground); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.ov-rec-n.k { background: var(--contrast); color: var(--on-contrast); }
+.ov-rec-n.g { background: var(--green-500); color: #000; }
+.ov-rec-t { display: flex; flex-direction: column; gap: 2px; font-size: 14px; font-weight: 500; line-height: 1.35; }
+.ov-rec-t .sc { font-size: 13px; }
+.ov-aside-foot { margin-top: auto; }
+.ov-report { width: 100%; display: flex; align-items: center; gap: 8px; border: 0; background: var(--surface-2); border-radius: 14px; padding: 6px 6px 6px 14px; font: inherit; font-size: 13px; color: var(--ink-muted); text-align: left; cursor: pointer; }
+.ov-report > span:first-child { flex: 1; }
+.ov-report-go { width: 40px; height: 40px; border-radius: 10px; background: var(--contrast); color: var(--on-contrast); display: flex; align-items: center; justify-content: center; }
+.ov-report:hover .ov-report-go { opacity: .86; }
+.ov-aside .ai-card { background: var(--surface-2); padding: 14px; }
 /* Еженедельный отчёт: заголовок страницы — сам слайд */
 body[data-page="methodology"] .page-head { justify-content: flex-end; margin-bottom: 0; }
 body[data-page="methodology"] .page-head-text { display: none; }
@@ -1497,31 +1567,35 @@ body[data-page="methodology"] .page-head-text { display: none; }
 
       <!-- ─ Overview ──────────────────────────────────────────────────────── -->
       <div class="page active" id="page-overview">
-        <div class="kpi-grid" id="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">Обращений</div><div class="kpi-value">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Доля перерасхода</div><div class="kpi-value accent">—</div></div>
-        </div>
-
-        <div class="charts-grid">
-          <div class="card">
-            <div class="card-title">Зоны обращений</div>
-            <div class="chart-wrap"><canvas id="chart-zones"></canvas></div>
+        <div class="ov-layout">
+          <div class="ov-main">
+            <section class="ov-row3" id="kpi-grid">
+              <article class="card ov-card"><div class="ov-hd"><h2>Обращения</h2></div><div class="ov-big">—</div></article>
+              <article class="card ov-card"><div class="ov-hd"><h2>Перерасход от выплат</h2></div><div class="ov-big">—</div></article>
+              <article class="card ov-card"><div class="ov-hd"><h2>Средняя стоимость</h2></div><div class="ov-big">—</div></article>
+            </section>
+            <section class="ov-row2">
+              <article class="card ov-card">
+                <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg><h2>Зоны обращений</h2><span class="ov-sp"></span><button type="button" class="ov-arr" onclick="openServiceList('nonstandard')" aria-label="Нестандартные обращения"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button></div>
+                <div id="ov-zones"></div>
+              </article>
+              <article class="card ov-card">
+                <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 5h16v3H4zM4 10.5h11v3H4zM4 16h7v3H4z"/></svg><h2>Причины перерасхода</h2><span class="ov-sp"></span><span class="sc">доп. действия</span><button type="button" class="ov-arr" onclick="gotoOverruns()" aria-label="Открыть перерасходы"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></button></div>
+                <div id="ov-reasons"></div>
+              </article>
+            </section>
+            <section class="ov-vendors" id="vendor-kpis"></section>
           </div>
-          <div class="card">
-            <div class="card-title">Вендоры — выплаты</div>
-            <div class="chart-wrap"><canvas id="chart-vendors-pie"></canvas></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Авто-инсайты</div>
-          <div class="insight-list" id="insights-list">
-            <div class="empty-state"><div class="empty-state-icon" data-ico="bulb"></div><div class="empty-state-title">Загрузите отчёт для получения инсайтов</div></div>
-          </div>
+          <aside class="card ov-aside" aria-label="Инсайты периода">
+            <article class="ov-hero" id="ov-hero"><span class="ov-hero-l"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Инсайт периода</span><p>Загрузите отчёт</p></article>
+            <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg><h2>Что изменилось</h2><span class="ov-sp"></span><span class="sc">автоматически</span></div>
+            <div class="insight-list" id="insights-list">
+              <div class="empty-state"><div class="empty-state-icon" data-ico="bulb"></div><div class="empty-state-title">Загрузите отчёт для получения инсайтов</div></div>
+            </div>
+            <div class="ov-aside-foot">
+              <button type="button" class="ov-report" onclick="openManagerReport()"><span>Менеджерский отчёт · печать в PDF</span><span class="ov-report-go" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11 21 3l-8 18-2-8z"/></svg></span></button>
+            </div>
+          </aside>
         </div>
 
         <!-- Динамика -->
@@ -1541,7 +1615,6 @@ body[data-page="methodology"] .page-head-text { display: none; }
         <div class="section-header" style="margin-top:28px">
           <div><div class="section-title">Вендоры</div><div class="section-sub">Apple vs Яндекс сравнение</div></div>
         </div>
-        <div class="kpi-grid" id="vendor-kpis"></div>
         <div class="charts-grid">
           <div class="card">
             <div class="card-title" id="vendor-services-title">Динамика обращений по вендорам</div>
@@ -4063,7 +4136,6 @@ const fmt = {
 ══════════════════════════════════════════════════════════════════════════════ */
 async function loadOverview() {
   if (!STATE.currentReportId) return;
-  skelKpi('kpi-grid', 6);
   try {
     const [overview, insights, vendorsResp] = await Promise.all([
       api('overview', { report_id: STATE.currentReportId }),
@@ -4074,36 +4146,8 @@ async function loadOverview() {
     if (!d) return;
     const vRows = Array.isArray(vendorsResp) ? vendorsResp : (vendorsResp.rows || []);
 
-    document.getElementById('kpi-grid').innerHTML = `
-      <div class="kpi-card clickable" onclick="openServiceList('all')" title="Список обращений с копированием id"><div class="kpi-label">Обращений</div><div class="kpi-value">${fmt.num(d.total_services)}</div>${d.prev_services ? `<div>${fmt.delta((d.total_services - d.prev_services) / d.prev_services * 100)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Выплат</div><div class="kpi-value">${fmt.money(d.total_payments)}</div>${d.prev_payments ? `<div>${fmt.delta((d.total_payments - d.prev_payments) / d.prev_payments * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Ср. стоимость</div><div class="kpi-value">${fmt.money(d.avg_service_cost)}</div>${d.prev_avg ? `<div>${fmt.delta((d.avg_service_cost - d.prev_avg) / d.prev_avg * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card clickable" onclick="openServiceList('nonstandard')" title="Список нестандартных обращений — клик по id открывает карточку в CRM"><div class="kpi-label">Нестандартных</div><div class="kpi-value danger">${fmt.num(d.non_standard_count)}</div>${d.prev_nonstandard != null && d.prev_services ? `<div>${fmt.delta((d.non_standard_count - d.prev_nonstandard) / d.prev_nonstandard * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card clickable" onclick="gotoOverruns()" title="Перейти в раздел «Перерасходы»"><div class="kpi-label">Перерасход</div><div class="kpi-value danger">${fmt.money(d.total_overrun)}</div>${d.prev_overrun != null && d.prev_services ? `<div>${fmt.delta((d.total_overrun - d.prev_overrun) / d.prev_overrun * 100, true)}</div>` : ''}</div>
-      <div class="kpi-card"><div class="kpi-label">Доля перерасхода</div><div class="kpi-value accent">${fmt.pct(d.total_payments ? d.total_overrun / d.total_payments * 100 : 0)}</div>${d.prev_payments && d.prev_overrun ? `<div>${fmt.delta(((d.total_overrun / d.total_payments) - (d.prev_overrun / d.prev_payments)) / (d.prev_overrun / d.prev_payments) * 100, true)}</div>` : ''}</div>
-    `;
-
-    // Zone chart
-    mkChart('chart-zones', {
-      type: 'doughnut',
-      data: {
-        labels: ['Норма', 'Небольшое', 'Повышен', 'Критично'],
-        datasets: [{ data: [d.zone_normal||0, d.zone_small||0, d.zone_elevated||0, d.zone_critical||0], backgroundColor: [CC.g, CC.light, CC.mid, CC.k], borderWidth: 0, hoverOffset: 6 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
-    });
-
-    // Vendor pie
-    if (vRows.length) {
-      mkChart('chart-vendors-pie', {
-        type: 'doughnut',
-        data: {
-          labels: vRows.map(v => v.vendor),
-          datasets: [{ data: vRows.map(v => v.payments), backgroundColor: PALETTE, borderWidth: 0, hoverOffset: 6 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
-      });
-    }
+    renderOverviewCards(d, vRows);
+    loadOverviewReasons();
 
     // Insights
     const insightRows = Array.isArray(insights) ? insights : (insights.rows || []);
@@ -4161,13 +4205,10 @@ async function loadOverview() {
     }
 
     if (regularRows.length) {
-      html += regularRows.map(i => `
-        <div class="insight-item">
-          <div class="insight-icon">${ico(i.direction==='up' ? 'trendUp' : 'trendDown', 18)}</div>
-          <div>
-            <div class="insight-msg">${i.message}</div>
-            <div class="insight-meta">${i.insight_type} · ${i.change_pct ? fmt.pct(i.change_pct) : ''}</div>
-          </div>
+      html += regularRows.map((i, n) => `
+        <div class="ov-rec">
+          <span class="ov-rec-n ${n === 0 ? 'k' : n === 1 ? 'g' : ''}">${n + 1}</span>
+          <span class="ov-rec-t"><span>${i.message}</span>${i.change_pct ? `<span class="sc">${i.direction === 'up' ? 'рост' : 'снижение'} ${fmt.pct(Math.abs(i.change_pct))}</span>` : ''}</span>
         </div>
       `).join('');
     }
@@ -4178,6 +4219,94 @@ async function loadOverview() {
 
     el.innerHTML = html;
   } catch(e) { console.error('overview', e); }
+}
+
+
+/* ─── Главная: карточки периода в стиле XFIX Mono ────────────────────────── */
+const OV_ARR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+const ovNum = v => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(v);
+const ovShort = v => Math.abs(v) >= 1e6 ? `${ovNum(v / 1e6)} млн` : Math.abs(v) >= 1e4 ? `${ovNum(v / 1e3)} тыс` : fmt.num(Math.round(v));
+const ovDelta = (cur, prev) => prev ? `${cur >= prev ? '+' : '−'}${ovNum(Math.abs((cur - prev) / prev * 100))}%` : '';
+// полоса: доля зелёным, чёрная отметка, остаток — штрихи
+const ovSplit = (share, label) => `<div class="ov-split" role="img" aria-label="${label}"><span style="width:${Math.max(0, Math.min(100, share * 100)).toFixed(1)}%"></span><i></i><b></b></div>`;
+function ovPair(v, cap, right) {
+  return `<span class="ov-pair${right ? ' r' : ''}"><span class="sv">${v}</span><span class="sc">${cap}</span></span>`;
+}
+
+function renderOverviewCards(d, vRows) {
+  const svc = +d.total_services || 0, pay = +d.total_payments || 0, ov = +d.total_overrun || 0;
+  const norm = +d.zone_normal || 0, ns = +d.non_standard_count || 0;
+  const share = pay ? ov / pay * 100 : 0;
+  const prevShare = d.prev_payments && d.prev_overrun != null ? d.prev_overrun / d.prev_payments * 100 : null;
+  const cmp = STATE.period && STATE.period.prevLabel ? 'к пред.' : 'к пред. периоду';
+
+  // полукольцо: шкала до 30% (или шире, если перерасход больше)
+  const top = Math.max(30, Math.ceil(Math.max(share, prevShare || 0) / 10) * 10);
+  const cx = 120, cy = 112, R = 96;
+  const pt = f => { const a = Math.PI * (1 - f); return [cx + R * Math.cos(a), cy - R * Math.sin(a)]; };
+  const arc = f => { const p = pt(Math.max(0.0001, Math.min(0.9999, f))); return `M${cx - R} ${cy} A${R} ${R} 0 0 1 ${p[0].toFixed(1)} ${p[1].toFixed(1)}`; };
+  const dot = pt(Math.min(0.9999, share / top));
+  const gauge = `<svg viewBox="0 0 240 124" width="100%" height="118" role="img" aria-label="Перерасход ${ovNum(share)}% от выплат${prevShare != null ? `, было ${ovNum(prevShare)}%` : ''}">
+      <path d="${arc(0.9999)}" fill="none" stroke="var(--ground)" stroke-width="14" stroke-linecap="round"/>
+      ${prevShare != null ? `<path d="${arc(prevShare / top)}" fill="none" stroke="var(--light)" stroke-width="14" stroke-linecap="round"/>` : ''}
+      <path d="${arc(share / top)}" fill="none" stroke="var(--contrast)" stroke-width="14" stroke-linecap="round"/>
+      <circle cx="${dot[0].toFixed(1)}" cy="${dot[1].toFixed(1)}" r="9" fill="var(--green-500)" stroke="var(--surface)" stroke-width="3"/>
+    </svg>`;
+
+  const vAvg = vRows.filter(v => +v.services).map(v => ({ n: v.vendor, avg: +v.payments / +v.services })).sort((a, b) => b.avg - a.avg);
+  document.getElementById('kpi-grid').innerHTML = `
+    <article class="card ov-card clickable" onclick="openServiceList('all')" title="Список обращений с копированием id">
+      <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h10v4H4zM4 10h16v4H4zM4 16h12v4H4z"/></svg><h2>Обращения</h2><span class="ov-sp"></span><span class="sc">${d.prev_services ? `${ovDelta(svc, d.prev_services)} ${cmp}` : ''}</span></div>
+      <div class="ov-big c">${fmt.num(svc)}</div>
+      <div class="ov-pairs">${ovPair(fmt.num(norm), 'в норме')}${ovPair(fmt.num(ns), 'нестандартных', true)}</div>
+      ${ovSplit(svc ? norm / svc : 0, `${svc ? ovNum(norm / svc * 100) : 0}% обращений в норме`)}
+    </article>
+    <article class="card ov-card clickable" onclick="gotoOverruns()" title="Перейти в раздел «Перерасходы»">
+      <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8v6h-2V9.4l-6 6-4-4-4.6 4.6z"/></svg><h2>Перерасход от выплат</h2></div>
+      <div class="ov-pairs">${ovPair(ovShort(ov), 'перерасход, ₽')}${ovPair(ovShort(pay), 'выплаты, ₽', true)}</div>
+      <div class="ov-gauge">${gauge}<div class="ov-big">${ovNum(share)}<sup>%</sup></div></div>
+      <div class="sc" style="text-align:center">шкала до ${top}%${prevShare != null ? ` · было ${ovNum(prevShare)}%` : ''}</div>
+    </article>
+    <article class="card ov-card">
+      <div class="ov-hd"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15.9V19h-2v-1.1A3.5 3.5 0 0 1 8 14.5h2a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 0-3h-1a3.5 3.5 0 0 1-.5-7V5h2v1.1a3.5 3.5 0 0 1 3 3.4h-2A1.5 1.5 0 0 0 12.5 8h-1a1.5 1.5 0 0 0 0 3h1a3.5 3.5 0 0 1 .5 6.9z"/></svg><h2>Средняя стоимость</h2><span class="ov-sp"></span><span class="sc">на обращение</span></div>
+      <div class="ov-big c">${fmt.num(Math.round(+d.avg_service_cost || 0))}<sup>₽</sup></div>
+      <div class="ov-pairs">
+        <span class="ov-col">${d.prev_avg ? ovPair(ovDelta(+d.avg_service_cost, +d.prev_avg), cmp) + ovPair(fmt.money(d.prev_avg), 'было') : ovPair('—', 'нет сравнения')}</span>
+        <span class="ov-col r">${vAvg.slice(0, 2).map(v => ovPair(fmt.money(v.avg), esc(v.n), true)).join('')}</span>
+      </div>
+    </article>`;
+
+  // зоны: сегменты по доле, подписи — число и доля
+  const zones = [['В норме', +d.zone_normal || 0, 'var(--green-500)'], ['Небольшой, до 30%', +d.zone_small || 0, 'var(--light)'],
+    ['Повышенный, до 100%', +d.zone_elevated || 0, 'var(--mid)'], ['Критичный, свыше 100%', +d.zone_critical || 0, 'var(--contrast)']];
+  const zt = zones.reduce((a, z) => a + z[1], 0) || 1;
+  document.getElementById('ov-zones').innerHTML = `
+    <div class="ov-zbar" role="img" aria-label="${zones.map(z => `${z[0]} — ${z[1]}`).join(', ')}">${zones.filter(z => z[1]).map(z => `<span style="width:${(z[1] / zt * 100).toFixed(2)}%;background:${z[2]}"></span>`).join('')}</div>
+    <div class="ov-zleg">${zones.map(z => `<div><i style="background:${z[2]}"></i><span class="ov-pair"><span class="sv">${fmt.num(z[1])} <span class="sc">· ${ovNum(z[1] / zt * 100)}%</span></span><span class="sc">${z[0]}</span></span></div>`).join('')}</div>`;
+
+  // инсайт периода
+  const hero = document.getElementById('ov-hero');
+  const dOv = d.prev_overrun ? (ov - d.prev_overrun) / d.prev_overrun * 100 : null;
+  hero.innerHTML = `<span class="ov-hero-l"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Инсайт периода<span class="ov-sp"></span><button type="button" class="ov-arr" onclick="gotoOverruns()" aria-label="Открыть перерасходы">${OV_ARR}</button></span>
+    <p>${dOv != null
+      ? `<b>${esc(STATE.period ? STATE.period.label : 'За период')}</b> перерасход ${dOv >= 0 ? 'вырос' : 'снизился'} на <b>${ovNum(Math.abs(dOv))}%</b> — до ${fmt.money(ov)}`
+      : `Перерасход <b>${fmt.money(ov)}</b> — <b>${ovNum(share)}%</b> выплат`}</p>`;
+}
+
+async function loadOverviewReasons() {
+  const el = document.getElementById('ov-reasons');
+  try {
+    const data = await api('reasons', { report_id: STATE.currentReportId });
+    const rows = (Array.isArray(data) ? data : (data.rows || [])).slice(0, 5);
+    if (!rows.length) { el.innerHTML = '<div class="sc" style="padding:12px 0">Перерасходов нет</div>'; return; }
+    const max = Math.max(...rows.map(r => +r.total_overrun)) || 1;
+    el.innerHTML = rows.map((r, i) => `
+      <div class="ov-reason">
+        <span>${esc(r.reason)} <span class="sc">· ${fmt.num(r.cases_count)} случ.</span></span>
+        <b>${ovShort(+r.total_overrun)}</b>
+        <span class="ov-rbar" role="img" aria-label="${esc(r.reason)}: ${fmt.money(r.total_overrun)}"><span style="width:${(+r.total_overrun / max * 72).toFixed(1)}%;background:${i ? 'var(--green-500)' : 'var(--contrast)'}"></span><b></b></span>
+      </div>`).join('');
+  } catch (e) { console.error('overview reasons', e); el.innerHTML = ''; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -4744,13 +4873,13 @@ async function loadVendors() {
     if (!rows.length) return;
 
     document.getElementById('vendor-kpis').innerHTML = rows.map((r, i) => `
-      <div class="kpi-card">
-        <div class="kpi-label" style="color:${PALETTE[i]}">${r.vendor}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px">количество в текущем периоде</div>
-        <div class="kpi-value">${fmt.num(r.services)}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${fmt.money(r.payments)} выплат</div>
-        <div style="font-size:12px;color:var(--xf-red);margin-top:2px">−${fmt.money(r.overrun)} перерасход</div>
-      </div>
+      <article class="card ov-vendor">
+        <span class="ov-vtop">
+          <span class="ov-ini${i === 0 ? ' g' : ''}">${esc(String(r.vendor || '?').slice(0, 1).toUpperCase())}</span>
+          <span class="ov-vname"><span>${esc(r.vendor)}</span><span class="sc">${fmt.num(r.services)} обращ. · ${ovShort(+r.payments)} ₽</span></span>
+        </span>
+        <span class="ov-vfoot"><span><span class="sc">ср. </span>${fmt.money(+r.services ? r.payments / r.services : 0)}</span><span><span class="sc">перерасх. </span><b>${+r.payments ? ovNum(r.overrun / r.payments * 100) : 0}%</b></span></span>
+      </article>
     `).join('');
 
     await Promise.all([
