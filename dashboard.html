@@ -1473,6 +1473,31 @@ body[data-page="planning"] .page-head .pl-headtools { display: flex; }
 .ov-report-go { width: 40px; height: 40px; border-radius: 10px; background: var(--contrast); color: var(--on-contrast); display: flex; align-items: center; justify-content: center; }
 .ov-report:hover .ov-report-go { opacity: .86; }
 .ov-aside .ai-card { background: var(--surface-2); padding: 14px; }
+
+@media (max-width: 720px) {
+  .pl-head .tabs.pl-tabs { overflow: visible; flex-wrap: wrap; width: auto; }
+  .pl-role { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; }
+  .pl-role .pl-rbar { grid-column: 1 / -1; grid-row: 2; }
+  .pl-role-who { display: none; }
+  .pl-role-st { grid-column: 1 / -1; text-align: left; }
+  .pl-vhead { font-size: 24px; }
+  .ov-row2 { grid-template-columns: 1fr; }
+  .ov-big { font-size: 40px; }
+  /* широкие таблицы листаются внутри карточки, а не растягивают страницу */
+  .data-table { display: block; overflow-x: auto; }
+  .section-header { flex-wrap: wrap; }
+  .section-header > div { flex-wrap: wrap; }
+  .card { min-width: 0; }
+}
+
+/* Печать (менеджерский отчёт в PDF): только содержимое страницы */
+@media print {
+  body { background: #fff; }
+  .xhead, .page-head, .toast-container, .processing-banner, .slide-nav, .slide-hint, .page-active-only-print-hide { display: none !important; }
+  .app { max-width: none; padding: 0; }
+  .card, .kpi-card { break-inside: avoid; }
+  .page.active { animation: none; }
+}
 /* Еженедельный отчёт: заголовок страницы — сам слайд */
 body[data-page="methodology"] .page-head { justify-content: flex-end; margin-bottom: 0; }
 body[data-page="methodology"] .page-head-text { display: none; }
@@ -1644,7 +1669,7 @@ body[data-page="methodology"] .page-head-text { display: none; }
         </div>
 
         <div class="section-header" style="margin-top:28px">
-          <div><div class="section-title">Перерасходы</div><div class="section-sub">Обращения с превышением базовой стоимости</div></div>
+          <div><div class="section-title">Обращения с перерасходом</div><div class="section-sub">Обращения с превышением базовой стоимости</div></div>
         </div>
         <div class="card">
           <div class="card-title">Таблица перерасходов</div>
